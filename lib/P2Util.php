@@ -1595,13 +1595,16 @@ ERR;
         if ($nama_url) {
 
             // 2ch or pink - http://choco.2ch.net/test/read.cgi/event/1027770702/
-            if (preg_match('<^http://(\\w+\\.(?:2ch\\.net|bbspink\\.com))/test/read\\.(?:cgi|html)
-                    /(\\w+)/([0-9]+)(?:/([^/]*))?>x', $nama_url, $matches))
+            //               http://same.ula.cc/test/r.so/anchorage.2ch.net/occult/1250118296/332?guid=ON 
+            if (preg_match('<^http://(same\\.ula\\.cc/test/r\\.so/)?(\\w+\\.(?:2ch\\.net|bbspink\\.com))(/test/read\\.(?:cgi|html))?
+                    /(\\w+)/([0-9]+)(?:/([^/]*))?>x', $nama_url, $matches)
+                    && $matches[1] xor $matches[3]
+                    )
             {
-                $host = $matches[1];
-                $bbs = $matches[2];
-                $key = $matches[3];
-                $ls = (isset($matches[4]) && strlen($matches[4])) ? $matches[4] : '';
+                $host = $matches[2];
+                $bbs = $matches[4];
+                $key = $matches[5];
+                $ls = (isset($matches[6]) && strlen($matches[6])) ? $matches[6] : '';
 
             // 2ch or pink âﬂãéÉçÉOhtml - http://pc.2ch.net/mac/kako/1015/10153/1015358199.html
             } elseif (preg_match('<^(http://(\\w+\\.(?:2ch\\.net|bbspink\\.com))(?:/[^/]+)?/(\\w+)
