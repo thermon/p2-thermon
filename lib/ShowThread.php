@@ -1180,6 +1180,7 @@ EOP;
                                 {continue;}
                         for ($i = $from; $i <= $to; $i++) {
                             if ($i > sizeof($this->thread->datlines)) {break;}
+                            if ($i >= $num+1) {continue;}	// スレ番号以降のアンカーは無視する
                             if (!array_key_exists($i, $this->_quote_from) || $this->_quote_from[$i] === null) {
                                 $this->_quote_from[$i] = array();
                             }
@@ -1189,6 +1190,7 @@ EOP;
                         }
                     } else if (preg_match($this->getAnchorRegex('/(%a_num%)/'), $anchor, $matches)) {
                         $quote_num = intval(mb_convert_kana($matches[1], 'n'));
+                        if ($quote_num >= $num+1) {continue;}	// スレ番号以降のアンカーは無視する
                         if (!array_key_exists($quote_num, $this->_quote_from) || $this->_quote_from[$quote_num] === null) {
                             $this->_quote_from[$quote_num] = array();
                         }
