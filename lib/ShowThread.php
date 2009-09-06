@@ -187,7 +187,7 @@ abstract class ShowThread
         //$anchor[' '] = '';
 
         // アンカー引用子 >>
-        $anchor['prefix'] = "(?:&gt;|＞|&lt;|＜|〉|》|≫){1,2}{$anchor_space}*\.?";
+        $anchor['prefix'] = "(?:(?:&gt;|＞|&lt;|＜|〉){1,2}|(?:\)){2}|》|≫){$anchor_space}*";
 
         // 数字
         $anchor['a_digit'] = '(?:\\d|０|１|２|３|４|５|６|７|８|９)';
@@ -208,7 +208,7 @@ abstract class ShowThread
         $anchor['range_delimiter'] = "(?:-|‐|\x81\\x5b)"; // ー
 
         // 列挙指定子
-        $anchor['delimiter'] = "{$anchor_space}?(?:[,=+]|、|・|＝|，){$anchor_space}?";
+        $anchor['delimiter'] = "{$anchor_space}?(?:[\.,=+]|、|・|＝|，){$anchor_space}?";
 
         // あぼーん用アンカー引用子
         $anchor['prefix_abon'] = "&gt;{1,2}{$anchor_space}?";
@@ -293,7 +293,7 @@ abstract class ShowThread
      * @param   bool $is_fragment   trueなら<div class="thread"></div>で囲まない
      * @return  bool|string
      */
-    public function datToHtml($capture = false, $is_fragment = false)
+    public function datToHtml($capture = false, $is_fragment = false,$return_array=false)
     {
         global $_conf;
 
@@ -365,12 +365,12 @@ abstract class ShowThread
         }
 
         if ($capture) {
-            return $buf['body'] . $buf['q'];
+            return $return_array ? array($buf['body'],$buf['q']) : $buf['body'] .$buf['q'];
         } else {
             echo $buf['body'];
-            echo $buf['q'];
+            if (!$return_array) {echo $buf['q'];}
             flush();
-            return true;
+            return $return_array ? array($buf['body'],$buf['q']) :true;
         }
     }
 
@@ -1162,10 +1162,13 @@ EOP;
         global $_conf;
         $this->_quote_from = array();
         if (!$this->thread->datlines) return;
-
         foreach($this->thread->datlines as $num => $line) {
             list($name, $mail, $date_id, $msg) = $this->thread->explodeDatLine($line);
-            if (!preg_match_all($this->getAnchorRegex('/%full%/'), $msg, $out, PREG_PATTERN_ORDER)) continue;
+                    // >>1のリンクをいったん外す
+        // <a href="../test/read.cgi/accuse/1001506967/1" target="_blank">&gt;&gt;1</a>
+        $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
+            
+            if (preg_match_all($this->getAnchorRegex('/%full%/'), $msg, $out, PREG_PATTERN_ORDER))
             foreach ($out[2] as $numberq) {
                 if (!preg_match_all($this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), $numberq, $anchors, PREG_PATTERN_ORDER)) continue;
                 foreach ($anchors[1] as $anchor) {
@@ -1249,7 +1252,7 @@ EOP;
             } else {
                 $ret .= '<li>└';
             }
-            $ret .= $this->quoteRes($anchor, '', $anchor, true);
+            $ret .= $this->quoteRes($anchor, '', $anchor);
             $anchor_cnt++;
         }
         $ret .= '</ul></div>';
@@ -1258,10 +1261,15 @@ EOP;
     protected function _quoteback_horizontal_list_html($anchors)
     {
         $ret = '<div class="reslist">';
+//        $ret.= '<span class="reslist">';
         foreach($anchors as $idx=>$anchor) {
-            $anchors[$idx]= $this->quoteRes($anchor, '', $anchor);
+            $anchors[$idx]= $this->quoteRes('>>'.$anchor, '>>', $anchor);
+            $ret.= '<span class="reslist">';
+            $ret.="【参照レス：".$anchors[$idx]."】";
+            $ret.='</span><br>';
         }
-        $ret.="【参照レス：".join("/",$anchors)."】";
+//        $ret.="【参照レス：".join("/",$anchors)."】";
+//        $ret.='</span><p>';
         $ret.='</div>';
         return $ret;
     }

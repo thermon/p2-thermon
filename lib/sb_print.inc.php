@@ -275,13 +275,8 @@ EOP;
         if ($_conf['sb_show_fav']) {
             if ($aThreadList->spmode != 'taborn') {
 
-                if ($_conf['expack.misc.multi_favs']) {
-                    $favmark = (!empty($aThread->favs[$_SESSION['m_favlist_set']])) ? '★' : '+';
-                    $favdo = (!empty($aThread->favs[$_SESSION['m_favlist_set']])) ? 0 : 1;
-                } else {
-                    $favmark = (!empty($aThread->fav)) ? '★' : '+';
-                    $favdo = (!empty($aThread->fav)) ? 0 : 1;
-                }
+                $favmark = (!empty($aThread->favs[$_SESSION['m_favlist_set']])) ? '★' : '+';
+                $favdo = (!empty($aThread->favs[$_SESSION['m_favlist_set']])) ? 0 : 1;
                 $favtitle = $favdo ? 'お気にスレに追加' : 'お気にスレから外す';
                 $favdo_q = '&amp;setfav='.$favdo;
 

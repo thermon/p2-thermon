@@ -306,7 +306,7 @@ if ($_conf['ktai']) {
 
         $GLOBALS['filter_hits'] = 0;
 
-        echo "<p><b id=\"filterstart\">{$all}レス中 <span id=\"searching\">{$GLOBALS['filter_hits']}</span>レスがヒット</b></p>\n";
+        echo $insert="<p><b id=\"filterstart\">{$all}レス中 <span id=\"searching\">{$GLOBALS['filter_hits']}</span>レスがヒット</b></p>\n";
         echo <<<EOP
 <script type="text/javascript">
 //<![CDATA[
@@ -332,16 +332,15 @@ EOP;
             echo $aShowThread->getSpmObjJs();
         }
 
-        $res1 = $aShowThread->quoteOne(); // >>1ポップアップ用
         if ($_conf['coloredid.enable'] > 0 && $_conf['coloredid.click'] > 0 &&
             $_conf['coloredid.rate.type'] > 0) {
-            $mainhtml .= $res1['q'];
-            $mainhtml .= $aShowThread->datToHtml(true);
+            list($body,$quoted)= $aShowThread->datToHtml(true,false,true);
+            $mainhtml .=$body;
         } else {
-            echo $res1['q'];
-            $aShowThread->datToHtml();
+            list($body,$quoted)=$aShowThread->datToHtml(false,false,true);
         }
-
+        $res1 = $aShowThread->quoteOne(); // >>1ポップアップ用
+        $quoted.=$res1['q'];
 
         // レス追跡カラー
         if ($_conf['backlink_coloring_track']) {
@@ -380,6 +379,7 @@ EOP;
             echo "<p><b class=\"filtering\">{$all}レス中 {$GLOBALS['filter_hits']}レスがヒット</b></p>\n";
         }
     }
+    echo $quoted;
 
     // フッタ 表示
     require_once P2_LIB_DIR . '/read_footer.inc.php';

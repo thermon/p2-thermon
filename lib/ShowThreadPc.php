@@ -317,6 +317,7 @@ EOP;
         if ($_conf['backlink_list'] == 2) {
             $tores .= $this->quoteback_list_html($i, 2);
         }
+        $tores .= "<p>";
         $tores .= "</div>\n";
 
 //        $tores .= $rpop; // レスポップアップ用引用
