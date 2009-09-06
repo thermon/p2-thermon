@@ -78,12 +78,12 @@ a img.thumbnail {
 
 div.thread {
 	margin: 0;
-	padding: 1.0em 0 0 0;
+	padding: 0.8em 0 0 0;
 }
 
 /* レス */
 div.res {
-	margin: 0 0 2.0em 0;
+	margin: 0 0 1.0em 0;
 	padding: 0;
     width: 100%;
     /*\*//*/
@@ -135,12 +135,16 @@ div.res-header {
 div.res div.message {
 	margin: 0 0 0 2.5em;
 	padding: 2px 0 0 0;
+	border-width: 0px 0px 1px 0px;
+	border-style: dotted;
 }
 
 /* レスボディ (引用レスポップアップ) */
 div.respopup div.message {
 	margin: 0 0 0 2.5em;
 	padding: 2px 0 0 0;
+	border-width: 0px 0px 1px 0px;
+	border-style: dotted;
 }
 
 /* レスボディ内リンクの折り返し */
@@ -335,13 +339,17 @@ div.respopup div.v_reslist ul li:first-letter {
 /* 逆参照リスト 水平配置(通常) */
 div.res div.reslist {
     font-size:80%;
-    margin : 1em 0 0 3em;
+    margin : 0em 0 0 3em;
 }
 
 /* 逆参照リスト 水平配置(引用レスポップアップ)  */
 div.respopup div.reslist {
     font-size:90%;
-    margin : 1em 0 0 3em;
+    margin : 0em 0 0 3em;
+}
+span.reslist {
+    border-width: 0px 1px 1px 1px;
+    border-style: dotted;
 }
 
 .preview-video-switch {
