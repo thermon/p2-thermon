@@ -266,21 +266,23 @@ EOP;
 
         $tores .= "<div id=\"{$res_id}\" class=\"res\">\n";
         $tores .= "<div class=\"res-header\">";
-
+/*        $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$i}";
+        $i_with_link="<a href=\"{$read_url}\">{$i}</a>";*/
+        $i_with_link=$i;
         if ($this->thread->onthefly) {
             $GLOBALS['newres_to_show_flag'] = true;
             //番号（オンザフライ時）
-            $tores .= "<span class=\"ontheflyresorder spmSW\"{$spmeh}>{$i}</span> : ";
-        } elseif ($i > $this->thread->readnum) {
+            $tores .= "<span class=\"ontheflyresorder spmSW\"{$spmeh}>{$i_with_link}</span> : ";
+        } elseif ($i_with_link > $this->thread->readnum) {
             $GLOBALS['newres_to_show_flag'] = true;
             // 番号（新着レス時）
-            $tores .= "<span style=\"color:{$STYLE['read_newres_color']}\" class=\"spmSW\"{$spmeh}>{$i}</span> : ";
+            $tores .= "<span style=\"color:{$STYLE['read_newres_color']}\" class=\"spmSW\"{$spmeh}>{$i_with_link}</span> : ";
         } elseif ($_conf['expack.spm.enabled']) {
             // 番号（SPM）
-            $tores .= "<span class=\"spmSW\"{$spmeh}>{$i}</span> : ";
+            $tores .= "<span class=\"spmSW\"{$spmeh}>{$i_with_link}</span> : ";
         } else {
             // 番号
-            $tores .= "{$i} : ";
+            $tores .= "{$i_with_link} : ";
         }
         // 名前
         $tores .= preg_replace('{<b>[ ]*</b>}i', '', "<span class=\"name\"><b>{$name}</b></span> : ");
@@ -444,8 +446,11 @@ EOJS;
         }
 
         // $toresにまとめて出力
+/*        $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$i}";
+        $i_with_link="<a href=\"{$read_url}\">{$i}</a>";*/
+        $i_with_link=$i;
         $tores .= '<div class="res-header">';
-        $tores .= "<span class=\"spmSW\"{$spmeh}>{$i}</span> : "; // 番号
+        $tores .= "<span class=\"spmSW\"{$spmeh}>{$i_with_link}</span> : "; // 番号
         $tores .= preg_replace('{<b>[ ]*</b>}i', '', "<b>{$name}</b> : ");
         if ($mail) {
             $tores .= $mail . ' : '; // メール

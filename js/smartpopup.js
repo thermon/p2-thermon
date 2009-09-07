@@ -287,6 +287,7 @@ SPM.createFilterSubMenu = function(menuId, aThread)
 	}
 	SPM.setOnPopUp(fmenu, fmenu.id, true);
 
+	fmenu.appendItem('このレス', this.getOnClick('num', 'on'));
 	fmenu.appendItem('同じ名前', this.getOnClick('name', 'on'));
 	fmenu.appendItem('同じメール', this.getOnClick('mail', 'on'));
 	fmenu.appendItem('同じ日付', this.getOnClick('date', 'on'));
@@ -359,9 +360,18 @@ SPM.openSubWin = function(aThread, inUrl, option)
  */
 SPM.openFilter = function(aThread, field, match)
 {
-	var inUrl = 'read_filter.php?bbs=' + aThread.bbs + '&key=' + aThread.key + '&host=' + aThread.host;
-	inUrl += '&rescount=' + aThread.rc + '&ttitle_en=' + aThread.ttitle_en + '&resnum=' + spmResNum;
-	inUrl += '&ls=all&field=' + field + '&method=just&match=' + match + '&offline=1';
+	var inUrl = '?bbs=' + aThread.bbs + '&key=' + aThread.key + '&host=' + aThread.host;
+	inUrl += '&rescount=' + aThread.rc + '&ttitle_en=' + aThread.ttitle_en ;
+	inUrl += '&offline=1';
+	switch (field) {
+        case 'num' :
+            inUrl= 'read.php' +inUrl;
+            inUrl += '&ls=' +spmResNum;
+            break;
+        default :
+            inUrl= 'read_filter.php' +inUrl;
+    	    inUrl += '&resnum=' + spmResNum +'&ls=all&field=' + field + '&method=just&match=' + match ;
+	}
 
 	switch (spmFlexTarget) {
 		case '_self':
