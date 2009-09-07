@@ -1157,6 +1157,20 @@ EOP;
     /**
      * 被レスデータを集計して$this->_quote_fromに保存.
      */
+    protected function _get_anchors($msg) {
+        $anchor_list=array();
+        // >>1のリンクをいったん外す
+        // <a href="../test/read.cgi/accuse/1001506967/1" target="_blank">&gt;&gt;1</a>
+        $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
+            
+        if (!preg_match_all($this->getAnchorRegex('/%full%/'), $msg, $out, PREG_PATTERN_ORDER)) {return null;}
+        $joined_ranges_list=$out[2];
+        foreach ($joined_ranges_list as $joined_ranges) {
+            if (!preg_match_all($this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), $joined_ranges, $ranges_list, PREG_PATTERN_ORDER)) {continue;}
+            $anchor_list=array_merge($anchor_list,$ranges_list[1]);
+        }
+        return $anchor_list;                    
+    }
     protected function _make_quote_from()
     {
         global $_conf;
@@ -1164,39 +1178,32 @@ EOP;
         if (!$this->thread->datlines) return;
         foreach($this->thread->datlines as $num => $line) {
             list($name, $mail, $date_id, $msg) = $this->thread->explodeDatLine($line);
-            // >>1のリンクをいったん外す
-            // <a href="../test/read.cgi/accuse/1001506967/1" target="_blank">&gt;&gt;1</a>
-            $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
-            
-            if (!preg_match_all($this->getAnchorRegex('/%full%/'), $msg, $out, PREG_PATTERN_ORDER)) {continue;}
-            foreach ($out[2] as $numberq) {
-                if (!preg_match_all($this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), $numberq, $anchors, PREG_PATTERN_ORDER)) {continue;}
-                foreach ($anchors[1] as $anchor) {
-                    if (preg_match($this->getAnchorRegex('/(%a_num%)%range_delimiter%(?:%prefix%)?(%a_num%)/'), $anchor, $matches)) {
-                        $from = intval(mb_convert_kana($matches[1], 'n'));
-                        $to = intval(mb_convert_kana($matches[2], 'n'));
-                        if ($from < 1 || $to < 1 || $from > $to
-                            || ($to - $from + 1) > sizeof($this->thread->datlines))
-                                {continue;}
-                        for ($i = $from; $i <= $to; $i++) {
-                            if ($i > sizeof($this->thread->datlines)) {break;}
-                            if ($i >= $num+1) {continue;}	// スレ番号以降のアンカーは無視する
-                            if (!array_key_exists($i, $this->_quote_from) || $this->_quote_from[$i] === null) {
-                                $this->_quote_from[$i] = array();
-                            }
-                            if (!in_array($num + 1, $this->_quote_from[$i])) {
-                                $this->_quote_from[$i][] = $num + 1;
-                            }
+            if (!$ranges=$this->_get_anchors($msg)) {continue;}
+            foreach ($ranges as $a_range) {
+                if (preg_match($this->getAnchorRegex('/(%a_num%)%range_delimiter%(?:%prefix%)?(%a_num%)/'), $a_range, $matches)) {
+                    $from = intval(mb_convert_kana($matches[1], 'n'));
+                    $to = intval(mb_convert_kana($matches[2], 'n'));
+                    if ($from < 1 || $to < 1 || $from > $to
+                        || ($to - $from + 1) > sizeof($this->thread->datlines))
+                            {continue;}
+                    for ($i = $from; $i <= $to; $i++) {
+                        if ($i > sizeof($this->thread->datlines)) {break;}
+                        if ($i >= $num+1) {continue;}	// スレ番号以降のアンカーは無視する
+                        if (!array_key_exists($i, $this->_quote_from) || $this->_quote_from[$i] === null) {
+                            $this->_quote_from[$i] = array();
                         }
-                    } else if (preg_match($this->getAnchorRegex('/(%a_num%)/'), $anchor, $matches)) {
-                        $quote_num = intval(mb_convert_kana($matches[1], 'n'));
-                        if ($quote_num >= $num+1) {continue;}	// スレ番号以降のアンカーは無視する
-                        if (!array_key_exists($quote_num, $this->_quote_from) || $this->_quote_from[$quote_num] === null) {
-                            $this->_quote_from[$quote_num] = array();
+                        if (!in_array($num + 1, $this->_quote_from[$i])) {
+                            $this->_quote_from[$i][] = $num + 1;
                         }
-                        if (!in_array($num + 1, $this->_quote_from[$quote_num])) {
-                            $this->_quote_from[$quote_num][] = $num + 1;
-                        }
+                    }
+                } else if (preg_match($this->getAnchorRegex('/(%a_num%)/'), $a_range, $matches)) {
+                    $quote_num = intval(mb_convert_kana($matches[1], 'n'));
+                    if ($quote_num >= $num+1) {continue;}	// スレ番号以降のアンカーは無視する
+                    if (!array_key_exists($quote_num, $this->_quote_from) || $this->_quote_from[$quote_num] === null) {
+                        $this->_quote_from[$quote_num] = array();
+                    }
+                    if (!in_array($num + 1, $this->_quote_from[$quote_num])) {
+                        $this->_quote_from[$quote_num][] = $num + 1;
                     }
                 }
             }

@@ -1021,44 +1021,30 @@ EOP;
             }
         }
 
-        // >>1のリンクをいったん外す
-        // <a href="../test/read.cgi/accuse/1001506967/1" target="_blank">&gt;&gt;1</a>
-        $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
+        if ($ranges=$this->_get_anchors($msg)) {
+            foreach ($ranges as $a_range) {
+                if (preg_match($this->getAnchorRegex('/%range_delimiter%/'),$a_range)) { continue;}
+                $a_quote_res_num = (int) (mb_convert_kana($a_range, 'n'));
+                $a_quote_res_idx = $a_quote_res_num - 1;
 
-        //echo $msg;
-        if (preg_match_all($this->getAnchorRegex('/%full%/'), $msg, $out, PREG_PATTERN_ORDER)) {
-            foreach ($out[2] as $numberq) {
-                if ($matches=preg_split($this->getAnchorRegex('/%delimiter%/'), $numberq)) {
-                    foreach ($matches as $a_quote_res_num) {
-                        if (preg_match($this->getAnchorRegex('/%range_delimiter%/'),$a_quote_res_num)) { continue;}
-                        $a_quote_res_num = (int) (mb_convert_kana($a_quote_res_num, 'n'));
-                        $a_quote_res_idx = $a_quote_res_num - 1;
+                //echo $a_quote_res_num;
 
-                        //echo $a_quote_res_num;
+                if (!$a_quote_res_num) {break;}
+                $quote_res_nums[] = $a_quote_res_num;
 
-                        if (!$a_quote_res_num) {break;}
-                        $quote_res_nums[] = $a_quote_res_num;
-
-                        // 自分自身の番号と同一でなければ、
-                        if ($a_quote_res_num != $res_num) {
-                            // チェックしていない番号を再帰チェック
-                            if (!isset($this->_quote_res_nums_checked[$a_quote_res_num])) {
-                                $this->_quote_res_nums_checked[$a_quote_res_num] = true;
-                                if (isset($this->thread->datlines[$a_quote_res_idx])) {
-                                    $datalinear = $this->thread->explodeDatLine($this->thread->datlines[$a_quote_res_idx]);
-                                    $quote_name = $datalinear[0];
-                                    $quote_msg = $this->thread->datlines[$a_quote_res_idx];
-                                    $quote_res_nums = array_merge($quote_res_nums, $this->checkQuoteResNums($a_quote_res_num, $quote_name, $quote_msg));
-                                }
-                             }
-                         }
-
-                     }
-
+                // 自分自身の番号と同一でなければ、
+                if ($a_quote_res_num == $res_num) {continue;}
+                // チェックしていない番号を再帰チェック
+                if (!isset($this->_quote_res_nums_checked[$a_quote_res_num])) {
+                    $this->_quote_res_nums_checked[$a_quote_res_num] = true;
+                    if (isset($this->thread->datlines[$a_quote_res_idx])) {
+                        $datalinear = $this->thread->explodeDatLine($this->thread->datlines[$a_quote_res_idx]);
+                        $quote_name = $datalinear[0];
+                        $quote_msg = $this->thread->datlines[$a_quote_res_idx];
+                        $quote_res_nums = array_merge($quote_res_nums, $this->checkQuoteResNums($a_quote_res_num, $quote_name, $quote_msg));
+                    }
                 }
-
             }
-
         }
 
         if ($_conf['backlink_list'] > 0) {
