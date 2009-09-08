@@ -1171,6 +1171,17 @@ EOP;
         }
         return $anchor_list;                    
     }
+
+    protected function _addQuoteNum($num,$a_quote_num) {
+        if ($a_quote_num >= $num+1) {return;}	// スレ番号以降のアンカーは無視する
+        if (!array_key_exists($a_quote_num, $this->_quote_from) || $this->_quote_from[$a_quote_num] === null) {
+            $this->_quote_from[$a_quote_num] = array();
+        }
+        if (!in_array($num + 1, $this->_quote_from[$a_quote_num])) {
+            $this->_quote_from[$a_quote_num][] = $num + 1;
+        }
+    }
+
     protected function _make_quote_from()
     {
         global $_conf;
@@ -1184,14 +1195,8 @@ EOP;
             // 名前
             if ($matches = $this->getQuoteResNumsName($name)) {
                 foreach ($matches as $a_quote_num) {
-                    if ($a_quote_num >= $num+1) {continue;}	// スレ番号以降のアンカーは無視する
                     if (!$a_quote_num) {continue;}
-                    if (!array_key_exists($a_quote_num, $this->_quote_from) || $this->_quote_from[$a_quote_num] === null) {
-                        $this->_quote_from[$a_quote_num] = array();
-                    }
-                    if (!in_array($num + 1, $this->_quote_from[$a_quote_num])) {
-                        $this->_quote_from[$a_quote_num][] = $num + 1;
-                    }
+                    $this->_addQuoteNum($num,$a_quote_num);
                 }
             }
 
@@ -1205,23 +1210,11 @@ EOP;
                             {continue;}
                     for ($i = $from; $i <= $to; $i++) {
                         if ($i > sizeof($this->thread->datlines)) {break;}
-                        if ($i >= $num+1) {continue;}	// スレ番号以降のアンカーは無視する
-                        if (!array_key_exists($i, $this->_quote_from) || $this->_quote_from[$i] === null) {
-                            $this->_quote_from[$i] = array();
-                        }
-                        if (!in_array($num + 1, $this->_quote_from[$i])) {
-                            $this->_quote_from[$i][] = $num + 1;
-                        }
+                        $this->_addQuoteNum($num,$i);
                     }
                 } else if (preg_match($this->getAnchorRegex('/(%a_num%)/'), $a_range, $matches)) {
                     $a_quote_num = intval(mb_convert_kana($matches[1], 'n'));
-                    if ($a_quote_num >= $num+1) {continue;}	// スレ番号以降のアンカーは無視する
-                    if (!array_key_exists($a_quote_num, $this->_quote_from) || $this->_quote_from[$a_quote_num] === null) {
-                        $this->_quote_from[$a_quote_num] = array();
-                    }
-                    if (!in_array($num + 1, $this->_quote_from[$a_quote_num])) {
-                        $this->_quote_from[$a_quote_num][] = $num + 1;
-                    }
+                    $this->_addQuoteNum($num,$a_quote_num);
                 }
             }
         }
