@@ -1026,7 +1026,7 @@ EOP;
             }
         }
 
-        if ($ranges=$this->_get_anchors($msg)) {
+        if ($ranges=$this->_getAnchorsFromMsg($msg)) {
             foreach ($ranges as $a_range) {
                 if (preg_match($this->getAnchorRegex('/%range_delimiter%/'),$a_range)) { continue;}
                 $a_quote_res_num = (int) (mb_convert_kana($a_range, 'n'));
