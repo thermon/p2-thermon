@@ -1190,13 +1190,16 @@ EOP;
         foreach($this->thread->datlines as $num => $line) {
             list($name, $mail, $date_id, $msg) = $this->thread->explodeDatLine($line);
 
+       // NGあぼーんチェック
+        $ng_type = $this->_ngAbornCheck($i, strip_tags($name), $mail, $date_id, $id, $msg, true);
+        if ($ng_type == self::ABORN) {continue;}
+
             $name = preg_replace('/(◆.*)/', '', $name, 1);
 
             // 名前
             if ($matches = $this->getQuoteResNumsName($name)) {
                 foreach ($matches as $a_quote_num) {
-                    if (!$a_quote_num) {continue;}
-                    $this->_addQuoteNum($num,$a_quote_num);
+                    if ($a_quote_num) {$this->_addQuoteNum($num,$a_quote_num);}
                 }
             }
 
@@ -1213,8 +1216,7 @@ EOP;
                         $this->_addQuoteNum($num,$i);
                     }
                 } else if (preg_match($this->getAnchorRegex('/(%a_num%)/'), $a_range, $matches)) {
-                    $a_quote_num = intval(mb_convert_kana($matches[1], 'n'));
-                    $this->_addQuoteNum($num,$a_quote_num);
+                    $this->_addQuoteNum($num,intval(mb_convert_kana($matches[1], 'n')));
                 }
             }
         }
