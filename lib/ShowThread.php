@@ -209,6 +209,7 @@ abstract class ShowThread
 
         // 列挙指定子
         $anchor['delimiter'] = "{$anchor_space}?(?:[\.,=+]|、|・|＝|，){$anchor_space}?";
+        $anchor['delimiter2'] = "{$anchor_space}?(?:[,=+]|、|・|＝|，){$anchor_space}?";
 
         // あぼーん用アンカー引用子
         $anchor['prefix_abon'] = "&gt;{1,2}{$anchor_space}?";
@@ -228,7 +229,7 @@ abstract class ShowThread
 
         // レス番号の列挙
         $anchor['nums'] = sprintf("%s(?:%s%s)*(?!%s)",
-            $anchor['a_num'], $anchor['delimiter'], $anchor['a_num'], $anchor['a_digit']
+            $anchor['a_num'], $anchor['delimiter2'], $anchor['a_num'], $anchor['a_digit']
         );
 
         // アンカー全体（メッセージ欄用）
@@ -1106,7 +1107,7 @@ EOP;
         }
          */
 
-        if (preg_match_all($this->getAnchorRegex('/(?:^|%prefix%|%delimiter%)(%a_num%)/'), $name, $matches)) {
+        if (preg_match_all($this->getAnchorRegex('/(?:^|%prefix%|%delimiter2%)(%a_num%)/'), $name, $matches)) {
             foreach ($matches[1] as $a_quote_res_num) {
                 $quote_res_nums[] = (int)mb_convert_kana($a_quote_res_num, 'n');
             }
