@@ -1284,11 +1284,16 @@ EOP;
     {
         $ret = '<div class="reslist">';
 //        $ret.= '<span class="reslist">';
+        $em=0.6;
+        $count=count($anchors)*$em;
         foreach($anchors as $idx=>$anchor) {
+            $count-=$em;
             $anchors[$idx]= $this->quoteRes('>>'.$anchor, '>>', $anchor);
-            $ret.= '<span class="reslist">';
-            $ret.="【参照レス：".$anchors[$idx]."】";
-            $ret.='</span><br>';
+            $ret.=sprintf(
+                '<span class="reslist" style="margin-left:%fem;">【参照レス：%s】</span><br>',
+                $count,$anchors[$idx]
+                );
+
         }
 //        $ret.="【参照レス：".join("/",$anchors)."】";
 //        $ret.='</span><p>';
