@@ -89,7 +89,8 @@ div.res {
     /*\*//*/
     overflow: hidden;
     /**/
-
+	border-style: solid;
+	border-width: 0px 0px 3px 0px;
 }
 div.res:after {
     height: 0;
@@ -100,7 +101,7 @@ div.res:after {
 }
 
 /* 引用レスポップアップ */
-div.respopup {
+.respopup {
 	position: absolute;
 	visibility: hidden; /* 普段は隠しておく*/
 	{$respop_background}
@@ -131,20 +132,18 @@ div.res-header {
 	padding: 0;
 }
 
+div.message{
+//	margin: 0 0 0 2.5em;
+	padding-left:2.5em;
+//	padding: 2px 0 0 0;
+}
+
 /* レスボディ (通常) */
 div.res div.message {
-	margin: 0 0 0 2.5em;
-	padding: 2px 0 0 0;
-	border-width: 0px 0px 1px 0px;
-	border-style: dotted;
 }
 
 /* レスボディ (引用レスポップアップ) */
 div.respopup div.message {
-	margin: 0 0 0 2.5em;
-	padding: 2px 0 0 0;
-	border-width: 0px 0px 1px 0px;
-	border-style: dotted;
 }
 
 /* レスボディ内リンクの折り返し */
@@ -319,42 +318,58 @@ div.res div.v_reslist ul li:first-letter {
 }
 
 /* 逆参照リスト 縦配置 (引用レスポップアップ) */
-div.respopup div.v_reslist {
+.respopup div.v_reslist {
     float: left;
     width: 3.5em;
     font-size:70%;
     padding: 0.2em 0 0 0;
     margin: 0;
 }
-div.respopup div.v_reslist ul {
+.respopup div.v_reslist ul {
     list-style-type: none;
     line-height: 0.75;
     margin: 0;
     padding: 0;
 }
-div.respopup div.v_reslist ul li:first-letter {
+.respopup div.v_reslist ul li:first-letter {
     color: #777;
+}
+
+div.reslist {
+//    font-size:90%;
+    margin : 0em 0 0 17px;
+//	border-width: 1px;
+//	border-style: dotted;
 }
 
 /* 逆参照リスト 水平配置(通常) */
 div.res div.reslist {
-    font-size:80%;
-    margin : 0em 0 0 3em;
+	position:relative;
 }
 
 /* 逆参照リスト 水平配置(引用レスポップアップ)  */
-div.respopup div.reslist {
-    font-size:90%;
-    margin : 0em 0 0 3em;
+.respopup div.reslist {
 }
-span.reslist {
-    border-width: 0px 1px 1px 1px;
-    border-style: dotted;
-}
+
 
 .preview-video-switch {
 	cursor: pointer;
 }
+
+div.reslist_inner {
+	position:relative;
+//	margin:0 0 0 17px;
+	
+}
+
+blockquote.folding_container{
+	margin:2px ;
+	position:relative;
+	left: 0em;
+    border-width: 2px;
+    border-style: solid;
+    }
+
 
 EOSTYLE;
 
