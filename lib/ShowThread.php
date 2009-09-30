@@ -187,9 +187,12 @@ abstract class ShowThread
         //$anchor[' '] = '';
 
         // アンカー引用子 >>
-        $anchor['prefix'] = "(?:(?:&gt;|＞|&lt;|＜|〉){1,2}|(?:\)){2}|》|≫){$anchor_space}*";
+        $anchor['prefix'] = "(?:(?:&gt;|＞|&lt;|〉){1,2}|》|≫){$anchor_space}*";
+        $anchor['prefix1'] = "(?:\)|&gt;|＞|&lt;|〉|》|≫){$anchor_space}*";
+        $anchor['prefix2'] = "(?:(?:\)|&gt;|＞|&lt;|〉){2}){$anchor_space}*";
 
         // 数字
+        $a_digit_without_zero = '(?:[1-9]|１|２|３|４|５|６|７|８|９)';
         $anchor['a_digit'] = '(?:\\d|０|１|２|３|４|５|６|７|８|９)';
         /*
         $anchor[0] = '(?:0|０)';
@@ -215,7 +218,7 @@ abstract class ShowThread
         $anchor['prefix_abon'] = "&gt;{1,2}{$anchor_space}?";
 
         // レス番号
-        $anchor['a_num'] = sprintf('%s{1,4}', $anchor['a_digit']);
+        $anchor['a_num'] = sprintf('%s%s{0,3}', $a_digit_without_zero,$anchor['a_digit']);
 
         // レス範囲
         $anchor['a_range'] = sprintf("%s(?:%s(?:%s)?%s)?",
@@ -233,6 +236,7 @@ abstract class ShowThread
         );
 
         // アンカー全体（メッセージ欄用）
+        $anchor['full_detail'] = sprintf("(%s)(%s)|\s+(%s)\s+<br>",$anchor['prefix'], $anchor['ranges'],$anchor['ranges']);
         $anchor['full'] = sprintf('(%s)(%s)', $anchor['prefix'], $anchor['ranges']);
 
         // getAnchorRegex() の strtr() 置換用にkeyを '%key%' に変換する
@@ -255,19 +259,15 @@ abstract class ShowThread
         return $str_to_link_regex = '{'
             . '(?P<link>(<[Aa] .+?>)(.*?)(</[Aa]>))' // リンク（PCREの特性上、必ずこのパターンを最初に試行する）
             . '|'
-            . '(?:'
-            .   '(?P<quote>' // 引用
-            .       $this->getAnchorRegex('%full%')
-            .   ')'
-            . '|'
             .   '(?P<url>'
             .       '(ftp|h?ttps?|tps?)://([0-9A-Za-z][\\w!#%&+*,\\-./:;=?@\\[\\]^~]+)' // URL
             .   ')'
             . '|'
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
-//            . '|'
-//            .   '(?P<ip>発信元: ?((?:[1-2]?\\d{2}|\\d)(?:\\.[1-2]?\\d{2}|\\d){3})(?=[^0-9A-Za-z/.+]|$))'
-            . ')'
+            . '|'
+            .   '(?P<quote>' // 引用
+            .       $this->getAnchorRegex('%full_detail%')
+            .   ')'
             . '}';
     }
 
@@ -895,36 +895,38 @@ EOP;
         /*
         if (!array_key_exists('link', $s)) {
             $s['link']  = $s[1];
-            $s['quote'] = $s[5];
-            $s['url']   = $s[8];
-            $s['id']    = $s[11];
+            $s['url']   = $s[8-3];
+            $s['id']    = $s[11-3];
+            $s['quote'] = $s[11];
         }
         */
 
         // マッチしたサブパターンに応じて分岐
         // リンク
         if ($s['link']) {
-            if (preg_match('{ href=(["\'])?(.+?)(?(1)\\1)(?=[ >])}i', $s[2], $m)) {
+			$link_index=1;
+            if (preg_match('{ href=(["\'])?(.+?)(?(1)\\1)(?=[ >])}i', $s[$link_index+1], $m)) {
                 $url = $m[2];
-                $str = $s[3];
+                $str = $s[$link_index+2];
             } else {
-                return $s[3];
+                return $s[$link_index+2];
             }
 
         // 引用
         } elseif ($s['quote']) {
+//			var_dump($s['quote']);echo "<br>";
             return  preg_replace_callback(
                 $this->getAnchorRegex('/(%prefix%)?(%a_range%)/'),
                 array($this, 'quoteResCallback'), $s['quote']);
 
         // http or ftp のURL
         } elseif ($s['url']) {
-            if ($_conf['ktai'] && $s[9] == 'ftp') {
+            if ($_conf['ktai'] && $s[9-3] == 'ftp') {
                 return $orig;
             }
-            $url = preg_replace('/^t?(tps?)$/', 'ht$1', $s[9]) . '://' . $s[10];
+            $url = preg_replace('/^t?(tps?)$/', 'ht$1', $s[9-3]) . '://' . $s[10-3];
             $str = $s['url'];
-            $following = $s[11];
+/*            $following = $s[11-3];
             if (strlen($following) > 0) {
                 // ウィキペディア日本語版のURLで、SJISの2バイト文字の上位バイト
                 // (0x81-0x9F,0xE0-0xEF)が続くとき
@@ -939,11 +941,11 @@ EOP;
                     // 全角スペース+URL等の場合があるので再チェック
                     $following = $this->transLink($following);
                 }
-            }
+            }*/
 
         // ID
         } elseif ($s['id'] && $_conf['flex_idpopup']) { // && $_conf['flex_idlink_k']
-            return $this->idFilter($s['id'], $s[12]);
+            return $this->idFilter($s['id'], $s[12-3]);
 
         // その他（予備）
         } else {
@@ -1165,11 +1167,13 @@ EOP;
         $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
             
         if (!preg_match_all($this->getAnchorRegex('/%full%/'), $msg, $out, PREG_PATTERN_ORDER)) {return null;}
-        $joined_ranges_list=$out[2];
+		for ($i=2;$i<3;$i++) {
+        $joined_ranges_list=$out[$i];
         foreach ($joined_ranges_list as $joined_ranges) {
             if (!preg_match_all($this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), $joined_ranges, $ranges_list, PREG_PATTERN_ORDER)) {continue;}
             $anchor_list=array_merge($anchor_list,$ranges_list[1]);
         }
+		}
         return $anchor_list;                    
     }
 
@@ -1298,22 +1302,11 @@ EOP;
 		}
 		$ret.=$insert;
         $ret.= sprintf('<div class="reslist" id="%s">',$UouterContainerId);
-		$count=0;
 
         foreach($anchors as $idx=>$anchor) {
-//            $count-=$em;
             $anchor_link= $this->quoteRes('>>'.$anchor, '>>', $anchor);
-			$outerContainerId=sprintf('%s_%d',$UouterContainerId,$count);
             $qres_id = ($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
-            $ret.='<div id="%s" class="reslist_inner" >';
-/*			$insert=sprintf('<img src="img/btn_plus.gif" width="15" height="15" alt="レス内容を下に表示する" onclick="insertResPopUp(\'%s\',\'%s\',this)">',$qres_id,$outerContainerId);
-            if ($popup) {
-				$insert="<!--%%%".$insert."%%%-->";
-			}*/
-//			$ret.=$insert;
 			$ret.=sprintf('<div>【参照レス：%s】</div>',$anchor_link);
-			$ret.='</div>';
-			$count++;
 		}
         $ret.='</div>';
         return $ret;

@@ -1009,11 +1009,15 @@ class P2Util
     // {{{ isUrlWikipediaJa()
 
     /**
-     * URLがウィキペディア日本語版の記事ならtrueを返す
+     * URLがウィキペディア日本語版の記事なら単語部分を返す
      */
     static public function isUrlWikipediaJa($url)
     {
-        return (strncmp($url, 'http://ja.wikipedia.org/wiki/', 29) == 0);
+        if (strncmp($url, 'http://ja.wikipedia.org/wiki/', 29) == 0) {
+		return substr($url,29);
+	} else {
+		return false;
+	}
     }
 
     // }}}

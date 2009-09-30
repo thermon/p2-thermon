@@ -44,14 +44,14 @@ function insertRes(outerContainerId,anchors,button) {
 	button.onclick=function () {removeRes(outerContainerId,anchors,button)};
 	button.src=button.src.replace(/plus/,'minus');
 //	var outerContainer=getElement(outerContainerId);
-	var outerContainer=button.parentNode.lastChild; //.lastChild;
+	var outerContainer=button.parentNode.lastChild; // reslistƒuƒƒbƒN
 	while(outerContainer && outerContainer.className!="reslist") {
 		outerContainer=outerContainer.previousSibling;
 	}
-	// alert(outerContainer.className);
+//	alert(outerContainer.className);
 	
 	var children=anchors.split("/");
-	// alert(children.length);
+//	 alert(children.length);
 	for (i=0;i<children.length;i++) {
 		var childDiv=outerContainer.childNodes[i];
 		// alert(childDiv.className);
@@ -65,8 +65,8 @@ function insertRes(outerContainerId,anchors,button) {
 		// // alert(resdiv.innerHTML);
 		
 		resdiv.className='folding_container';
-		childDiv.appendChild(resdiv);
-		childDiv.lastChild.previousSibling.style.display='none';
+		outerContainer.appendChild(resdiv);
+		outerContainer.childNodes[i].style.display='none';
 	}
 
 }
@@ -82,11 +82,9 @@ function removeRes(outerContainerId,anchors,button) {
 	// alert(children.length);
 	for (i=0;i<children.length;i++) {
 		var childDiv=outerContainer.childNodes[i];
-		childDiv.removeChild(childDiv.lastChild);
-		childDiv.firstChild.style.display='block';
+		outerContainer.removeChild(outerContainer.lastChild);
+		outerContainer.childNodes[i].style.display='block';
 	}
-
-
 }
 
 function copyHTML(qresID) {
