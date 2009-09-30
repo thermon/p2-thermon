@@ -237,7 +237,7 @@ abstract class ShowThread
 
         // アンカー全体（メッセージ欄用）
         $anchor['full_detail'] = sprintf("(%s)(%s)|\s+(%s)\s+<br>",$anchor['prefix'], $anchor['ranges'],$anchor['ranges']);
-        $anchor['full'] = sprintf('(%s)(%s)', $anchor['prefix'], $anchor['ranges']);
+        $anchor['full'] = sprintf('(?:%s)%s', $anchor['prefix'], $anchor['ranges']);
 
         // getAnchorRegex() の strtr() 置換用にkeyを '%key%' に変換する
         foreach ($anchor as $k => $v) {
@@ -900,11 +900,14 @@ EOP;
             $s['quote'] = $s[11];
         }
         */
-
+		$link_index=1;
+		$url_index=5;
+		$id_link=8;
+		$quote_link=11;
         // マッチしたサブパターンに応じて分岐
         // リンク
         if ($s['link']) {
-			$link_index=1;
+
             if (preg_match('{ href=(["\'])?(.+?)(?(1)\\1)(?=[ >])}i', $s[$link_index+1], $m)) {
                 $url = $m[2];
                 $str = $s[$link_index+2];
@@ -921,10 +924,10 @@ EOP;
 
         // http or ftp のURL
         } elseif ($s['url']) {
-            if ($_conf['ktai'] && $s[9-3] == 'ftp') {
+            if ($_conf['ktai'] && $s[$url_index+1] == 'ftp') {
                 return $orig;
             }
-            $url = preg_replace('/^t?(tps?)$/', 'ht$1', $s[9-3]) . '://' . $s[10-3];
+            $url = preg_replace('/^t?(tps?)$/', 'ht$1', $s[$url_index+1]) . '://' . $s[$url_index+2];
             $str = $s['url'];
 /*            $following = $s[11-3];
             if (strlen($following) > 0) {
@@ -945,7 +948,7 @@ EOP;
 
         // ID
         } elseif ($s['id'] && $_conf['flex_idpopup']) { // && $_conf['flex_idlink_k']
-            return $this->idFilter($s['id'], $s[12-3]);
+            return $this->idFilter($s['id'], $s[$id_index+1]);
 
         // その他（予備）
         } else {
@@ -1166,14 +1169,12 @@ EOP;
         // <a href="../test/read.cgi/accuse/1001506967/1" target="_blank">&gt;&gt;1</a>
         $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
             
-        if (!preg_match_all($this->getAnchorRegex('/%full%/'), $msg, $out, PREG_PATTERN_ORDER)) {return null;}
-		for ($i=2;$i<3;$i++) {
-        $joined_ranges_list=$out[$i];
+        if (!preg_match_all($this->getAnchorRegex('/(%prefix%)(%ranges%)/'), $msg, $out, PREG_PATTERN_ORDER)) {return null;}
+        $joined_ranges_list=$out[2];
         foreach ($joined_ranges_list as $joined_ranges) {
             if (!preg_match_all($this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), $joined_ranges, $ranges_list, PREG_PATTERN_ORDER)) {continue;}
             $anchor_list=array_merge($anchor_list,$ranges_list[1]);
         }
-		}
         return $anchor_list;                    
     }
 
