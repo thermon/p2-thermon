@@ -236,7 +236,7 @@ abstract class ShowThread
         );
 
         // アンカー全体（メッセージ欄用）
-        $anchor['full_detail'] = sprintf("(%s)(%s)|\s+(%s)\s+<br>",$anchor['prefix'], $anchor['ranges'],$anchor['ranges']);
+        $anchor['full_detail'] = sprintf("%s%s|\s+%s\s+<br>",$anchor['prefix'], $anchor['ranges'],$anchor['ranges']);
         $anchor['full'] = sprintf('(?:%s)%s', $anchor['prefix'], $anchor['ranges']);
 
         // getAnchorRegex() の strtr() 置換用にkeyを '%key%' に変換する
@@ -902,8 +902,8 @@ EOP;
         */
 		$link_index=1;
 		$url_index=5;
-		$id_link=8;
-		$quote_link=11;
+		$id_index=8;
+		$quote_index=11;
         // マッチしたサブパターンに応じて分岐
         // リンク
         if ($s['link']) {
