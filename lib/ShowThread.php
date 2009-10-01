@@ -187,7 +187,7 @@ abstract class ShowThread
         //$anchor[' '] = '';
 
         // アンカー引用子 >>
-        $anchor['prefix'] = "(?:(?:(?:&gt;|＞|&lt;|〉){1,2}|》|≫){$anchor_space}*)";
+        $anchor['prefix'] = "(?:(?:(?:&gt;|&lt;|〉){1,2}|》|≫|＞{2}){$anchor_space}*)";
         $anchor['prefix1'] = "(?:\)|&gt;|＞|&lt;|〉|》|≫){$anchor_space}*";
         $anchor['prefix2'] = "(?:(?:\)|&gt;|＞|&lt;|〉){2}){$anchor_space}*";
 
@@ -209,7 +209,7 @@ abstract class ShowThread
         $anchor['a_num'] = sprintf('%s%s{0,3}', $a_digit_without_zero,$anchor['a_digit']);
 
         // レス範囲
-        $anchor['a_range'] = sprintf("(%s)(%s%s?%s)?(?!年|月|日|時|分|秒)",
+        $anchor['a_range'] = sprintf("(%s)(%s%s?%s)?(?!年|月|日|時|分|秒|代)",
             $anchor['a_num'], $anchor['range_delimiter'], $anchor['prefix'],$anchor['a_num']
         );
 
@@ -254,11 +254,13 @@ abstract class ShowThread
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
             . '|'
             .   '(?P<quote>' // 引用
-            .       $this->getAnchorRegex("(%prefix%)?%ranges%(?(11)(?!じゃな)|(?=です|さん))|(?:<br>|^)\s+%ranges%\s+<br>")
+            .       $this->getAnchorRegex("(%prefix%)?%ranges%(?(11)(?!じゃな(?:い|く))|(?=です|さん))|(?:<br>|^)\s+%ranges%\s+<br>") 
             .   ')'
             . '}';
     }
-
+// (?(11)yes-regexp|no-regexp) 
+// 11番目のキャプチャグループ(%prefix%)にマッチする場合はyes-regexpを、
+// そうでない場合はno-regexpを使う
     // {{{ getDatToHtml()
 
     /**
@@ -1194,12 +1196,12 @@ EOP;
             $name = preg_replace('/(◆.*)/', '', $name, 1);
 
             // 名前
-            if ($matches = $this->getQuoteResNumsName($name)) {
+/*            if ($matches = $this->getQuoteResNumsName($name)) {
                 foreach ($matches as $a_quote_num) {
                     if ($a_quote_num) {$this->_addQuoteNum($num,$a_quote_num);}
                 }
             }
-
+*/
             if (!$ranges=$this->_getAnchorsFromMsg($msg)) {continue;}
             foreach ($ranges as $a_range) {
                 if (preg_match($this->getAnchorRegex('/(%a_num%)%range_delimiter%(?:%prefix%)?(%a_num%)/'), $a_range, $matches)) {
