@@ -194,18 +194,6 @@ abstract class ShowThread
         // ”š
         $a_digit_without_zero = '(?:[1-9]|‚P|‚Q|‚R|‚S|‚T|‚U|‚V|‚W|‚X)';
         $anchor['a_digit'] = '(?:\\d|‚O|‚P|‚Q|‚R|‚S|‚T|‚U|‚V|‚W|‚X)';
-        /*
-        $anchor[0] = '(?:0|‚O)';
-        $anchor[1] = '(?:1|‚P)';
-        $anchor[2] = '(?:2|‚Q)';
-        $anchor[3] = '(?:3|‚R)';
-        $anchor[4] = '(?:4|‚S)';
-        $anchor[5] = '(?:5|‚T)';
-        $anchor[6] = '(?:6|‚U)';
-        $anchor[7] = '(?:7|‚V)';
-        $anchor[8] = '(?:8|‚W)';
-        $anchor[9] = '(?:9|‚X)';
-        */
 
         // ”ÍˆÍw’èq
         $anchor['range_delimiter'] = "(?:-|]|\x81\\x5b)"; // [
@@ -236,7 +224,7 @@ abstract class ShowThread
         );
 
         // ƒAƒ“ƒJ[‘S‘ÌiƒƒbƒZ[ƒW—“—pj
-        $anchor['full_detail'] = sprintf("%s%s|\s+%s\s+<br>",$anchor['prefix'], $anchor['ranges'],$anchor['ranges']);
+        $anchor['full_detail'] = sprintf("(%s)?%s(?(1)|‚Å‚·)|\s+%s\s+<br>",$anchor['prefix'], $anchor['ranges'], $anchor['ranges']);
         $anchor['full'] = sprintf('(?:%s)%s', $anchor['prefix'], $anchor['ranges']);
 
         // getAnchorRegex() ‚Ì strtr() ’uŠ·—p‚Ékey‚ğ '%key%' ‚É•ÏŠ·‚·‚é
@@ -266,7 +254,7 @@ abstract class ShowThread
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // IDi8,10Œ… +PC/Œg‘Ñ¯•Êƒtƒ‰ƒOj
             . '|'
             .   '(?P<quote>' // ˆø—p
-            .       $this->getAnchorRegex('%full_detail%')
+            .       $this->getAnchorRegex("(%prefix%)?%ranges%(?(11)|(?=‚Å‚·|‚³‚ñ))|\s+%ranges%\s+<br>")
             .   ')'
             . '}';
     }
@@ -897,30 +885,28 @@ EOP;
             $s['link']  = $s[1];
             $s['url']   = $s[8-3];
             $s['id']    = $s[11-3];
-            $s['quote'] = $s[11];
+            $s['quote'] = $s[10];
         }
         */
 		$link_index=1;
 		$url_index=5;
 		$id_index=8;
-		$quote_index=11;
+		$quote_index=10;
         // ƒ}ƒbƒ`‚µ‚½ƒTƒuƒpƒ^[ƒ“‚É‰‚¶‚Ä•ªŠò
         // ƒŠƒ“ƒN
         if ($s['link']) {
 
             if (preg_match('{ href=(["\'])?(.+?)(?(1)\\1)(?=[ >])}i', $s[$link_index+1], $m)) {
+/* ³‹K•\Œ»“à‚ÅğŒ”»’f
+(?(condition)yes-pattern|no-pattern)
+(?(condition)yes-pattern)
+ğŒ®‚Å‚·B(condition)‚ÍAŠ‡ŒÊ‚Ì’†‚É’u‚©‚ê‚½®”(‘Î‰‚·‚é‚©‚Á‚±‚ÌƒyƒA‚ªƒ}ƒbƒ`‚µ‚Ä‚¢‚é‚Æ‚«‚É³“–)‚à‚µ‚­‚Í’·‚³ƒ[ƒ‚Ì lookahead/lookbehind/evaluate •\–¾‚Å‚ ‚é‚±‚Æ‚ª–]‚Ü‚µ‚¢‚Å‚·B
+*/
                 $url = $m[2];
                 $str = $s[$link_index+2];
             } else {
                 return $s[$link_index+2];
             }
-
-        // ˆø—p
-        } elseif ($s['quote']) {
-//			var_dump($s['quote']);echo "<br>";
-            return  preg_replace_callback(
-                $this->getAnchorRegex('/(%prefix%)?(%a_range%)/'),
-                array($this, 'quoteResCallback'), $s['quote']);
 
         // http or ftp ‚ÌURL
         } elseif ($s['url']) {
@@ -949,7 +935,12 @@ EOP;
         // ID
         } elseif ($s['id'] && $_conf['flex_idpopup']) { // && $_conf['flex_idlink_k']
             return $this->idFilter($s['id'], $s[$id_index+1]);
-
+        // ˆø—p
+        } elseif ($s['quote']) {
+//			var_dump($s);echo "<br>";
+            return  preg_replace_callback(
+                $this->getAnchorRegex('/(%prefix%)?(%a_range%)/'),
+                array($this, 'quoteResCallback'), $s['quote']);
         // ‚»‚Ì‘¼i—\”õj
         } else {
             return strip_tags($orig);
