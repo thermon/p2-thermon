@@ -187,7 +187,7 @@ abstract class ShowThread
         //$anchor[' '] = '';
 
         // アンカー引用子 >>
-        $anchor['prefix'] = "(?:(?:&gt;|＞|&lt;|〉){1,2}|》|≫){$anchor_space}*";
+        $anchor['prefix'] = "(?:(?:(?:&gt;|＞|&lt;|〉){1,2}|》|≫){$anchor_space}*)";
         $anchor['prefix1'] = "(?:\)|&gt;|＞|&lt;|〉|》|≫){$anchor_space}*";
         $anchor['prefix2'] = "(?:(?:\)|&gt;|＞|&lt;|〉){2}){$anchor_space}*";
 
@@ -199,7 +199,7 @@ abstract class ShowThread
         $anchor['range_delimiter'] = "(?:-|‐|\x81\\x5b)"; // ー
 
         // 列挙指定子
-        $anchor['delimiter'] = "{$anchor_space}?(?:[\.,=+]|、|・|＝|，){$anchor_space}?";
+        $anchor['delimiter'] = "(?:{$anchor_space}?(?:[\.,=+]|、|・|＝|，){$anchor_space}?)";
         $anchor['delimiter2'] = "{$anchor_space}?(?:[,=+]|、|・|＝|，){$anchor_space}?";
 
         // あぼーん用アンカー引用子
@@ -209,7 +209,7 @@ abstract class ShowThread
         $anchor['a_num'] = sprintf('%s%s{0,3}', $a_digit_without_zero,$anchor['a_digit']);
 
         // レス範囲
-        $anchor['a_range'] = sprintf("%s(?:%s(?:%s)?%s)?",
+        $anchor['a_range'] = sprintf("(%s)(%s%s?%s)?(?!年|月|日|時|分|秒)",
             $anchor['a_num'], $anchor['range_delimiter'], $anchor['prefix'],$anchor['a_num']
         );
 
@@ -224,8 +224,8 @@ abstract class ShowThread
         );
 
         // アンカー全体（メッセージ欄用）
-        $anchor['full_detail'] = sprintf("(%s)?%s(?(1)|です)|\s+%s\s+<br>",$anchor['prefix'], $anchor['ranges'], $anchor['ranges']);
-        $anchor['full'] = sprintf('(?:%s)%s', $anchor['prefix'], $anchor['ranges']);
+//        $anchor['full_detail'] = sprintf("(%s)?%s(?(1)|です)|\s+%s\s+<br>",$anchor['prefix'], $anchor['ranges'], $anchor['ranges']);
+//        $anchor['full'] = sprintf('(?:%s)%s', $anchor['prefix'], $anchor['ranges']);
 
         // getAnchorRegex() の strtr() 置換用にkeyを '%key%' に変換する
         foreach ($anchor as $k => $v) {
@@ -254,7 +254,7 @@ abstract class ShowThread
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
             . '|'
             .   '(?P<quote>' // 引用
-            .       $this->getAnchorRegex("(%prefix%)?%ranges%(?(11)|(?=です|さん))|\s+%ranges%\s+<br>")
+            .       $this->getAnchorRegex("(%prefix%)?%ranges%(?(11)(?!じゃな)|(?=です|さん))|(?:<br>|^)\s+%ranges%\s+<br>")
             .   ')'
             . '}';
     }
