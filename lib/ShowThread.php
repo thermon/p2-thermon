@@ -12,30 +12,6 @@ abstract class ShowThread
 {
     // {{{ constants
 
-    const LINK_REGEX = '{
-(?P<link>(<[Aa][ ].+?>)(.*?)(</[Aa]>)) # リンク（PCREの特性上、必ずこのパターンを最初に試行する）
-|
-(?:
-  (?P<quote> # 引用
-    ((?:&gt;|＞){1,2}[ ]?) # 引用符
-    (
-      (?:[1-9]\\d{0,3}) # 1つ目の番号
-      (?:
-        (?:[ ]?(?:[,=]|、)[ ]?[1-9]\\d{0,3})+ # 連続
-        |
-        -(?:[1-9]\\d{0,3})? # 範囲
-      )?
-    )
-    (?=\\D|$)
-  ) # 引用ここまで
-|                                  # PHP 5.3縛りにするなら、↓の\'のエスケープを外し、NOWDOCにする
-  (?P<url>(ftp|h?t?tps?)://([0-9A-Za-z][\\w;/?:@=&$\\-_.+!*\'(),#%\\[\\]^~]+)) # URL
-  ([^\\s<>]*) # URLの直後、タグorホワイトスペースが現れるまでの文字列
-|
-  (?P<id>ID:[ ]?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$)) # ID（8,10桁 +PC/携帯識別フラグ）
-)
-}x';
-
     const REDIRECTOR_NONE = 0;
     const REDIRECTOR_IMENU = 1;
     const REDIRECTOR_PINKTOWER = 2;
@@ -187,9 +163,7 @@ abstract class ShowThread
         //$anchor[' '] = '';
 
         // アンカー引用子 >>
-        $anchor['prefix'] = "(?:(?:(?:&gt;|&lt;|〉){1,2}|》|≫|＞{2}){$anchor_space}*)";
-        $anchor['prefix1'] = "(?:\)|&gt;|＞|&lt;|〉|》|≫){$anchor_space}*";
-        $anchor['prefix2'] = "(?:(?:\)|&gt;|＞|&lt;|〉){2}){$anchor_space}*";
+        $anchor['prefix'] = "(?:(?:(?:&gt;|&lt;|〉|＞){1,2}|》|≫|(?:く){2}){$anchor_space}*)";
 
         // 数字
         $a_digit_without_zero = '(?:[1-9]|１|２|３|４|５|６|７|８|９)';
@@ -199,17 +173,17 @@ abstract class ShowThread
         $anchor['range_delimiter'] = "(?:-|‐|\x81\\x5b)"; // ー
 
         // 列挙指定子
-        $anchor['delimiter'] = "(?:{$anchor_space}?(?:[\.,=+]|、|・|＝|，){$anchor_space}?)";
-        $anchor['delimiter2'] = "{$anchor_space}?(?:[,=+]|、|・|＝|，){$anchor_space}?";
+        $anchor['delimiter'] = "(?:{$anchor_space}?(?:[,=+]|、|・|＝|，){$anchor_space}?)";
+        $anchor['delimiter2'] = $anchor['delimiter'];
 
         // あぼーん用アンカー引用子
         $anchor['prefix_abon'] = "&gt;{1,2}{$anchor_space}?";
 
         // レス番号
-        $anchor['a_num'] = sprintf('%s%s{0,3}', $a_digit_without_zero,$anchor['a_digit']);
+        $anchor['a_num'] = sprintf('%s{1,4}', $anchor['a_digit']);
 
         // レス範囲
-        $anchor['a_range'] = sprintf("(%s)(%s%s?%s)?(?!年|月|日|時|分|秒|代)",
+        $anchor['a_range'] = sprintf("(?:%s)(?:%s%s?%s)?",
             $anchor['a_num'], $anchor['range_delimiter'], $anchor['prefix'],$anchor['a_num']
         );
 
@@ -222,10 +196,9 @@ abstract class ShowThread
         $anchor['nums'] = sprintf("%s(?:%s%s)*(?!%s)",
             $anchor['a_num'], $anchor['delimiter2'], $anchor['a_num'], $anchor['a_digit']
         );
-
-        // アンカー全体（メッセージ欄用）
-//        $anchor['full_detail'] = sprintf("(%s)?%s(?(1)|です)|\s+%s\s+<br>",$anchor['prefix'], $anchor['ranges'], $anchor['ranges']);
-//        $anchor['full'] = sprintf('(?:%s)%s', $anchor['prefix'], $anchor['ranges']);
+		// レス番号に続くサフィックス
+		$anchor['suffix_yes']="(?![\.]|じゃな(?:い|く)|年|月|日|時|分|秒|代)";
+		$anchor['suffix_no']="(?=(?:\s|　)+(?:<br>)?|です|さん)";
 
         // getAnchorRegex() の strtr() 置換用にkeyを '%key%' に変換する
         foreach ($anchor as $k => $v) {
@@ -254,7 +227,7 @@ abstract class ShowThread
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
             . '|'
             .   '(?P<quote>' // 引用
-            .       $this->getAnchorRegex("(%prefix%)?%ranges%(?(11)(?!じゃな(?:い|く))|(?=です|さん))|(?:<br>|^)\s+%ranges%\s+<br>") 
+            .       $this->getAnchorRegex("(?:(%prefix%)|(?:(?=^|<br>)\s*))%ranges%(?(11)%suffix_yes%|%suffix_no%)") 
             .   ')'
             . '}';
     }
@@ -1038,8 +1011,32 @@ EOP;
         );
     }
 
-    // {{{ quoteRes()
+	// {{{ getQuoteNum()
+	/**
+	 * アンカー内のレス番号変換
+	 *
+	 * @param   string  $appointed_num    1-100
+	 * @return  string　レス番号、不適な場合はfalseを返す
+	 */
+	public function getQuoteNum($num)
+	{
+		$num = mb_convert_kana($num, 'n');   // 全角数字を半角数字に変換
+		if (preg_match("/\D/",$num)) {
+			$num = preg_replace('/\D+/', '-', $num);
+			if ($num == '-') {
+				return false;
+			}
+			return $num;
+		}
+/*
+		if (preg_match("/^0/", $num)) {
+			return $full;
+		}*/
 
+		return $num;
+	}
+    // }}}
+    // {{{ quoteRes()
     /**
      * 引用変換（単独）
      *
@@ -1162,8 +1159,10 @@ EOP;
         // <a href="../test/read.cgi/accuse/1001506967/1" target="_blank">&gt;&gt;1</a>
         $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
             
-        if (!preg_match_all($this->getAnchorRegex('/(%prefix%)(%ranges%)/'), $msg, $out, PREG_PATTERN_ORDER)) {return null;}
-        $joined_ranges_list=$out[2];
+        if (!preg_match_all(
+$this->getAnchorRegex("/(?:(%prefix%)|((?:^|<br>)\s*))(%ranges%)(?(1)%suffix_yes%|%suffix_no%)/") , $msg, $out, PREG_PATTERN_ORDER)) {return null;}
+//var_dump($out); echo "<br>";
+        $joined_ranges_list=$out[3];
         foreach ($joined_ranges_list as $joined_ranges) {
             if (!preg_match_all($this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), $joined_ranges, $ranges_list, PREG_PATTERN_ORDER)) {continue;}
             $anchor_list=array_merge($anchor_list,$ranges_list[1]);

@@ -448,7 +448,7 @@ EOP;
         // 数字を引用レスポップアップリンク化
         if (strlen($name) && $name != $this->BBS_NONAME_NAME) {
             $name = preg_replace_callback(
-                $this->getAnchorRegex('/(?:^|%prefix%)%nums%/'),
+                $this->getAnchorRegex('/(%prefix%)?%nums%(?(1)%suffix_yes%|%suffix_no%)$/'),
                 array($this, 'quote_name_callback'), $name
             );
         }
@@ -506,7 +506,7 @@ EOP;
 
             // >>1, >1, ＞1, ＞＞1を引用レスポップアップリンク化
             $msg = preg_replace_callback(
-                $this->getAnchorRegex('/(%prefix%)(%ranges%)/'),
+                $this->getAnchorRegex('/(?:(%prefix%)|(?=(?:^|<br>)\s))%ranges%(?(1)%suffix_yes%|%suffix_no%)/'),
                 array($this, 'quoteResCallback'), $msg
             );
 
@@ -701,18 +701,12 @@ EOP;
     {
         global $_conf;
 
-        if ($appointed_num == '-') {
-            return $full;
-        }
-
-        $appointed_num = mb_convert_kana($appointed_num, 'n');   // 全角数字を半角数字に変換
+		$appointed_num=$this->getQuoteNum($appointed_num);
+		if (!$appointed_num) {return $full;}
         if (preg_match("/\D/",$appointed_num)) {
-            $appointed_num = preg_replace('/\D+/', '-', $appointed_num);
             return $this->quoteResRange($full, $qsign, $appointed_num);
         }
-        if (preg_match("/^0/", $appointed_num)) {
-            return $full;
-        }
+
         $qnum = intval($appointed_num);
         if ($qnum < 1 || $qnum > $this->thread->rescount) {
             return $full;
@@ -736,10 +730,6 @@ EOP;
     public function quoteResRange($full, $qsign, $appointed_num)
     {
         global $_conf;
-
-        if ($appointed_num == '-') {
-            return $full;
-        }
 
         list($from, $to) = explode('-', $appointed_num);
         if (!$from) {
