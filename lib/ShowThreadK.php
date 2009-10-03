@@ -506,7 +506,7 @@ EOP;
 
             // >>1, >1, ＞1, ＞＞1を引用レスポップアップリンク化
             $msg = preg_replace_callback(
-                $this->getAnchorRegex('/((%prefix%)|(?:(?:^|<br>)\s*))(%ranges%)(?(11)%suffix_yes%|%suffix_no%)/'),
+                $this->getAnchorRegex('/((%prefix%)|(?:(?:^|<br>)\s*))(%ranges%)(?(1)%suffix_yes%|%suffix_no%)/'),
                 array($this, 'quoteResCallback'), $msg
             );
 
