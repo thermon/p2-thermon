@@ -1056,7 +1056,7 @@ EOP;
      * @param   array   $s  正規表現にマッチした要素の配列
      * @return  string
      */
-    final public function quoteResCallback (array $s)
+    final public function quoteResCallback(array $s)
     {
         $var=
 preg_replace_callback(
