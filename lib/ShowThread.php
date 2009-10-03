@@ -183,7 +183,7 @@ abstract class ShowThread
         $anchor['a_num'] = sprintf('%s{1,4}', $anchor['a_digit']);
 
         // レス範囲
-        $anchor['a_range'] = sprintf("(?:%s)(?:%s%s?%s)?",
+        $anchor['a_range'] = sprintf("(?:%s(?:%s%s?%s)?)",
             $anchor['a_num'], $anchor['range_delimiter'], $anchor['prefix'],$anchor['a_num']
         );
 
@@ -198,7 +198,7 @@ abstract class ShowThread
         );
 		// レス番号に続くサフィックス
 		$anchor['suffix_yes']="(?![\.]|じゃな(?:い|く)|年|月|日|時|分|秒|代|回)";
-		$anchor['suffix_no']="(?=(?:\s|　)+(?:<br>)?|です|さん)";
+		$anchor['suffix_no']="(?=(?:\s|　)+(?:<br>|$)|です|さん)";
 
         // getAnchorRegex() の strtr() 置換用にkeyを '%key%' に変換する
         foreach ($anchor as $k => $v) {
@@ -227,7 +227,7 @@ abstract class ShowThread
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
             . '|'
             .   '(?P<quote>' // 引用
-            .       $this->getAnchorRegex("(?:(%prefix%)?)(?(11)%ranges%%suffix_yes%|((?:^|<br>)\s*)%ranges%%suffix_no%)") 
+			.       $this->getAnchorRegex("(?:(%prefix%)|(?:(?:^|<br>)\s*))(%ranges%)(?(11)%suffix_yes%|%suffix_no%)") 
             .   ')'
             . '}';
     }
@@ -1065,7 +1065,7 @@ preg_replace_callback(
             );
 //	var_dump($var) ; echo "<br>";
 return $var;
-//$this->quoteRes($s[0], $s[1], $s[2]);
+// return $this->quoteRes($s[0], $s[1], $s[2]);
     }
 
     // }}}
