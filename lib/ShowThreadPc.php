@@ -675,10 +675,12 @@ EOP;*/
      * @param   string  $appointed_num    1-100
      * @return  string
      */
-    public function quoteRes($full, $qsign, $appointed_num, $anchor_jump = false)
+    public function quoteRes(array $s)
     {
         global $_conf;
 
+		list($full, $qsign, $appointed_num)=$s;
+		$anchor_jump = false;
 		$appointed_num=$this->getQuoteNum($appointed_num);
 		if (!$appointed_num) {return $full;}
         if (preg_match("/\D/",$appointed_num)) {

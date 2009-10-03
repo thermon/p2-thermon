@@ -506,7 +506,7 @@ EOP;
 
             // >>1, >1, ＞1, ＞＞1を引用レスポップアップリンク化
             $msg = preg_replace_callback(
-                $this->getAnchorRegex('/(?:(%prefix%)|(?=(?:^|<br>)\s))%ranges%(?(1)%suffix_yes%|%suffix_no%)/'),
+                $this->getAnchorRegex('/(?:(%prefix%)|(?:(?:^|<br>)\s))(%ranges%)(?(1)%suffix_yes%|%suffix_no%)/'),
                 array($this, 'quoteResCallback'), $msg
             );
 
@@ -697,10 +697,11 @@ EOP;
      * @param   string  $appointed_num    1-100
      * @return string
      */
-    public function quoteRes($full, $qsign, $appointed_num)
+    public function quoteRes(array $s)
     {
         global $_conf;
 
+		list($full, $qsign, $appointed_num)=$s;
 		$appointed_num=$this->getQuoteNum($appointed_num);
 		if (!$appointed_num) {return $full;}
         if (preg_match("/\D/",$appointed_num)) {

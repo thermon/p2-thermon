@@ -197,7 +197,7 @@ abstract class ShowThread
             $anchor['a_num'], $anchor['delimiter2'], $anchor['a_num'], $anchor['a_digit']
         );
 		// レス番号に続くサフィックス
-		$anchor['suffix_yes']="(?![\.]|じゃな(?:い|く)|年|月|日|時|分|秒|代)";
+		$anchor['suffix_yes']="(?![\.]|じゃな(?:い|く)|年|月|日|時|分|秒|代|回)";
 		$anchor['suffix_no']="(?=(?:\s|　)+(?:<br>)?|です|さん)";
 
         // getAnchorRegex() の strtr() 置換用にkeyを '%key%' に変換する
@@ -227,7 +227,7 @@ abstract class ShowThread
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
             . '|'
             .   '(?P<quote>' // 引用
-            .       $this->getAnchorRegex("(?:(%prefix%)|(?:(?=^|<br>)\s*))%ranges%(?(11)%suffix_yes%|%suffix_no%)") 
+            .       $this->getAnchorRegex("(?:(%prefix%)?)(?(11)%ranges%%suffix_yes%|((?:^|<br>)\s*)%ranges%%suffix_no%)") 
             .   ')'
             . '}';
     }
@@ -1045,7 +1045,7 @@ EOP;
      * @param   string  $appointed_num    1
      * @return  string
      */
-    abstract public function quoteRes($full, $qsign, $appointed_num);
+    abstract public function quoteRes(array $s);
 
     // }}}
     // {{{ quoteResCallback()
@@ -1056,9 +1056,16 @@ EOP;
      * @param   array   $s  正規表現にマッチした要素の配列
      * @return  string
      */
-    final public function quoteResCallback(array $s)
+    final public function quoteResCallback (array $s)
     {
-        return $this->quoteRes($s[0], $s[1], $s[2]);
+        $var=
+preg_replace_callback(
+                $this->getAnchorRegex('/(%prefix%)?(%a_range%)/'),
+                array($this, 'quoteRes'), $s[0]
+            );
+//	var_dump($var) ; echo "<br>";
+return $var;
+//$this->quoteRes($s[0], $s[1], $s[2]);
     }
 
     // }}}
@@ -1073,20 +1080,6 @@ EOP;
      * @return  string
      */
     abstract public function quoteResRange($full, $qsign, $appointed_num);
-
-    // }}}
-    // {{{ quoteResRangeCallback()
-
-    /**
-     * 引用変換（範囲）
-     *
-     * @param   array   $s  正規表現にマッチした要素の配列
-     * @return  string
-     */
-    final public function quoteResRangeCallback(array $s)
-    {
-        return $this->quoteResRange($s[0], $s[1], $s[2]);
-    }
 
     // }}}
     // {{{ getQuoteResNumsName()
@@ -1274,7 +1267,7 @@ $this->getAnchorRegex("/(?:(%prefix%)|((?:^|<br>)\s*))(%ranges%)(?(1)%suffix_yes
             } else {
                 $ret .= '<li>└';
             }
-            $ret .= $this->quoteRes($anchor, '', $anchor);
+            $ret .= $this->quoteRes(array($anchor, '', $anchor));
             $anchor_cnt++;
         }
         $ret .= '</ul></div>';
@@ -1297,7 +1290,7 @@ $this->getAnchorRegex("/(?:(%prefix%)|((?:^|<br>)\s*))(%ranges%)(?(1)%suffix_yes
         $ret.= sprintf('<div class="reslist" id="%s">',$UouterContainerId);
 
         foreach($anchors as $idx=>$anchor) {
-            $anchor_link= $this->quoteRes('>>'.$anchor, '>>', $anchor);
+            $anchor_link= $this->quoteRes(array('>>'.$anchor, '>>', $anchor));
             $qres_id = ($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
 			$ret.=sprintf('<div>【参照レス：%s】</div>',$anchor_link);
 		}
