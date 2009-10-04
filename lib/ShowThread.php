@@ -198,7 +198,7 @@ abstract class ShowThread
         );
 		// レス番号に続くサフィックス
 		$anchor['suffix_yes']="(?![\.]|じゃな(?:い|く)|年|月|日|時|分|秒|代|回)";
-		$anchor['suffix_no']="(?=(?:\s|　)+(?:<br>|$)|です|さん)";
+		$anchor['suffix_no']="(?=(?:\s|　)*(?:<br>|$)|です|さん)";
 
         // getAnchorRegex() の strtr() 置換用にkeyを '%key%' に変換する
         foreach ($anchor as $k => $v) {
@@ -221,7 +221,7 @@ abstract class ShowThread
             . '(?P<link>(<[Aa] .+?>)(.*?)(</[Aa]>))' // リンク（PCREの特性上、必ずこのパターンを最初に試行する）
             . '|'
             .   '(?P<url>'
-            .       '(ftp|h?ttps?|tps?)://([0-9A-Za-z][\\w!#%&+*,\\-./:;=?@\\[\\]^~]+)' // URL
+            .       '(ftp|h?ttps?|tps?|ps?)://([0-9A-Za-z][\\w!#%&+*,\\-./:;=?@\\[\\]^~]+)' // URL
             .   ')'
             . '|'
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
@@ -888,7 +888,7 @@ EOP;
             if ($_conf['ktai'] && $s[$url_index+1] == 'ftp') {
                 return $orig;
             }
-            $url = preg_replace('/^t?(tps?)$/', 'ht$1', $s[$url_index+1]) . '://' . $s[$url_index+2];
+            $url = preg_replace('/^t{0,2}(ps?)$/', 'htt$1', $s[$url_index+1]) . '://' . $s[$url_index+2];
             $str = $s['url'];
 /*            $following = $s[11-3];
             if (strlen($following) > 0) {

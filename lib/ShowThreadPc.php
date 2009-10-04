@@ -502,7 +502,7 @@ EOJS;
         if ($_conf['quote_res_view']) {
             if (strlen($name) && $name != $this->BBS_NONAME_NAME) {
                 $name = preg_replace_callback(
-                    $this->getAnchorRegex('/(%prefix%)?%nums%(?(1)%suffix_yes%|%suffix_no%)$/'),
+                    $this->getAnchorRegex('/(%prefix%)?%nums%(?(1)%suffix_yes%|%suffix_no%)/'),
                     array($this, 'quote_name_callback'), $name
                 );
             }
@@ -990,7 +990,11 @@ EOP;*/
 
         global $_conf;
 		static $_cache=array();
-        if (array_key_exists($res_num,$_cache)) {return $_cache[$res_num];}
+		$matome=$_cache[$this->_matome] ? $_cache[$this->_matome] : "null";
+		if (!array_key_exists($matome,$_cache)) {$_cache[$matome]=array();}
+        if (array_key_exists($res_num,$_cache[$matome])) {
+			return $_cache[$matome][$res_num];
+		}
 
         // 再帰リミッタ
         if ($this->_quote_check_depth > 30) {
@@ -1090,7 +1094,7 @@ EOP;*/
         }
 		//	var_dump(array('resnum'=>$res_num,'res'=>$quote_res_nums));echo "<br>";
 		// echo "return<br>";
-        return $_cache[$res_num]=$quote_res_nums;
+        return $_cache[$matome][$res_num]=$quote_res_nums;
     }
 
     // }}}

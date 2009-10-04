@@ -44,23 +44,23 @@ function insertRes(outerContainerId,anchors,button) {
 	button.onclick=function () {removeRes(outerContainerId,anchors,button)};
 	button.src=button.src.replace(/plus/,'minus');
 //	var outerContainer=getElement(outerContainerId);
-	var outerContainer=button.parentNode.lastChild; // reslistブロック
+	outerContainer=button.parentNode.lastChild; // reslistブロック
 	while(outerContainer && outerContainer.className!="reslist") {
 		outerContainer=outerContainer.previousSibling;
 	}
 //	alert(outerContainer.className);
 	
-	var children=anchors.split("/");
+	children=anchors.split("/");
 //	 alert(children.length);
 	for (i=0;i<children.length;i++) {
-		var childDiv=outerContainer.childNodes[i];
+		// childDiv=outerContainer.childNodes[i];
 		// alert(childDiv.className);
-		var importId=children[i];
-		var importElement=copyHTML(""+importId);
+		importId=children[i];
+		importElement=copyHTML(""+importId);
 		importElement=importElement.replace(/<!--%%%(.+)%%%-->/,'$1');
 
 		//参照先レス情報をコピー
-		var resdiv=document.createElement('blockquote');
+		resdiv=document.createElement('blockquote');
 		resdiv.innerHTML=importElement.replace(/id=\".+?\"/g,"");
 		// // alert(resdiv.innerHTML);
 		
@@ -76,17 +76,16 @@ function removeRes(outerContainerId,anchors,button) {
 	button.src=button.src.replace(/minus/,'plus');
 	// // alert(typeof(outerContainerId));
 //	var outerContainer=getElement(outerContainerId);
-	var outerContainer=button.parentNode.lastChild; // reslistブロック
+	outerContainer=button.parentNode.lastChild; // reslistブロック
 	while(outerContainer && outerContainer.className!="reslist") {
 		outerContainer=outerContainer.previousSibling;
 	}
 //	alert(outerContainer.className);
 	
-	var children=anchors.split("/");
+	children=anchors.split("/");
 
 	for (i=0;i<children.length;i++) {
 		// alert(outerContainer.lastChild.className);
-		var childDiv=outerContainer.childNodes[children.length-i-1];
 		outerContainer.removeChild(outerContainer.lastChild);
 		outerContainer.childNodes[children.length-i-1].style.display='block';
 	}
