@@ -363,7 +363,7 @@ div.reslist_inner {
 }
 
 blockquote.folding_container{
-	margin:2px -2px 2px -10px;
+	margin:2px -2px 2px 2px;
 	position:relative;
 	left: 0em;
     border-width: 2px;

@@ -68,7 +68,6 @@ function insertRes(outerContainerId,anchors,button) {
 		outerContainer.appendChild(resdiv);
 		outerContainer.childNodes[i].style.display='none';
 	}
-
 }
 
 function removeRes(outerContainerId,anchors,button) {
@@ -76,14 +75,20 @@ function removeRes(outerContainerId,anchors,button) {
 	button.onclick=function () {insertRes(outerContainerId,anchors,button)};
 	button.src=button.src.replace(/minus/,'plus');
 	// // alert(typeof(outerContainerId));
-	var outerContainer=getElement(outerContainerId);
-
+//	var outerContainer=getElement(outerContainerId);
+	var outerContainer=button.parentNode.lastChild; // reslistÉuÉçÉbÉN
+	while(outerContainer && outerContainer.className!="reslist") {
+		outerContainer=outerContainer.previousSibling;
+	}
+//	alert(outerContainer.className);
+	
 	var children=anchors.split("/");
-	// alert(children.length);
+
 	for (i=0;i<children.length;i++) {
-		var childDiv=outerContainer.childNodes[i];
+		// alert(outerContainer.lastChild.className);
+		var childDiv=outerContainer.childNodes[children.length-i-1];
 		outerContainer.removeChild(outerContainer.lastChild);
-		outerContainer.childNodes[i].style.display='block';
+		outerContainer.childNodes[children.length-i-1].style.display='block';
 	}
 }
 
