@@ -1098,7 +1098,7 @@ EOP;*/
     }
 
     // }}}
-    // {{{ imageHtmlPopup()
+    // {{{ imageHtmlPopup() 
 
     /**
      * 画像をHTMLポップアップ&ポップアップウインドウサイズに合わせる
