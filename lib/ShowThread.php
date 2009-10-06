@@ -1152,7 +1152,7 @@ EOP;
         $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
             
         if (!preg_match_all(
-$this->getAnchorRegex("/(%prefix%)?(%ranges%)(?(1)%suffix_yes%|%suffix_no%)%suffix%/") , $msg, $out, PREG_PATTERN_ORDER)) {return null;}
+$this->getAnchorRegex("/(?:(%prefix%)|(?<![a-zA-Z]))(%ranges%)(?(1)%suffix_yes%|%suffix_no%)%suffix%/") , $msg, $out, PREG_PATTERN_ORDER)) {return null;}
 		// var_dump($out); echo "<br>";
         $joined_ranges_list=$out[2];
         foreach ($joined_ranges_list as $joined_ranges) {
