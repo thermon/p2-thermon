@@ -1155,7 +1155,7 @@ EOP;
 			$this->getAnchorRegex(
 				"/(?:(%prefix%)|(%no_prefix%)?)(%ranges%)(?(1)%suffix_yes%|(?(2)%suffix_no%|%num_suffix%))%suffix%/"
 			) , $msg, $out, PREG_PATTERN_ORDER)) {return null;}
-		var_dump($out); echo "<br>";
+//		var_dump($out); echo "<br>";
         $joined_ranges_list=$out[3];
         foreach ($joined_ranges_list as $joined_ranges) {
             if (!preg_match_all($this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), $joined_ranges, $ranges_list, PREG_PATTERN_ORDER)) {continue;}
