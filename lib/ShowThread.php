@@ -166,7 +166,7 @@ abstract class ShowThread
         $anchor['prefix'] = "(?:(?:(?:&gt;|&lt;|r|„){1,2}|t|â|(?:‚­){2}){$anchor_space}*)";
 
         // ”š
-        $a_digit_without_zero = '(?:[1-9]|‚P|‚Q|‚R|‚S|‚T|‚U|‚V|‚W|‚X)';
+//        $a_digit_without_zero = '(?:[1-9]|‚P|‚Q|‚R|‚S|‚T|‚U|‚V|‚W|‚X)';
         $anchor['a_digit'] = '(?:\\d|‚O|‚P|‚Q|‚R|‚S|‚T|‚U|‚V|‚W|‚X)';
 
         // ”ÍˆÍw’èq
@@ -197,7 +197,7 @@ abstract class ShowThread
             $anchor['a_num'], $anchor['delimiter2'], $anchor['a_num'], $anchor['a_digit']
         );
 		// ƒŒƒX”Ô†‚É‘±‚­ƒTƒtƒBƒbƒNƒX
-		$anchor['suffix_yes']="(?![\.]|‚¶‚á‚È(?:‚¢|‚­)|”N|Œ|“ú||•ª|•b|‘ã|‰ñ)";
+		$anchor['suffix_yes']="(?![\.]|‚¶‚á‚È(?:‚¢|‚­)|”N|Œ|“ú||•ª|•b|‘ã|‰ñ|¢‹I)";
 		$anchor['suffix_no']="(?=(?:\s|@)*(?:<br>|$)|‚Å‚·|‚³‚ñ)";
 
         // getAnchorRegex() ‚Ì strtr() ’uŠ·—p‚Ékey‚ğ '%key%' ‚É•ÏŠ·‚·‚é
