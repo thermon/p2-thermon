@@ -227,7 +227,7 @@ abstract class ShowThread
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
             . '|'
             .   '(?P<quote>' // 引用
-			.       $this->getAnchorRegex("(?:(%prefix%)|(?:(?:^|<br>)\s*))(%ranges%)(?(11)%suffix_yes%|%suffix_no%)") 
+			.       $this->getAnchorRegex("(?:(%prefix%)|(?:(?:^|<br>)?\s*))(%ranges%)(?(11)%suffix_yes%|%suffix_no%)") 
             .   ')'
             . '}';
     }
@@ -1153,7 +1153,7 @@ return $var;
         $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
             
         if (!preg_match_all(
-$this->getAnchorRegex("/(?:(%prefix%)|((?:^|<br>)\s*))(%ranges%)(?(1)%suffix_yes%|%suffix_no%)/") , $msg, $out, PREG_PATTERN_ORDER)) {return null;}
+$this->getAnchorRegex("/(?:(%prefix%)|((?:^|<br>)?\s*))(%ranges%)(?(1)%suffix_yes%|%suffix_no%)/") , $msg, $out, PREG_PATTERN_ORDER)) {return null;}
 //var_dump($out); echo "<br>";
         $joined_ranges_list=$out[3];
         foreach ($joined_ranges_list as $joined_ranges) {
