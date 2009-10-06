@@ -448,7 +448,7 @@ EOP;
         // 数字を引用レスポップアップリンク化
         if (strlen($name) && $name != $this->BBS_NONAME_NAME) {
             $name = preg_replace_callback(
-                $this->getAnchorRegex('/(%prefix%)?%nums%(?(1)%suffix_yes%|%suffix_no%)/'),
+                $this->getAnchorRegex('/(%prefix%)?%nums%(?(1)%suffix_yes%|%suffix_no%)%suffix%/'),
                 array($this, 'quote_name_callback'), $name
             );
         }
@@ -506,7 +506,7 @@ EOP;
 
             // >>1, >1, ＞1, ＞＞1を引用レスポップアップリンク化
             $msg = preg_replace_callback(
-                $this->getAnchorRegex('/((%prefix%)|(?:(?:^|<br>)?\s*))(%ranges%)(?(1)%suffix_yes%|%suffix_no%)/'),
+                $this->getAnchorRegex('/(?:(%prefix%)|(?<!\w))%ranges%(?(1)%suffix_yes%|%suffix_no%)%suffix%/'),
                 array($this, 'quoteResCallback'), $msg
             );
 
