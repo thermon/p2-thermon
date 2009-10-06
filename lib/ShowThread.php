@@ -165,7 +165,7 @@ abstract class ShowThread
 
         // アンカー引用子 >>
         $anchor['%prefix%'] = "(?:(?:(?:&gt;|&lt;|〉|＞){1,2}|》|≫|(?:く){2}){$anchor_space}*)";
-		$anchor['%prefix_no%'] =""; 
+		$anchor['%no_prefix%'] ="(?:(?=^|<br>)\s+)"; 
 
         // 数字
 //        $a_digit_without_zero = '(?:[1-9]|１|２|３|４|５|６|７|８|９)';
@@ -204,7 +204,7 @@ abstract class ShowThread
 			$anchor);
 		// レス番号に続くサフィックス
 		$anchor['%suffix_yes%']="(?![\.]|じゃな(?:い|く)|年|(?:カ|ヵ|ヶ)?月|日|時|分|秒|代|回|世紀|円|度)";
-		$anchor['%suffix_no%']=strtr("(?:%num_suffix%)",$anchor); //(?:\s|　)*(?:<br>|$))";
+		$anchor['%suffix_no%']="(?=(?:\s|　)*(?:<br>|$))";
 		$anchor['%suffix%']="";
 
         $cache_ = $anchor;
@@ -227,7 +227,7 @@ abstract class ShowThread
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
             . '|'
             .   '(?P<quote>' // 引用
-			.       $this->getAnchorRegex("(?:(%prefix%)|(?<![a-zA-Z]))%ranges%(?(11)%suffix_yes%|%suffix_no%)%suffix%") 
+			.       $this->getAnchorRegex("(?:(%prefix%)|(%no_prefix%)?)%ranges%(?(11)%suffix_yes%|(?(12)%suffix_no%|%num_suffix%))%suffix%") 
             .   ')'
             . '}';
     }
@@ -912,7 +912,7 @@ EOP;
             return $this->idFilter($s['id'], $s[$id_index+1]);
         // 引用
         } elseif ($s['quote']) {
-//			trigger_error($s['quote']);
+			if ($s[12]) {trigger_error($s['quote']);}
             return  preg_replace_callback(
                 $this->getAnchorRegex('/(%prefix%)?(%a_range%)(%num_suffix%)?/'),
                 array($this, 'quoteRes'), $s['quote']);
@@ -1152,9 +1152,11 @@ EOP;
         $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
             
         if (!preg_match_all(
-$this->getAnchorRegex("/(?:(%prefix%)|(?<![a-zA-Z]))(%ranges%)(?(1)%suffix_yes%|%suffix_no%)%suffix%/") , $msg, $out, PREG_PATTERN_ORDER)) {return null;}
-		// var_dump($out); echo "<br>";
-        $joined_ranges_list=$out[2];
+			$this->getAnchorRegex(
+				"/(?:(%prefix%)|(%no_prefix%)?)(%ranges%)(?(1)%suffix_yes%|(?(2)%suffix_no%|%num_suffix%))%suffix%/"
+			) , $msg, $out, PREG_PATTERN_ORDER)) {return null;}
+		var_dump($out); echo "<br>";
+        $joined_ranges_list=$out[3];
         foreach ($joined_ranges_list as $joined_ranges) {
             if (!preg_match_all($this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), $joined_ranges, $ranges_list, PREG_PATTERN_ORDER)) {continue;}
             $anchor_list=array_merge($anchor_list,$ranges_list[1]);
