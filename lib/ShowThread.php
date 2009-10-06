@@ -175,7 +175,7 @@ abstract class ShowThread
         $anchor['%range_delimiter%'] = "(?:-|‐|\x81\\x5b)"; // ー
 
         // 列挙指定子
-        $anchor['%delimiter%'] = "(?:{$anchor_space}?(?:[,=+]|、|・|＝|，){$anchor_space}?)";
+        $anchor['%delimiter%'] = "(?:{$anchor_space}?(?:[,=+]|、|・|＝|，|＆){$anchor_space}?)";
         $anchor['%delimiter2%'] = $anchor['%delimiter%'];
 
         // あぼーん用アンカー引用子
@@ -204,7 +204,7 @@ abstract class ShowThread
 			$anchor);
 		// レス番号に続くサフィックス
 		$anchor['%suffix_yes%']="(?![\.]|じゃな(?:い|く)|年|(?:カ|ヵ|ヶ)?月|日|時|分|秒|代|回|世紀|円|度)";
-		$anchor['%suffix_no%']="(?={$num_suffix}(?:\s|　)*(?:<br>|$))";
+		$anchor['%suffix_no%']=strtr("(?:%num_suffix%)",$anchor); //(?:\s|　)*(?:<br>|$))";
 		$anchor['%suffix%']="";
 
         $cache_ = $anchor;
@@ -914,8 +914,8 @@ EOP;
         } elseif ($s['quote']) {
 //			trigger_error($s['quote']);
             return  preg_replace_callback(
-                $this->getAnchorRegex('/(%prefix%)?(%a_range%)(?!%delimiter%|%range_delimiter%|%a_digit%).*/'),
-                array($this, 'quoteResCallback'), $s['quote']);
+                $this->getAnchorRegex('/(%prefix%)?(%a_range%)(%num_suffix%)?/'),
+                array($this, 'quoteRes'), $s['quote']);
         // その他（予備）
         } else {
             return strip_tags($orig);
@@ -1059,7 +1059,7 @@ EOP;
     final public function quoteResCallback(array $s)
     {
 		$var=preg_replace_callback(
-			$this->getAnchorRegex('/(%prefix%)?(%a_range%)(?!%delimiter%|%range_delimiter%|%a_digit%)(%num_suffix%)?/'),
+			$this->getAnchorRegex('/(%prefix%)?(%a_range%)(%num_suffix%)?/'),
 			array($this, 'quoteRes'), $s[0]
 		);
 		//	var_dump($var) ; echo "<br>";
