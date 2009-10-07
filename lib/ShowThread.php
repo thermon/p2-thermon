@@ -163,16 +163,27 @@ abstract class ShowThread
         $anchor_space = '(?:[ ]|　)';
         //$anchor[' '] = '';
 
+		// レス番号サフィックス
+		$anchor['%a_num_suffix%']="(?:さん|さま|様)";
+		$anchor['%ranges_suffix%']="(?:です)";
+
         // アンカー引用子 >>
         $anchor['%prefix%'] = "(?:(?:(?:&gt;|&lt;|〉|＞){1,2}|》|≫|(?:く){2}){$anchor_space}*)";
-		$anchor['%no_prefix%'] ="(?:(?=^|<br>)\s+)"; 
+		$anchor['%suffix%']="(?![\.]|じゃな(?:い|く)|年|(?:カ|ヵ|ヶ)?月|日|時|分|秒|代|回|世紀|円|度)";
 
+        // 行頭アンカー引用子
+		$anchor['%line_prefix%'] ="(?:(?=^|<br>)\s+)"; 
+		$anchor['%line_suffix%']="(?=(?:\s|　)*(?:<br>|$))";
+
+		// その他のアンカー
+		$anchor['%no_prefix%']=""; //(?=<[^a-zA-Z])";
+		$anchor['%suffix_no_prefix%']=strtr("(?:(?:%a_num_suffix%|%ranges_suffix%)|(?=が|の|で|は))",$anchor);
         // 数字
 //        $a_digit_without_zero = '(?:[1-9]|１|２|３|４|５|６|７|８|９)';
         $anchor['%a_digit%'] = '(?:\\d|０|１|２|３|４|５|６|７|８|９)';
 
         // 範囲指定子
-        $anchor['%range_delimiter%'] = "(?:-|‐|\x81\\x5b)"; // ー
+        $anchor['%range_delimiter%'] = "(?:-|‐|ｰ|\x81\\x5b)"; // ー
 
         // 列挙指定子
         $anchor['%delimiter%'] = "(?:{$anchor_space}?(?:[,=+]|、|・|＝|，|＆){$anchor_space}?)";
@@ -181,7 +192,7 @@ abstract class ShowThread
         // あぼーん用アンカー引用子
         $anchor['%prefix_abon%'] = "&gt;{1,2}{$anchor_space}?";
         // レス範囲
-		$anchor['%num_suffix%']="(?:です|さん)";
+
 /*
         // getAnchorRegex() の strtr() 置換用にkeyを '%key%' に変換する
         foreach ($anchor as $k => $v) {
@@ -195,17 +206,15 @@ abstract class ShowThread
 
         // レス範囲の列挙
         $anchor['%ranges%'] = strtr(
-			'%a_range%%num_suffix%?(?:%delimiter%%a_range%%num_suffix%?)*(?!%a_digit%)',
+			'%a_range%%a_num_suffix%?(?:%delimiter%%a_range%%a_num_suffix%?)*%ranges_suffix%?(?!%a_digit%)',
 			$anchor);
 
         // レス番号の列挙
         $anchor['%nums%'] = strtr(
-			"%a_num%%num_suffix%?(?:%delimiter2%%a_num%%num_suffix%?)*(?!%a_digit%)",
+			"%a_num%%a_num_suffix%?(?:%delimiter2%%a_num%%a_num_suffix%?)*%ranges_suffix%?(?!%a_digit%)",
 			$anchor);
 		// レス番号に続くサフィックス
-		$anchor['%suffix_yes%']="(?![\.]|じゃな(?:い|く)|年|(?:カ|ヵ|ヶ)?月|日|時|分|秒|代|回|世紀|円|度)";
-		$anchor['%suffix_no%']="(?=(?:\s|　)*(?:<br>|$))";
-		$anchor['%suffix%']="";
+
 
         $cache_ = $anchor;
         return $cache_;
@@ -227,7 +236,7 @@ abstract class ShowThread
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
             . '|'
             .   '(?P<quote>' // 引用
-			.       $this->getAnchorRegex("(?:(%prefix%)|(%no_prefix%)?)%ranges%(?(11)%suffix_yes%|(?(12)%suffix_no%|%num_suffix%))%suffix%") 
+			.       $this->getAnchorRegex("(?:(%prefix%)|(%line_prefix%)|%no_prefix%)%ranges%(?(11)%suffix%|(?(12)%line_suffix%|%suffix_no_prefix%))") 
             .   ')'
             . '}';
     }
@@ -912,9 +921,9 @@ EOP;
             return $this->idFilter($s['id'], $s[$id_index+1]);
         // 引用
         } elseif ($s['quote']) {
-			if ($s[12]) {trigger_error($s['quote']);}
+//			if ($s[12]) {trigger_error($s['quote']);}
             return  preg_replace_callback(
-                $this->getAnchorRegex('/(%prefix%)?(%a_range%)(%num_suffix%)?/'),
+                $this->getAnchorRegex('/(%prefix%)?(%a_range%)(%a_num_suffix%|%ranges_suffix%)?/'),
                 array($this, 'quoteRes'), $s['quote']);
         // その他（予備）
         } else {
@@ -1059,7 +1068,7 @@ EOP;
     final public function quoteResCallback(array $s)
     {
 		$var=preg_replace_callback(
-			$this->getAnchorRegex('/(%prefix%)?(%a_range%)(%num_suffix%)?/'),
+			$this->getAnchorRegex('/(%prefix%)?(%a_range%)(%a_num_suffix%|%ranges_suffix%)?/'),
 			array($this, 'quoteRes'), $s[0]
 		);
 		//	var_dump($var) ; echo "<br>";
@@ -1153,7 +1162,7 @@ EOP;
             
         if (!preg_match_all(
 			$this->getAnchorRegex(
-				"/(?:(%prefix%)|(%no_prefix%)?)(%ranges%)(?(1)%suffix_yes%|(?(2)%suffix_no%|%num_suffix%))%suffix%/"
+				"/(?:(%prefix%)|(%line_prefix%)?)(%ranges%)(?(1)%suffix%|(?(2)%line_suffix%|%suffix_no_prefix%))/"
 			) , $msg, $out, PREG_PATTERN_ORDER)) {return null;}
 //		var_dump($out); echo "<br>";
         $joined_ranges_list=$out[3];

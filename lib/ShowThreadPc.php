@@ -502,7 +502,7 @@ EOJS;
         if ($_conf['quote_res_view']) {
             if (strlen($name) && $name != $this->BBS_NONAME_NAME) {
                 $name = preg_replace_callback(
-                    $this->getAnchorRegex('/(%prefix%)?%nums%(?(1)%suffix_yes%|%suffix_no%)%suffix%/'),
+                    $this->getAnchorRegex('/(%prefix%)?%nums%(?(1)%suffix%|%line_suffix%)/'),
                     array($this, 'quote_name_callback'), $name
                 );
             }
@@ -680,6 +680,7 @@ EOP;*/
     {
         global $_conf;
 
+//		var_dump($s);echo "<br>";
 		list($full, $qsign, $appointed_num)=$s;
 		$anchor_jump = false;
 		$appointed_num=$this->getQuoteNum($appointed_num);
