@@ -177,7 +177,7 @@ abstract class ShowThread
 
 		// ‚»‚Ì‘¼‚ÌƒAƒ“ƒJ[
 		$anchor['%no_prefix%']=""; //(?=<[^a-zA-Z])";
-		$anchor['%suffix_no_prefix%']=strtr("(?:(?:%a_num_suffix%|%ranges_suffix%)|(?=‚ª|‚Ì|‚Å|‚Í))",$anchor);
+		$anchor['%suffix_no_prefix%']=strtr("(?:(?:%a_num_suffix%|%ranges_suffix%))",$anchor);
         // ”š
 //        $a_digit_without_zero = '(?:[1-9]|‚P|‚Q|‚R|‚S|‚T|‚U|‚V|‚W|‚X)';
         $anchor['%a_digit%'] = '(?:\\d|‚O|‚P|‚Q|‚R|‚S|‚T|‚U|‚V|‚W|‚X)';
@@ -1191,9 +1191,9 @@ EOP;
         foreach($this->thread->datlines as $num => $line) {
             list($name, $mail, $date_id, $msg) = $this->thread->explodeDatLine($line);
 
-       // NG‚ ‚Ú[‚ñƒ`ƒFƒbƒN
-        $ng_type = $this->_ngAbornCheck($i, strip_tags($name), $mail, $date_id, $id, $msg, true);
-        if ($ng_type == self::ABORN) {continue;}
+			// NG‚ ‚Ú[‚ñƒ`ƒFƒbƒN
+			$ng_type = $this->_ngAbornCheck($num+1, strip_tags($name), $mail, $date_id, $id, $msg, true);
+			if ($ng_type == self::ABORN) {continue;}
 
             $name = preg_replace('/(Ÿ.*)/', '', $name, 1);
 
