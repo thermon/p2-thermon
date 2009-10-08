@@ -55,6 +55,7 @@ abstract class ShowThread
     public $am_enabled = false; // アクティブモナーが有効か否か
 
     protected $_quote_from; // 被アンカーを集計した配列 // [被参照レス番 : [参照レス番, ...], ...)
+	protected $anchor_letter_ignore;	// アンカー直後に続く場合にアンカーそのものを無視する文字の配列
 
     public $BBS_NONAME_NAME = '';
 
@@ -70,6 +71,7 @@ abstract class ShowThread
 
         // スレッドオブジェクトを登録
         $this->thread = $aThread;
+		$this->getAnchorRegexParts();
         $this->str_to_link_regex = $this->buildStrToLinkRegex();
 
         // まとめ読みモードか否か
@@ -130,13 +132,32 @@ abstract class ShowThread
      * @param   string  $pattern  ex)'/%full%/'
      * @return  string
      */
-    function getAnchorRegex($pattern)
+    function getAnchorRegex($pattern,$name="")
     {
         static $caches_ = array();
+		static $parts= array(); //ShowThread::getAnchorRegexParts()
 
-        if (!array_key_exists($pattern, $caches_)) {
-            $caches_[$pattern] = strtr($pattern, ShowThread::getAnchorRegexParts());
+        if (!array_key_exists($pattern, $caches_) || $name) {
+            $caches_[$pattern] = strtr($pattern, $parts);
             // 大差はないが compileMobile2chUriCallBack() のように preg_relplace_callback()してもいいかも。
+			if (preg_match("/%(.+?)%/",$caches_[$pattern],$out) ) {
+				debug_print_backtrace();
+				trigger_error("{$name}:{$out[1]}の正規表現が未設定です。
+", 	 E_USER_ERROR);
+
+			}
+			
+			if ($out=preg_replace("/\(((?>[^()]+)|(?R))*\)/"," ... ",$caches_[$pattern])) {
+				if (preg_match("/[()]/",$out)) {
+					trigger_error("カッコが閉じていません：".$caches_[$pattern]);
+					debug_print_backtrace();
+				}
+			}
+
+			if ($name && !array_key_exists($name, $parts)) {
+				$parts['%'.$name.'%']=$caches_[$pattern];
+//				trigger_error("{$name} set {$caches_[$pattern]}");
+			}
         }
 
         return $caches_[$pattern];
@@ -149,76 +170,67 @@ abstract class ShowThread
      */
     function getAnchorRegexParts()
     {
-        static $cache_ = null;
-
-        if (!is_null($cache_)) {
-            return $cache_;
-        }
-
-        $anchor = array();
-
         // アンカーの構成要素（正規表現パーツの配列）
+		$parts=array(
+			// 空白文字
+			'anchor_space'=>'(?:[ ])',
 
-        // 空白文字
-        $anchor_space = '(?:[ ]|　)';
-        //$anchor[' '] = '';
+			// 数字
+			'a_digit'	=>	'(?:\\d|０|１|２|３|４|５|６|７|８|９)',
 
-		// レス番号サフィックス
-		$anchor['%a_num_suffix%']="(?:さん|さま|様)";
-		$anchor['%ranges_suffix%']="(?:です)";
+			// 範囲指定子
+			'range_delimiter'	=>	"(?:-|‐|ｰ|\x81\\x5b)", // ー
 
-        // アンカー引用子 >>
-        $anchor['%prefix%'] = "(?:(?:(?:&gt;|&lt;|〉|＞){1,2}|》|≫|(?:く){2}){$anchor_space}*)";
-		$anchor['%suffix%']="(?![\.]|じゃな(?:い|く)|年|(?:カ|ヵ|ヶ)?月|日|時|分|秒|代|回|世紀|円|度)";
+			// 列挙指定子
+			'delimiter'		=>	"(?:%anchor_space%?(?:[,=+]|、|・|＝|，|＆|　)%anchor_space%?)",
+			'delimiter2'	=>	'%delimiter%',
 
-        // 行頭アンカー引用子
-		$anchor['%line_prefix%'] ="(?:(?=^|<br>)\s+)"; 
-		$anchor['%line_suffix%']="(?=(?:\s|　)*(?:<br>|$))";
+			// あぼーん用アンカー引用子
+			'prefix_abon'	=>	"&gt;{1,2}{%anchor_space%}?",
+			// レス範囲
 
-		// その他のアンカー
-		$anchor['%no_prefix%']=""; //(?=<[^a-zA-Z])";
-		$anchor['%suffix_no_prefix%']=strtr("(?:(?:%a_num_suffix%|%ranges_suffix%))",$anchor);
-        // 数字
-//        $a_digit_without_zero = '(?:[1-9]|１|２|３|４|５|６|７|８|９)';
-        $anchor['%a_digit%'] = '(?:\\d|０|１|２|３|４|５|６|７|８|９)';
+			// アンカー引用子 >>
+			'prefix'	=>	"(?:(?:(?:&gt;|&lt;|〉|＞){1,2}|》|≫|(?:く){2})%anchor_space%*)",
 
-        // 範囲指定子
-        $anchor['%range_delimiter%'] = "(?:-|‐|ｰ|\x81\\x5b)"; // ー
+			// レス番号
+			'a_num'		=>	'%a_digit%{1,4}',
+			'a_range'	=>	"(?:\s*%a_num%(?:%range_delimiter%\s*%prefix%?%a_num%)?)",
 
-        // 列挙指定子
-        $anchor['%delimiter%'] = "(?:{$anchor_space}?(?:[,=+]|、|・|＝|，|＆){$anchor_space}?)";
-        $anchor['%delimiter2%'] = $anchor['%delimiter%'];
+			// 範囲指定直後に続く文字列
+			'a_num_suffix'	=>	"(?:さん|さま|様)",
 
-        // あぼーん用アンカー引用子
-        $anchor['%prefix_abon%'] = "&gt;{1,2}{$anchor_space}?";
-        // レス範囲
+			// 範囲指定群に続く文字列
+			'ranges_suffix'		=>	"(?:です)",
 
-/*
-        // getAnchorRegex() の strtr() 置換用にkeyを '%key%' に変換する
-        foreach ($anchor as $k => $v) {
-            $anchor['%' . $k . '%'] = $v;
-            unset($anchor[$k]);
-        }
-*/
-        // レス番号
-        $anchor['%a_num%'] = strtr('%a_digit%{1,4}', $anchor);
-        $anchor['%a_range%'] = strtr("(?:%a_num%(?:%range_delimiter%%prefix%?%a_num%)?)", $anchor);
+			// レス範囲の列挙
+			'ranges'	=>
+				'%a_range%%a_num_suffix%?(?:%delimiter%%a_range%%a_num_suffix%?)*%ranges_suffix%?',
 
-        // レス範囲の列挙
-        $anchor['%ranges%'] = strtr(
-			'%a_range%%a_num_suffix%?(?:%delimiter%%a_range%%a_num_suffix%?)*%ranges_suffix%?(?!%a_digit%)',
-			$anchor);
+			// レス番号の列挙
+			'nums'	=>	"%a_num%%a_num_suffix%?(?:%delimiter2%%a_num%%a_num_suffix%?)*+%ranges_suffix%?(?!%a_digit%)",
+			// プレフィックス付きレス番号に続くサフィックス
+			'suffix'	=>	"",	//(?![\.]|じゃな(?:い|く))",
 
-        // レス番号の列挙
-        $anchor['%nums%'] = strtr(
-			"%a_num%%a_num_suffix%?(?:%delimiter2%%a_num%%a_num_suffix%?)*%ranges_suffix%?(?!%a_digit%)",
-			$anchor);
-		// レス番号に続くサフィックス
+			// 行頭プレフィックス／サフィックス（レス番号のみの行をアンカー扱いする）
+			'line_prefix'	=>	"(?=^|<br>)\s+?", 
+			'line_suffix'	=>	"%anchor_space%+(?=<br>|$)", //(?=(?:\s|　)*)"
 
+			// 裸のアンカーのプレフィックス／サフィックス
+			'no_prefix'	=>	"",
+			'suffix_no_prefix'	=>	"(?:%a_num_suffix%|%ranges_suffix%)",
 
-        $cache_ = $anchor;
-        return $cache_;
-    }
+			'after_letters'		=>	"(?:(?!%prefix%|%a_digit%|%anchor_space%(?:<br>|$)).)*",
+		);
+		foreach ($parts as $k=>$v) {
+			$this->getAnchorRegex($v,$k);
+		}
+
+		//数詞が続くアンカーを排除するための情報を展開する
+		$ignore_letters = <<< END
+年|月|日|時|分|秒|代|回|世紀|円|度|都|道|府|県
+END;
+		$this->anchor_letter_ignore=explode("|",$ignore_letters);
+	}
 
     /**
      * @access  private
@@ -236,7 +248,9 @@ abstract class ShowThread
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
             . '|'
             .   '(?P<quote>' // 引用
-			.       $this->getAnchorRegex("(?:(%prefix%)|(%line_prefix%)|%no_prefix%)%ranges%(?(11)%suffix%|(?(12)%line_suffix%|%suffix_no_prefix%))") 
+//			.       $this->getAnchorRegex("(?:(%prefix%)|(%line_prefix%)|%no_prefix%)%ranges%(?(11)%suffix%|(?(12)%line_suffix%|%suffix_no_prefix%)).*(?!%prefix%|%a_digit%)")
+
+			.       $this->getAnchorRegex("(?:(%prefix%)|(%line_prefix%)|%no_prefix%)(%ranges%)((?(11)%suffix%|(?(12)%line_suffix%|%suffix_no_prefix%)))(?P<quote_follow>%after_letters%)")
             .   ')'
             . '}';
     }
@@ -921,7 +935,16 @@ EOP;
             return $this->idFilter($s['id'], $s[$id_index+1]);
         // 引用
         } elseif ($s['quote']) {
-//			if ($s[12]) {trigger_error($s['quote']);}
+			if ($s[11]) {
+//				var_dump(array($s['quote'],$s[11],$s[12],$s[13],$s[14],$s[15]));echo "<br>";
+			}
+			if ($s[15]) {
+				foreach ($this->anchor_letter_ignore as $v) {
+					if (strpos($s['quote_follow'],$v)=== 0) {
+						return strip_tags($orig);
+					}
+				}
+			}
             return  preg_replace_callback(
                 $this->getAnchorRegex('/(%prefix%)?(%a_range%)(%a_num_suffix%|%ranges_suffix%)?/'),
                 array($this, 'quoteRes'), $s['quote']);
