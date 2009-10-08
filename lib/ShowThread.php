@@ -212,8 +212,8 @@ abstract class ShowThread
 			'suffix'	=>	"",	//(?![\.]|じゃな(?:い|く))",
 
 			// 行頭プレフィックス／サフィックス（レス番号のみの行をアンカー扱いする）
-			'line_prefix'	=>	"(?=^|<br>)\s+?", 
-			'line_suffix'	=>	"%anchor_space%+(?=<br>|$)", //(?=(?:\s|　)*)"
+			'line_prefix'	=>	"(?=^|<br>)\s*?", 
+			'line_suffix'	=>	"%anchor_space%*(?=<br>|$)", //(?=(?:\s|　)*)"
 
 			// 裸のアンカーのプレフィックス／サフィックス
 			'no_prefix'	=>	"",
@@ -1038,7 +1038,7 @@ EOP;
     function quote_name_callback($s)
     {
         return preg_replace_callback(
-            $this->getAnchorRegex('/(%prefix%)?(%a_num%)/'),
+            $this->getAnchorRegex('/(?:%prefix%)?%a_num%/'),
             array($this, 'quoteResCallback'), $s[0]
         );
     }
@@ -1090,6 +1090,14 @@ EOP;
      */
     final public function quoteResCallback(array $s)
     {
+			if ($s[3]) {
+				foreach ($this->anchor_letter_ignore as $v) {
+					if (strpos($s[3],$v)=== 0) {
+						return $s[0];
+					}
+				}
+			}
+
 		$var=preg_replace_callback(
 			$this->getAnchorRegex('/(%prefix%)?(%a_range%)(%a_num_suffix%|%ranges_suffix%)?/'),
 			array($this, 'quoteRes'), $s[0]
