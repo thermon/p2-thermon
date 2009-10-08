@@ -174,11 +174,11 @@ class ShowThreadPc extends ShowThread
         //=============================================================
         if ($_conf['quote_res_view']) {
             $this->_quote_check_depth = 0;
-			// trigger_error($i);
+
             $quote_res_nums = $this->checkQuoteResNums($i, $name, $msg);
-			//	var_dump(array('resnum'=>$i,'res'=>array_unique($quote_res_nums,SORT_NUMERIC)));echo "<br>";
 
             foreach ($quote_res_nums as $rnv) {
+				// trigger_error($rnv);
                 if (!isset($this->_quote_res_nums_done[$rnv])) {
                     $this->_quote_res_nums_done[$rnv] = true;
                     if (isset($this->thread->datlines[$rnv-1])) {
@@ -187,6 +187,7 @@ class ShowThreadPc extends ShowThread
                         } else {
                             $qres_id = "qr{$rnv}";
                         }
+						// trigger_error($rnv);
                         $ds = $this->qRes($this->thread->datlines[$rnv-1], $rnv);
                         $onPopUp_at = " onmouseover=\"showResPopUp('{$qres_id}',event)\" onmouseout=\"hideResPopUp('{$qres_id}')\"";
                         $rpop .= "<div id=\"{$qres_id}\" class=\"respopup\"{$onPopUp_at}>\n{$ds}</div>\n";
@@ -502,7 +503,7 @@ EOJS;
         if ($_conf['quote_res_view']) {
             if (strlen($name) && $name != $this->BBS_NONAME_NAME) {
                 $name = preg_replace_callback(
-                    $this->getAnchorRegex('/(%prefix%)?%nums%(?(1)%suffix%|%line_suffix%)/'),
+                    $this->getAnchorRegex('/(?P<quote>(%prefix%)?%nums%(?(1)%suffix%|%line_suffix%))/'),
                     array($this, 'quote_name_callback'), $name
                 );
             }
@@ -680,7 +681,6 @@ EOP;*/
     {
         global $_conf;
 
-//		var_dump($s);echo "<br>";
 		list($full, $qsign, $appointed_num)=$s;
 		$anchor_jump = false;
 		$appointed_num=$this->getQuoteNum($appointed_num);
@@ -694,7 +694,6 @@ EOP;*/
             return $full;
         }
 
-// var_dump($appointed_num);echo "<br>";
         if ($anchor_jump && $qnum >= $this->thread->resrange['start'] && $qnum <= $this->thread->resrange['to']) {
             $read_url = '#' . ($this->_matome ? "t{$this->_matome}" : '') . "r{$qnum}";
         } else {
@@ -994,6 +993,7 @@ EOP;*/
 		$matome=$_cache[$this->_matome] ? $_cache[$this->_matome] : "null";
 		if (!array_key_exists($matome,$_cache)) {$_cache[$matome]=array();}
         if (array_key_exists($res_num,$_cache[$matome])) {
+			// trigger_error("{$matome}/{$res_num} exists.".join(",",$_cache[$matome][$res_num]));
 			return $_cache[$matome][$res_num];
 		}
 
@@ -1005,7 +1005,6 @@ EOP;*/
         }
 
         $quote_res_nums = array();
-
         $name = preg_replace('/(◆.*)/', '', $name, 1);
 
         // 名前
@@ -1024,7 +1023,7 @@ EOP;*/
                                 $datalinear = $this->thread->explodeDatLine($this->thread->datlines[$a_quote_res_idx]);
                                 $quote_name = $datalinear[0];
                                 $quote_msg = $this->thread->datlines[$a_quote_res_idx];
-								// trigger_error($a_quote_res_num);
+//								trigger_error($a_quote_res_num." call");
                                 $quote_res_nums = array_merge($quote_res_nums, $this->checkQuoteResNums($a_quote_res_num, $quote_name, $quote_msg));
                             }
                          }
@@ -1033,20 +1032,17 @@ EOP;*/
                 // $name=preg_replace("/([0-9]+)/", "", $name, 1);
             }
         }
-
-        if ($ranges=$this->_getAnchorsFromMsg($msg)) {
+        if ($ranges=$this->_getAnchorsFromMsg($msg,$res_num)) {
             foreach ($ranges as $a_range) {
-                if (preg_match($this->getAnchorRegex('/%range_delimiter%/'),$a_range)) { continue;}
+                if (preg_match($this->getAnchorRegex('/%range_delimiter%/'),$a_range)) {continue;}
                 $a_quote_res_num = (int) (mb_convert_kana($a_range, 'n'));
                 $a_quote_res_idx = $a_quote_res_num - 1;
-
-                //echo $a_quote_res_num;
 
                 if (!$a_quote_res_num) {break;}
                 $quote_res_nums[] = $a_quote_res_num;
 
                 // 自分自身の番号と同一でなければ、
-                if ($a_quote_res_num == $res_num) {continue;}
+                if ($a_quote_res_num >= $res_num) {continue;}
                 // チェックしていない番号を再帰チェック
                 if (!isset($this->_quote_res_nums_checked[$a_quote_res_num])) {
                     $this->_quote_res_nums_checked[$a_quote_res_num] = true;
@@ -1054,7 +1050,6 @@ EOP;*/
                         $datalinear = $this->thread->explodeDatLine($this->thread->datlines[$a_quote_res_idx]);
                         $quote_name = $datalinear[0];
                         $quote_msg = $this->thread->datlines[$a_quote_res_idx];
-						// trigger_error($a_quote_res_num);
                         $quote_res_nums = array_merge($quote_res_nums, $this->checkQuoteResNums($a_quote_res_num, $quote_name, $quote_msg));
                     }
                 }
@@ -1063,38 +1058,28 @@ EOP;*/
 
         if ($_conf['backlink_list'] > 0) {
 			 // レスが付いている場合はそれも対象にする
-            $quote_from = $this->get_quote_from();
-			$quote_saiki=array();
-			$quote_saiki[$res_num]++;
-			while (list($saiki,$v)=each($quote_saiki)) {
-//				var_dump($quote_saiki);echo "<br>";
-//				echo $saiki."<br>";
-	            if (array_key_exists($saiki, $quote_from)) {
-		            foreach ($quote_from[$saiki] as $quote_from_num) {
-						if (!array_key_exists($quote_from_num,$quote_saiki)) {
-		                    if ($quote_from_num != $saiki) {
-		                        if (!isset($this->_quote_res_nums_checked[$quote_from_num])) {
-		                            $this->_quote_res_nums_checked[$quote_from_num] = true;
-		                            if (isset($this->thread->datlines[$quote_from_num - 1])) {
-		                                $datalinear = $this->thread->explodeDatLine($this->thread->datlines[$quote_from_num - 1]);
-		                                $quote_name = $datalinear[0];
-		                                $quote_msg = $this->thread->datlines[$quote_from_num - 1];
-										// echo "(pushed {$quote_from_num})";
-										// trigger_error($quote_from_num);
-		                                $quote_res_nums = array_merge($quote_res_nums, $this->checkQuoteResNums($quote_from_num, $quote_name, $quote_msg));
-		                            }
-		                        }
-		                    }
-							$quote_saiki[$quote_from_num]++;
-		                    $quote_res_nums[] = $quote_from_num;
-						}
-	                }
-					// echo "<br>";
-	            }
+            $quotee_lists = $this->get_quote_from();
+			$quoting_path=array();
+			$quoting_path[$res_num]++;
+			while (list($quoter,$v)=each($quoting_path)) {
+	            if (!array_key_exists($quoter, $quotee_lists)) {continue;}
+	            foreach ($quotee_lists[$quoter] as $quotee) {
+					if (array_key_exists($quotee,$quoting_path)) {continue;}
+                    if ($quotee < $quoter && 
+						!isset($this->_quote_res_nums_checked[$quotee])) {
+                        $this->_quote_res_nums_checked[$quotee] = true;
+                        if (isset($this->thread->datlines[$quotee - 1])) {
+                            $datalinear = $this->thread->explodeDatLine($this->thread->datlines[$quotee - 1]);
+                            $quote_name = $datalinear[0];
+                            $quote_msg = $this->thread->datlines[$quotee - 1];
+                            $quote_res_nums = array_merge($quote_res_nums, $this->checkQuoteResNums($quotee, $quote_name, $quote_msg));
+                        }
+                    }
+					$quoting_path[$quotee]++;
+					$quote_res_nums[] = $quotee;
+				}
 			}
         }
-		//	var_dump(array('resnum'=>$res_num,'res'=>$quote_res_nums));echo "<br>";
-		// echo "return<br>";
         return $_cache[$matome][$res_num]=$quote_res_nums;
     }
 
@@ -1865,11 +1850,11 @@ EOP;
             $this->_make_quote_from();  // 被レスデータ集計
         }
         $ret = array();
-        foreach ($this->_quote_from as $resnum => $quote_from) {
-            if (!$quote_from) continue;
+        foreach ($this->_quote_from as $resnum => $quotee_lists) {
+            if (!$quotee_lists) continue;
             if ($resnum != 1 && ($resnum < $this->thread->resrange['start'] || $resnum > $this->thread->resrange['to'])) continue;
             $tmp = array();
-            foreach ($quote_from as $quote) {
+            foreach ($quotee_lists as $quote) {
                 if ($quote != 1 && ($quote < $this->thread->resrange['start'] || $quote > $this->thread->resrange['to'])) continue;
                 $tmp[] = $quote;
             }
