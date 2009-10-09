@@ -52,9 +52,9 @@ function insertRes(outerContainerId,anchors,button) {
 	for (i=0;i<children.length;i++) {
 		importId=children[i];
 		importElement=copyHTML(""+importId);
-//		x=importElement.match(/display:[ ]*none;?/);
+//		x=importElement.match(/display:\s*none;?/);
 //		alert(x+"を見つけました");
-		importElement=importElement.replace(/display:[ ]*none;?/,'');
+		importElement=importElement.replace(/display:\s*none;?/,'');
 
 		//参照先レス情報をコピー
 		resdiv=document.createElement('blockquote');

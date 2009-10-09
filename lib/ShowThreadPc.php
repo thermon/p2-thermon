@@ -175,7 +175,7 @@ class ShowThreadPc extends ShowThread
         if ($_conf['quote_res_view']) {
             $this->_quote_check_depth = 0;
 
-            $quote_res_nums = $this->checkQuoteResNums($i, $name, $msg);
+            $quote_res_nums = array_keys($this->checkQuoteResNums($i, $name, $msg));
 
             foreach ($quote_res_nums as $rnv) {
                 if (!isset($this->_quote_res_nums_done[$rnv])) {
@@ -358,7 +358,7 @@ EOJS;
 
         $rpop = '';
         $this->_quote_check_depth = 0;
-        $quote_res_nums = $this->checkQuoteResNums(0, '1', '');
+        $quote_res_nums = array_keys($this->checkQuoteResNums(0, '1', ''));
 
         foreach ($quote_res_nums as $rnv) {
             if (!isset($this->_quote_res_nums_done[$rnv])) {
@@ -995,7 +995,7 @@ EOP;
         if ($matches = $this->getQuoteResNumsName($name)) {
             foreach ($matches as $a_quote_res_num) {
                 if ($a_quote_res_num) {
-                    $quote_res_nums[] = $a_quote_res_num;
+                    $quote_res_nums[$a_quote_res_num]="quoted";
                     $a_quote_res_idx = $a_quote_res_num - 1;
 
                     // 自分自身の番号と同一でなければ、
@@ -1007,7 +1007,7 @@ EOP;
                                 $datalinear = $this->thread->explodeDatLine($this->thread->datlines[$a_quote_res_idx]);
                                 $quote_name = $datalinear[0];
                                 $quote_msg = $this->thread->datlines[$a_quote_res_idx];
-                                $quote_res_nums = array_merge($quote_res_nums, $this->checkQuoteResNums($a_quote_res_num, $quote_name, $quote_msg));
+                                $quote_res_nums+= $this->checkQuoteResNums($a_quote_res_num, $quote_name, $quote_msg);
                             }
                          }
                      }
@@ -1022,8 +1022,7 @@ EOP;
                 $a_quote_res_idx = $a_quote_res_num - 1;
 
                 if (!$a_quote_res_num) {break;}
-                $quote_res_nums[] = $a_quote_res_num;
-
+                $quote_res_nums[$a_quote_res_num]="quoted";
                 // 自分自身の番号と同一でなければ、
                 if ($a_quote_res_num == $res_num) {continue;}
                 // チェックしていない番号を再帰チェック
@@ -1033,7 +1032,7 @@ EOP;
                         $datalinear = $this->thread->explodeDatLine($this->thread->datlines[$a_quote_res_idx]);
                         $quote_name = $datalinear[0];
                         $quote_msg = $this->thread->datlines[$a_quote_res_idx];
-                        $quote_res_nums = array_merge($quote_res_nums, $this->checkQuoteResNums($a_quote_res_num, $quote_name, $quote_msg));
+                        $quote_res_nums+= $this->checkQuoteResNums($a_quote_res_num, $quote_name, $quote_msg);
                     }
                 }
             }
@@ -1055,18 +1054,18 @@ EOP;
                             $datalinear = $this->thread->explodeDatLine($this->thread->datlines[$quotee - 1]);
                             $quote_name = $datalinear[0];
                             $quote_msg = $this->thread->datlines[$quotee - 1];
-                            $quote_res_nums = array_merge($quote_res_nums, $this->checkQuoteResNums($quotee, $quote_name, $quote_msg));
+                            $quote_res_nums+= $this->checkQuoteResNums($quotee, $quote_name, $quote_msg);
                         }
                     }
 					$quoting_path[$quotee]++;
-					$quote_res_nums[] = $quotee;
+					$quote_res_nums[$quotee]="quoted";
 				}
 			}
         }
 		if (count($quote_res_nums)) {
-			$quote_res_nums=array_unique($quote_res_nums,SORT_NUMERIC);
-			sort($quote_res_nums,SORT_NUMERIC);
-//			trigger_error($this->_quote_check_depth .":checkQuoteResNums:{$res_num}=>(".join(",",$quote_res_nums).")");
+//			$quote_res_nums=array_unique($quote_res_nums,SORT_NUMERIC);
+//			sort($quote_res_nums,SORT_NUMERIC);
+			trigger_error($this->_quote_check_depth .":checkQuoteResNums:{$res_num}=>(".join(",",array_keys($quote_res_nums)).")");
 		}
 		$this->_quote_check_depth--;
         return $_cache[$matome][$res_num]=$quote_res_nums;
