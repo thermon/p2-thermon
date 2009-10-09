@@ -43,29 +43,22 @@ function insertRes(outerContainerId,anchors,button) {
 	// 参照元の設定
 	button.onclick=function () {removeRes(outerContainerId,anchors,button)};
 	button.src=button.src.replace(/plus/,'minus');
-//	var outerContainer=getElement(outerContainerId);
 	outerContainer=button.parentNode.lastChild; // reslistブロック
 	while(outerContainer && outerContainer.className!="reslist") {
 		outerContainer=outerContainer.previousSibling;
 	}
-//	alert(outerContainer.className);
 	
 	children=anchors.split("/");
-//	 alert(children.length);
 	for (i=0;i<children.length;i++) {
-		// childDiv=outerContainer.childNodes[i];
-
 		importId=children[i];
 		importElement=copyHTML(""+importId);
-//		alert(importElement);
-//		x=importElement.match(/display:([^;]*);?/);
+//		x=importElement.match(/display:[ ]*none;?/);
 //		alert(x+"を見つけました");
-		importElement=importElement.replace(/display:([^;]*);?/,'');
+		importElement=importElement.replace(/display:[ ]*none;?/,'');
 
 		//参照先レス情報をコピー
 		resdiv=document.createElement('blockquote');
 		resdiv.innerHTML=importElement.replace(/id=\".+?\"/g,"");
-		// // alert(resdiv.innerHTML);
 		
 		resdiv.className='folding_container';
 		outerContainer.appendChild(resdiv);
@@ -77,18 +70,13 @@ function removeRes(outerContainerId,anchors,button) {
 	// 参照元の設定
 	button.onclick=function () {insertRes(outerContainerId,anchors,button)};
 	button.src=button.src.replace(/minus/,'plus');
-	// // alert(typeof(outerContainerId));
-//	var outerContainer=getElement(outerContainerId);
 	outerContainer=button.parentNode.lastChild; // reslistブロック
 	while(outerContainer && outerContainer.className!="reslist") {
 		outerContainer=outerContainer.previousSibling;
 	}
-//	alert(outerContainer.className);
-	
 	children=anchors.split("/");
 
 	for (i=0;i<children.length;i++) {
-		// alert(outerContainer.lastChild.className);
 		outerContainer.removeChild(outerContainer.lastChild);
 		outerContainer.childNodes[children.length-i-1].style.display='block';
 	}
