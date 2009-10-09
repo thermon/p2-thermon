@@ -65,7 +65,7 @@ a:hover.fav{color:{$STYLE['acolor_h']};}
 
 img, object{border:none;}
 
-hr{height:1px; color:#ccc;}
+hr{height:3px; color:{$STYLE['read_color']};}
 
 div.container{
 	width:76%;

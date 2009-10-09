@@ -178,7 +178,6 @@ class ShowThreadPc extends ShowThread
             $quote_res_nums = $this->checkQuoteResNums($i, $name, $msg);
 
             foreach ($quote_res_nums as $rnv) {
-				// trigger_error($rnv);
                 if (!isset($this->_quote_res_nums_done[$rnv])) {
                     $this->_quote_res_nums_done[$rnv] = true;
                     if (isset($this->thread->datlines[$rnv-1])) {
@@ -187,7 +186,6 @@ class ShowThreadPc extends ShowThread
                         } else {
                             $qres_id = "qr{$rnv}";
                         }
-						// trigger_error($rnv);
                         $ds = $this->qRes($this->thread->datlines[$rnv-1], $rnv);
                         $onPopUp_at = " onmouseover=\"showResPopUp('{$qres_id}',event)\" onmouseout=\"hideResPopUp('{$qres_id}')\"";
                         $rpop .= "<div id=\"{$qres_id}\" class=\"respopup\"{$onPopUp_at}>\n{$ds}</div>\n";
@@ -591,12 +589,11 @@ EOJS;
      */
     protected function _abornedRes($res_id)
     {
-        return; /*<<<EOP
+        return <<<EOP
 <div id="{$res_id}" class="res aborned">
-<div class="res-header">&nbsp;</div>
-<div class="message">&nbsp;</div>
+<hr style="display:block;width:95%;height:3px" >
 </div>\n
-EOP;*/
+EOP;
     }
 
     // }}}
@@ -906,12 +903,10 @@ EOP;*/
     function _coloredIdStrClassed($idstr, $id) {
         $ret = array();
         foreach ($arr = explode(':', $idstr) as $i => $str) {
-            if ($i == 0 || $i == 1) {
-                $ret[] = '<span class="' . ShowThreadPc::cssClassedId($id)
-                    . ($i == 0 ? '-l' : '-b') . '">' . $str . '</span>';
-            } else {
-                $ret[] = $str;
-            }
+			$ret[] = ($i == 0 || $i == 1) ? 
+				'<span class="' . ShowThreadPc::cssClassedId($id) 
+				. ($i == 0 ? '-l' : '-b') . '">' . $str . '</span>'
+			: $str;
         }
         return implode(':', $ret);
     }
@@ -932,11 +927,7 @@ EOP;*/
         }
         $ret = array();
         foreach ($arr = explode(':', $idstr) as $i => $str) {
-            if ($colored[$i]) {
-                $ret[] = "<span style=\"{$colored[$i]}\">{$str}</span>";
-            } else {
-                $ret[] = $str;
-            }
+			$ret[] = ($colored[$i]) ? "<span style=\"{$colored[$i]}\">{$str}</span>" : $str;;
         }
         return implode(':', $ret);
     }
@@ -957,11 +948,7 @@ EOP;*/
                     $idstr2[0]=substr($idstr2[0],0,4);
         }
         foreach ($idstr2 as $i=>$str) {
-            if ($colored[$i]) {
-                $ret .= "<span style=\"{$colored[$i]}\">{$str}</span>";
-            } else {
-                $ret .= $str;
-            }
+			$ret .= ($colored[$i]) ? "<span style=\"{$colored[$i]}\">{$str}</span>" : $str;
         }
         return $ret;
     }
@@ -986,14 +973,11 @@ EOP;*/
      */
     public function checkQuoteResNums($res_num, $name, $msg)
     {
-		// trigger_error($res_num);
-
         global $_conf;
 		static $_cache=array();
 		$matome=$_cache[$this->_matome] ? $_cache[$this->_matome] : "null";
 		if (!array_key_exists($matome,$_cache)) {$_cache[$matome]=array();}
         if (array_key_exists($res_num,$_cache[$matome])) {
-			// trigger_error("{$matome}/{$res_num} exists.".join(",",$_cache[$matome][$res_num]));
 			return $_cache[$matome][$res_num];
 		}
 
@@ -1023,7 +1007,6 @@ EOP;*/
                                 $datalinear = $this->thread->explodeDatLine($this->thread->datlines[$a_quote_res_idx]);
                                 $quote_name = $datalinear[0];
                                 $quote_msg = $this->thread->datlines[$a_quote_res_idx];
-//								trigger_error($a_quote_res_num." call");
                                 $quote_res_nums = array_merge($quote_res_nums, $this->checkQuoteResNums($a_quote_res_num, $quote_name, $quote_msg));
                             }
                          }

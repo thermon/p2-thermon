@@ -83,14 +83,14 @@ div.thread {
 
 /* レス */
 div.res {
-	margin: 0 0 1.0em 0;
-	padding: 0;
+	margin: 0;
+	padding: 0.5em 0 0 0;
     width: 100%;
     /*\*//*/
     overflow: hidden;
     /**/
 	border-style: solid;
-	border-width: 0px 0px 3px 0px;
+	border-width: 3px 0px 0px 0px;
 }
 div.res:after {
     height: 0;
@@ -117,13 +117,19 @@ div.res:after {
 /* あぼーんレス */
 div.res.aborned {
 	margin: 0;
-	padding: 0;
+	padding: 0 0 1em;
 	font-size: xx-small;
 	line-height: 100%;
+	border-style: dotted;
+	border-width: 0;
 }
 
 div.res.aborned * {
 	display: none;
+}
+
+div.res.aborned hr {
+	display: inline;
 }
 
 /* レスヘッダ */

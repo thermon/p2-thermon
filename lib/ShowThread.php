@@ -209,7 +209,9 @@ abstract class ShowThread
 			// レス番号の列挙
 			'nums'	=>	"%a_num%%a_num_suffix%?(?:%delimiter2%%a_num%%a_num_suffix%?)*+%ranges_suffix%?(?!%a_digit%)",
 			// プレフィックス付きレス番号に続くサフィックス
-			'suffix'	=>	"",	//(?![\.]|じゃな(?:い|く))",
+			'suffix'	=>	"(?![a-zA-Z:]|じゃな(?:い|く))",	//(?![\.]|)",
+			// 引用子＋数字に続く文字列（引用子、数字、行末の直前までマッチ）
+			'after_letters'		=>	"(?P<quote_follow>(?:(?!%prefix%|%a_digit%|%anchor_space%(?:<br>|$)).)*)",
 
 			// 行頭プレフィックス／サフィックス（レス番号のみの行をアンカー扱いする）
 			'line_prefix'	=>	"(?=^|<br>)\s+", 
@@ -217,11 +219,13 @@ abstract class ShowThread
 
 			// 裸のアンカーのプレフィックス／サフィックス
 			'no_prefix'	=>	"",
-			'suffix_no_prefix'	=>	"(?:%a_num_suffix%|%ranges_suffix%)",
+			'suffix_no_prefix'	=>	"(?:%a_num_suffix%|%ranges_suffix%|＞{1,2}|の続き)",
 
-			'after_letters'		=>	"(?P<quote_follow>(?:(?!%prefix%|%a_digit%|%anchor_space%(?:<br>|$)).)*)",
-			'full_prefix'	=>	"((?P<prefix>%prefix%)|(?P<line_prefix>%line_prefix%)|%no_prefix%)",
-			'full_suffix'	=>	"(?(line_prefix)%line_suffix%|(?(prefix)%suffix%|%suffix_no_prefix%)%after_letters%)",
+			'ignore_prefix'	=>	"(?:前スレ)",
+			'full_prefix'	=>	
+				"((?P<ignore_prefix>%ignore_prefix%)?(?P<prefix>%prefix%)|(?P<line_prefix>%line_prefix%)|%no_prefix%)",
+			'full_suffix'	=>	
+				"(?(line_prefix)%line_suffix%|(?(prefix)%suffix%%after_letters%|%suffix_no_prefix%))",
 			'full'	=>	"%full_prefix%(?P<ranges>%ranges%)%full_suffix%",
 
 		);
@@ -471,12 +475,13 @@ END;
         // {{{ 連鎖チェック
 
         if ($_conf['ngaborn_chain'] && preg_match_all('/(?:&gt;|＞)([1-9][0-9\\-,]*)/', $msg, $matches)) {
+
             $chain_nums = array_unique(array_map('intval', preg_split('/[-,]+/', trim(implode(',', $matches[1]), '-,'))));
-            if (array_intersect($chain_nums, $this->_aborn_nums)) {
+            if ($_common=array_intersect($chain_nums, $this->_aborn_nums)) {
                 if ($_conf['ngaborn_chain'] == 1) {
                     $ngaborns_hits['aborn_chain']++;
                     $this->_aborn_nums[] = $i;
-                    return $this->_abornedRes($res_id);
+                    return self::ABORN;
                 } elseif (!$nong) {
                     $a_chain_num = array_shift($chain_nums);
                     $ngaborns_hits['ng_chain']++;
@@ -939,10 +944,7 @@ EOP;
             return $this->idFilter($s['id'], $s[$id_index+1]);
         // 引用
         } elseif ($s['quote']) {
-//			if ($s[12]) {
-//				var_dump(array($s['quote'],$s[11],$s[12],$s[13],$s[14],$s[15]));echo "<br>";
-//			}
-/*			if ($s[15]) {
+/*			if ($s['quote_follow']) {
 				foreach ($this->anchor_letter_ignore as $v) {
 					if (strpos($s['quote_follow'],$v)=== 0) {
 						return strip_tags($orig);
@@ -1096,7 +1098,8 @@ EOP;
      */
     final public function quoteResCallback(array $s)
     {
-		if (count($s)<10) {var_export($s);echo "<br>";}
+//		if (count($s)<10) {var_export($s);echo "<br>";}
+		if ($s['ignore_prefix']) {return $s['quote'];}
 		if ($s['quote_follow']) {
 			foreach ($this->anchor_letter_ignore as $v) {
 				if (strpos($s['quote_follow'],$v)=== 0) {
@@ -1109,9 +1112,7 @@ EOP;
 			$this->getAnchorRegex('/(%prefix%)?(%a_range%)(%a_num_suffix%|%ranges_suffix%)?/'),
 			array($this, 'quoteRes'), $s['quote']
 		);
-		//	var_dump($var) ; echo "<br>";
 		return $var;
-		// return $this->quoteRes($s[0], $s[1], $s[2]);
     }
 
     // }}}
@@ -1216,12 +1217,9 @@ return null;}
 
         $joined_ranges_list=$out['ranges'];
         foreach ($joined_ranges_list as $joined_ranges) {
-//		var_dump($joined_ranges); echo "<br><br>";
             if (!preg_match_all($this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), $joined_ranges, $ranges_list, PREG_PATTERN_ORDER)) {continue;}
-//		var_dump($ranges_list); echo "<br><br>";
             $anchor_list=array_merge($anchor_list,$ranges_list[1]);
         }
-//		echo "_getAnchorsFromMsg:{$num}:" ;var_dump($anchor_list);echo "<br><br>";
         return $anchor_list;                    
     }
 
@@ -1287,8 +1285,6 @@ return null;}
     {
         if ($this->_quote_from === null) {
             $this->_make_quote_from();  // 被レスデータ集計
-//echo "_quote_from<br>";
-//var_dump($this->_quote_from);echo "<br>";
         }
         return $this->_quote_from;
     }
