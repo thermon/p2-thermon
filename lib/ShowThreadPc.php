@@ -1063,9 +1063,7 @@ EOP;
 			}
         }
 		if (count($quote_res_nums)) {
-//			$quote_res_nums=array_unique($quote_res_nums,SORT_NUMERIC);
-//			sort($quote_res_nums,SORT_NUMERIC);
-			trigger_error($this->_quote_check_depth .":checkQuoteResNums:{$res_num}=>(".join(",",array_keys($quote_res_nums)).")");
+//			trigger_error($this->_quote_check_depth .":checkQuoteResNums:{$res_num}=>(".join(",",array_keys($quote_res_nums)).")");
 		}
 		$this->_quote_check_depth--;
         return $_cache[$matome][$res_num]=$quote_res_nums;
