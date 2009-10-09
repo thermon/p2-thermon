@@ -591,7 +591,7 @@ EOJS;
     {
         return <<<EOP
 <div id="{$res_id}" class="res aborned">
-<hr style="display:block;width:95%;height:3px" >
+<hr style="display:block;width:95%;height:1em" >
 </div>\n
 EOP;
     }
@@ -982,7 +982,7 @@ EOP;
 		}
 
         // 再帰リミッタ
-        if ($this->_quote_check_depth > 30) {
+        if ($this->_quote_check_depth > 60) {
             return array();
         } else {
             $this->_quote_check_depth++;
@@ -1025,7 +1025,7 @@ EOP;
                 $quote_res_nums[] = $a_quote_res_num;
 
                 // 自分自身の番号と同一でなければ、
-                if ($a_quote_res_num >= $res_num) {continue;}
+                if ($a_quote_res_num == $res_num) {continue;}
                 // チェックしていない番号を再帰チェック
                 if (!isset($this->_quote_res_nums_checked[$a_quote_res_num])) {
                     $this->_quote_res_nums_checked[$a_quote_res_num] = true;
@@ -1048,7 +1048,7 @@ EOP;
 	            if (!array_key_exists($quoter, $quotee_lists)) {continue;}
 	            foreach ($quotee_lists[$quoter] as $quotee) {
 					if (array_key_exists($quotee,$quoting_path)) {continue;}
-                    if ($quotee < $quoter && 
+                    if ($quotee != $quoter && 
 						!isset($this->_quote_res_nums_checked[$quotee])) {
                         $this->_quote_res_nums_checked[$quotee] = true;
                         if (isset($this->thread->datlines[$quotee - 1])) {
@@ -1063,6 +1063,12 @@ EOP;
 				}
 			}
         }
+		if (count($quote_res_nums)) {
+			$quote_res_nums=array_unique($quote_res_nums,SORT_NUMERIC);
+			sort($quote_res_nums,SORT_NUMERIC);
+//			trigger_error($this->_quote_check_depth .":checkQuoteResNums:{$res_num}=>(".join(",",$quote_res_nums).")");
+		}
+		$this->_quote_check_depth--;
         return $_cache[$matome][$res_num]=$quote_res_nums;
     }
 

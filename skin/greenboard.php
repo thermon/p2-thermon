@@ -139,7 +139,7 @@ $STYLE['read_thread_title_color'] = "#fff"; // ("#f40") スレッドタイトル色
 $STYLE['read_name_color'] = "#d6e9ca"; // ("#1144aa") 投稿者の名前の色
 $STYLE['read_mail_color'] = "#d6e9ca"; // ("") 投稿者のmailの色 ex)"#a00000"
 $STYLE['read_mail_sage_color'] = "#d6e9ca"; // ("") sageの時の投稿者のmailの色 ex)"#00b000"
-$STYLE['read_ngword'] = "#005"; // ("#bbbbbb") NGワードの色
+$STYLE['read_ngword'] = "#666"; // ("#bbbbbb") NGワードの色
 
 // }}}
 // {{{ 実況モード

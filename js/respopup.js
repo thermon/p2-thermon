@@ -54,10 +54,13 @@ function insertRes(outerContainerId,anchors,button) {
 //	 alert(children.length);
 	for (i=0;i<children.length;i++) {
 		// childDiv=outerContainer.childNodes[i];
-		// alert(childDiv.className);
+
 		importId=children[i];
 		importElement=copyHTML(""+importId);
-		importElement=importElement.replace(/<!--%%%(.+)%%%-->/,'$1');
+//		alert(importElement);
+//		x=importElement.match(/display:([^;]*);?/);
+//		alert(x+"を見つけました");
+		importElement=importElement.replace(/display:([^;]*);?/,'');
 
 		//参照先レス情報をコピー
 		resdiv=document.createElement('blockquote');

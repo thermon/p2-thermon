@@ -477,7 +477,7 @@ END;
         if ($_conf['ngaborn_chain'] && preg_match_all('/(?:&gt;|„)([1-9][0-9\\-,]*)/', $msg, $matches)) {
 
             $chain_nums = array_unique(array_map('intval', preg_split('/[-,]+/', trim(implode(',', $matches[1]), '-,'))));
-            if ($_common=array_intersect($chain_nums, $this->_aborn_nums)) {
+            if (array_intersect($chain_nums, $this->_aborn_nums)) {
                 if ($_conf['ngaborn_chain'] == 1) {
                     $ngaborns_hits['aborn_chain']++;
                     $this->_aborn_nums[] = $i;
@@ -1336,14 +1336,11 @@ return null;}
 		$ret="";
 		$UouterContainerId=sprintf('reslist%s',$resnum);
 
-	foreach($anchors as $idx=>$anchor) {
-		$anchors2[]=($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
-	}
-
-		$insert=sprintf('<img src="img/btn_plus.gif" width="15" height="15" onclick="insertRes(\'%s\',\'%s\',this)" align="left">',$UouterContainerId,join('/',$anchors2));
-		if ($popup) {
-			$insert="<!--%%%".$insert."%%%-->";
+		foreach($anchors as $idx=>$anchor) {
+			$anchors2[]=($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
 		}
+		$style= ($popup ? "none" : "inline"); 
+		$insert=sprintf('<img src="img/btn_plus.gif" style="display:%s;width:15px;height:15px;float:left" onclick="insertRes(\'%s\',\'%s\',this)">',$style,$UouterContainerId,join('/',$anchors2));
 		$ret.=$insert;
         $ret.= sprintf('<div class="reslist" id="%s">',$UouterContainerId);
 
