@@ -448,7 +448,7 @@ EOP;
         // 数字を引用レスポップアップリンク化
         if (strlen($name) && $name != $this->BBS_NONAME_NAME) {
             $name = preg_replace_callback(
-                $this->getAnchorRegex('/(?P<quote>(%prefix%)?%nums%(?(1)%suffix%|%line_suffix%))/'),
+                $this->getAnchorRegex('/((?P<prefix>%prefix%)|%line_prefix%)%nums%(?(prefix)%suffix%|%line_suffix%)/'),
                 array($this, 'quote_name_callback'), $name
             );
         }

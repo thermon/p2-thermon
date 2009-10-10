@@ -1224,13 +1224,14 @@ return null;}
         return $anchor_list;                    
     }
 
-    protected function _addQuoteNum($num,$a_quote_num) {
-        if ($a_quote_num >= $num+1) {return;}	// スレ番号以降のアンカーは無視する
-        if (!array_key_exists($a_quote_num, $this->_quote_from) || $this->_quote_from[$a_quote_num] === null) {
-            $this->_quote_from[$a_quote_num] = array();
+    protected function _addQuoteNum($num,$quotee) {
+		$quoter=$num+1;
+        if ($quotee >= $quoter) {return;}	// スレ番号以降のアンカーは無視する
+        if (!array_key_exists($quotee, $this->_quote_from) || $this->_quote_from[$quotee] === null) {
+            $this->_quote_from[$quotee] = array();
         }
-        if (!in_array($num + 1, $this->_quote_from[$a_quote_num])) {
-            $this->_quote_from[$a_quote_num][] = $num + 1;
+        if (!in_array($quoter, $this->_quote_from[$quotee])) {
+            $this->_quote_from[$quotee][] = $quoter;
         }
     }
 

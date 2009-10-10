@@ -501,7 +501,7 @@ EOJS;
         if ($_conf['quote_res_view']) {
             if (strlen($name) && $name != $this->BBS_NONAME_NAME) {
                 $name = preg_replace_callback(
-                    $this->getAnchorRegex('/(?P<quote>(%prefix%)?%nums%(?(1)%suffix%|%line_suffix%))/'),
+                    $this->getAnchorRegex('/((?P<prefix>%prefix%)|%line_prefix%)%nums%(?(prefix)%suffix%|%line_suffix%)/'),
                     array($this, 'quote_name_callback'), $name
                 );
             }
@@ -1822,15 +1822,15 @@ EOP;
             $this->_make_quote_from();  // 被レスデータ集計
         }
         $ret = array();
-        foreach ($this->_quote_from as $resnum => $a_quotee_list) {
-            if (!$a_quotee_list) continue;
-            if ($resnum != 1 && ($resnum < $this->thread->resrange['start'] || $resnum > $this->thread->resrange['to'])) continue;
+        foreach ($this->_quote_from as $a_quotee => $quoters) {
+            if (!$quoters) continue;
+            if ($a_quotee != 1 && ($a_quotee < $this->thread->resrange['start'] || $a_quotee > $this->thread->resrange['to'])) continue;
             $tmp = array();
-            foreach ($a_quotee_list as $quote) {
-                if ($quote != 1 && ($quote < $this->thread->resrange['start'] || $quote > $this->thread->resrange['to'])) continue;
-                $tmp[] = $quote;
+            foreach ($quoters as $a_quoter) {
+                if ($a_quoter != 1 && ($a_quoter < $this->thread->resrange['start'] || $a_quoter > $this->thread->resrange['to'])) continue;
+                $tmp[] = $a_quoter;
             }
-            if ($tmp) $ret[] = "{$resnum}:[" . join(',', $tmp) . "]";
+            if ($tmp) $ret[] = "{$a_quotee}:[" . join(',', $tmp) . "]";
         }
         return '{' . join(',', $ret) . '}';
     }
