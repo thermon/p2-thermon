@@ -210,12 +210,12 @@ abstract class ShowThread
 			// レス番号の列挙
 			'nums'	=>	"%a_num%%a_num_suffix%?(?:%delimiter2%%a_num%%a_num_suffix%?)*+%ranges_suffix%?(?!%a_digit%)",
 			// プレフィックス付きレス番号に続くサフィックス
-			'suffix'	=>	"(?!じゃな(?:い|く))",	//(?![\.]|)",
+			'suffix'	=>	"",	//(?![\.]|)",
 			// 引用子＋数字に続く文字列（引用子、数字、行末の直前までマッチ）
-			'after_letters'		=>	"(?P<quote_follow>(?:(?!%prefix%|%a_digit%|%anchor_space%(?:<br>|$)).)*)", 
+			'after_letters'		=>	"(?!じゃな(?:い|く))(?P<quote_follow>(?:(?!%prefix%|%a_digit%|%anchor_space%(?:<br>|$)).)*)", 
 
 			// 行頭プレフィックス／サフィックス（レス番号のみの行をアンカー扱いする）
-			'line_prefix'	=>	"(?=^|<br>)\s+", 
+			'line_prefix'	=>	"(?=^|<br>)\s*", 
 			'line_suffix'	=>	"%anchor_space%*(?=<br>|$)", //(?=(?:\s|　)*)"
 
 			// 裸のアンカーのプレフィックス／サフィックス
@@ -1043,7 +1043,7 @@ EOP;
     {
         return preg_replace_callback(
             $this->getAnchorRegex('/(?P<quote>(?:%prefix%)?%a_num%)/'),
-            array($this, 'quoteResCallback'), $s['quote']
+            array($this, 'quoteResCallback'), $s[0]
         );
     }
 
