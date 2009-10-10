@@ -219,13 +219,14 @@ abstract class ShowThread
 
 			// 裸のアンカーのプレフィックス／サフィックス
 			'no_prefix'	=>	"",
-			'suffix_no_prefix'	=>	"(?:%a_num_suffix%|%ranges_suffix%|＞{1,2}|の続き)",
+			'suffix_no_prefix'	=>	"(?:%a_num_suffix%|%ranges_suffix%|(?:＞|&gt;){1,2}|の続き)",
 
 			'ignore_prefix'	=>	"(?:前スレ)",
 			'full_prefix'	=>	
 				"((?P<ignore_prefix>%ignore_prefix%)?(?P<prefix>%prefix%)|(?P<line_prefix>%line_prefix%)|%no_prefix%)",
 			'full_suffix'	=>	
 				"(?(line_prefix)%line_suffix%|(?(prefix)%suffix%%after_letters%|%suffix_no_prefix%))",
+
 			'full'	=>	"%full_prefix%(?P<ranges>%ranges%)%full_suffix%",
 
 		);
