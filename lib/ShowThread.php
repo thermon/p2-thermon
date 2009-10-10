@@ -173,10 +173,10 @@ abstract class ShowThread
         // アンカーの構成要素（正規表現パーツの配列）
 		$parts=array(
 			// 空白文字
-			'anchor_space'=>'(?:[ ])',
+			'anchor_space'=>"(?:\s|　)",
 
 			// 数字
-			'a_digit'	=>	'(?:\\d|０|１|２|３|４|５|６|７|８|９)',
+			'a_digit'	=>	"(?:\d|０|１|２|３|４|５|６|７|８|９)",
 
 			// 範囲指定子
 			'range_delimiter'	=>	"(?:-|‐|ｰ|\x81\\x5b)", // ー
@@ -195,6 +195,7 @@ abstract class ShowThread
 			// レス番号
 			'a_num'		=>	'%a_digit%{1,4}',
 			'a_range'	=>	"(?:%a_num%(?:%range_delimiter%\s*%prefix%?%a_num%)?)",
+			'a_range2'	=>	"(?:(?P<num1>%a_num%)(?P<num2>%range_delimiter%\s*%prefix%?%a_num%)?)",
 
 			// 範囲指定直後に続く文字列
 			'a_num_suffix'	=>	"(?:さん|さま|様)",
@@ -204,14 +205,14 @@ abstract class ShowThread
 
 			// レス範囲の列挙
 			'ranges'	=>
-				'%a_range%%a_num_suffix%?(?:%delimiter%%a_range%%a_num_suffix%?)*%ranges_suffix%?',
+				'(?P<range1>%a_range2%)%a_num_suffix%?(?P<range2>%delimiter%%a_range%%a_num_suffix%?)*%ranges_suffix%?',
 
 			// レス番号の列挙
 			'nums'	=>	"%a_num%%a_num_suffix%?(?:%delimiter2%%a_num%%a_num_suffix%?)*+%ranges_suffix%?(?!%a_digit%)",
 			// プレフィックス付きレス番号に続くサフィックス
-			'suffix'	=>	"(?![a-zA-Z:]|じゃな(?:い|く))",	//(?![\.]|)",
+			'suffix'	=>	"(?!じゃな(?:い|く))",	//(?![\.]|)",
 			// 引用子＋数字に続く文字列（引用子、数字、行末の直前までマッチ）
-			'after_letters'		=>	"(?P<quote_follow>(?:(?!%prefix%|%a_digit%|%anchor_space%(?:<br>|$)).)*)",
+			'after_letters'		=>	"(?P<quote_follow>(?:(?!%prefix%|%a_digit%|%anchor_space%(?:<br>|$)).)*)", 
 
 			// 行頭プレフィックス／サフィックス（レス番号のみの行をアンカー扱いする）
 			'line_prefix'	=>	"(?=^|<br>)\s+", 
@@ -945,13 +946,7 @@ EOP;
             return $this->idFilter($s['id'], $s[$id_index+1]);
         // 引用
         } elseif ($s['quote']) {
-/*			if ($s['quote_follow']) {
-				foreach ($this->anchor_letter_ignore as $v) {
-					if (strpos($s['quote_follow'],$v)=== 0) {
-						return strip_tags($orig);
-					}
-				}
-			}*/
+//				var_export($s);echo "<br>";
 			return $this->quoteResCallback($s);
 /*            return  preg_replace_callback(
                 $this->getAnchorRegex('/(%prefix%)?(%a_range%)(%a_num_suffix%|%ranges_suffix%)?/'),
