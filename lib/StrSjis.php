@@ -122,6 +122,21 @@ class StrSjis
     }
 
     // }}}
+    // {{{ getSjisRegex()
+
+    /**
+     * SJIS文字にマッチする正規表現を返す
+     *
+     * @return  string  
+     * SJIS 2バイトの第1バイト範囲 129～159、224～239（0x81～0x9F、0xE0～0xEF）
+     * SJIS 2バイトの第2バイト範囲 64～126、128～252（0x40～0x7E、0x80～0xFC）（第1バイト範囲を包括している）
+     */
+    static public function getSjisRegex()
+    {
+        return "(?:[\x81-\x9f\xe0-\xef][\x40-\x7e\x80-\xfc])";
+    }
+
+    // }}}
 }
 
 // }}}

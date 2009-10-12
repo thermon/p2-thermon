@@ -5,6 +5,7 @@
 
 require_once P2_LIB_DIR . '/HostCheck.php';
 require_once P2_LIB_DIR . '/ThreadRead.php';
+require_once P2_LIB_DIR . '/StrSjis.php';
 
 // {{{ ShowThread
 
@@ -210,16 +211,16 @@ abstract class ShowThread
 			// レス番号の列挙
 			'nums'	=>	"%a_num%%a_num_suffix%?(?:%delimiter2%%a_num%%a_num_suffix%?)*+%ranges_suffix%?(?!%a_digit%)",
 			// プレフィックス付きレス番号に続くサフィックス
-			'suffix'	=>	"",	//(?![\.]|)",
+			'suffix'	=>	"(?!|じゃな(?:い|く))",	//(?![\.]|)",
 			// 引用子＋数字に続く文字列（引用子、数字、行末の直前までマッチ）
-			'after_letters'		=>	"(?!じゃな(?:い|く))(?P<quote_follow>(?:(?!%prefix%|%a_digit%|%anchor_space%(?:<br>|$)).)*)", 
+			'after_letters'		=>	"(?P<quote_follow>(?:(?!%prefix%|%a_digit%|%anchor_space%(?:<br>|$)).)*)", 
 
 			// 行頭プレフィックス／サフィックス（レス番号のみの行をアンカー扱いする）
 			'line_prefix'	=>	"(?=^|<br>)\s*", 
 			'line_suffix'	=>	"%anchor_space%*(?=<br>|$)", //(?=(?:\s|　)*)"
 
 			// 裸のアンカーのプレフィックス／サフィックス
-			'no_prefix'	=>	"",
+			'no_prefix'	=>	"(?<=".StrSjis::getSjisRegex()."|[,])",
 			'suffix_no_prefix'	=>	"(?:%a_num_suffix%|%ranges_suffix%|(?:＞|&gt;){1,2}|の続き)",
 
 			'ignore_prefix'	=>	"(?:前スレ)",
@@ -236,9 +237,9 @@ abstract class ShowThread
 		}
 //		trigger_error($this->getAnchorRegex("/%full%/"))."<br>";
 
-		//数詞が続くアンカーを排除するための情報を展開する
+		//助数詞が続くアンカーを排除するための情報を展開する
 		$ignore_letters = <<< END
-年|月|日|時|分|秒|代|回|世紀|円|度|都|道|府|県
+.|年|月|日|時|分|秒|代|回|世紀|円|度|都|道|府|県|親等|十|百|千|万|億|兆|次
 END;
 		$this->anchor_letter_ignore=explode("|",$ignore_letters);
 	}
@@ -366,7 +367,7 @@ END;
         } else {
             echo $buf['body'];
             if (!$return_array) {echo $buf['q'];}
-            flush();
+//            flush();
             return $return_array ? array($buf['body'],$buf['q']) :true;
         }
     }
