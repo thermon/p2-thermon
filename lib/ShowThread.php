@@ -211,7 +211,7 @@ abstract class ShowThread
 			// レス番号の列挙
 			'nums'	=>	"%a_num%%a_num_suffix%?(?:%delimiter2%%a_num%%a_num_suffix%?)*+%ranges_suffix%?(?!%a_digit%)",
 			// プレフィックス付きレス番号に続くサフィックス
-			'suffix'	=>	"(?!|じゃな(?:い|く))",	//(?![\.]|)",
+			'suffix'	=>	"(?!じゃな(?:い|く))",	//(?![\.]|)",
 			// 引用子＋数字に続く文字列（引用子、数字、行末の直前までマッチ）
 			'after_letters'		=>	"(?P<quote_follow>(?:(?!%prefix%|%a_digit%|%anchor_space%(?:<br>|$)).)*)", 
 
