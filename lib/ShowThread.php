@@ -220,7 +220,7 @@ abstract class ShowThread
 			'line_suffix'	=>	"%anchor_space%*(?=<br>|$)", //(?=(?:\s|　)*)"
 
 			// 裸のアンカーのプレフィックス／サフィックス
-			'no_prefix'	=>	"(?<=".StrSjis::getSjisRegex()."|[,])",
+			'no_prefix'	=>	"((?<=".StrSjis::getSjisRegex()."|[,]).)?",
 			'suffix_no_prefix'	=>	"(?:%a_num_suffix%|%ranges_suffix%|(?:＞|&gt;){1,2}|の続き)",
 
 			'ignore_prefix'	=>	"(?:前スレ)",
