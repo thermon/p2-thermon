@@ -129,8 +129,8 @@ $STYLE['read_bgcolor'] = "#1f3f2f"; // ("#efefef") スレッド表示の背景色
 $STYLE['read_background'] = ""; // ("") スレッド表示の背景画像
 $STYLE['read_color'] = "#bae4a6"; // ("#000") スレッド表示のテキスト色
 
-$STYLE['read_acolor'] = "#ffafaf"; // ("") スレッド表示 リンク色
-$STYLE['read_acolor_v'] = "#afffaf"; // ("") スレッド表示 訪問済みリンク色
+$STYLE['read_acolor'] = "#afffaf"; // ("") スレッド表示 リンク色
+$STYLE['read_acolor_v'] = "#ffafaf"; // ("") スレッド表示 訪問済みリンク色
 $STYLE['read_acolor_h'] = "#ffffaf"; // ("#09c") スレッド表示 マウスオーバー時のリンク色
 
 $STYLE['read_newres_color'] = "#ffffaf"; // ("#ff3300")  新着レス番の色

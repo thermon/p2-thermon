@@ -27,7 +27,7 @@ gShowTimerIds = new Object();
 isIE = /*@cc_on!@*/false;
 
 function getElement(id) {
-//	// alert(id);
+	//	// alert(id);
 	if (typeof(id) == "string") {
 		if (isIE) { // IE用
 			return document.all[id];
@@ -38,10 +38,33 @@ function getElement(id) {
 		return id;
 	}
 }
-
-function insertRes(outerContainerId,anchors,button) {
+function insertRes(quoter,button) {
 	// 参照元の設定
-	button.onclick=function () {removeRes(outerContainerId,anchors,button)};
+//	alert("insertRes");
+	Container=button.parentNode; 
+//	alert(Container.className);
+	importElement=copyHTML(quoter);
+//	alert(importElement);
+	importElement=importElement.replace(/class="invisivle\s+(expand(Single|All)[^"]*)"/g,'class="$1"');
+
+	//参照先レス情報をコピー
+	resdiv=document.createElement('blockquote');
+	resdiv.innerHTML=importElement.replace(/id=\".+?\"/g,"");
+		
+	resdiv.className='folding_container';
+//	alert(Container.parentNode.className);
+	if (next=Container.nextSibling) {
+		Container.parentNode.insertBefore(resdiv,next);
+} else {
+	Container.parentNode.appendChild(resdiv);
+}
+Container.style.display='none';
+
+}
+
+function insertResAll(anchors,button) {
+	// 参照元の設定
+//	button.onclick=function () {removeRes(anchors,button)};
 	button.src=button.src.replace(/plus/,'minus');
 	outerContainer=button.parentNode.lastChild; // reslistブロック
 	while(outerContainer && outerContainer.className!="reslist") {
@@ -49,35 +72,44 @@ function insertRes(outerContainerId,anchors,button) {
 	}
 	
 	children=anchors.split("/");
-	for (i=0;i<children.length;i++) {
-		importId=children[i];
-		importElement=copyHTML(""+importId);
-//		x=importElement.match(/display:\s*none;?/);
-//		alert(x+"を見つけました");
-		importElement=importElement.replace(/display:\s*none;?/,'');
+	if (children.length != outerContainer.childNodes.length) {
+		removeRes(anchors,button);
+	} else {
+		for (i=0;i<children.length;i++) {
+			importId=children[i];
+			importElement=copyHTML(""+importId);
+	//		x=importElement.match(/display:\s*none;?/);
+	//		alert(x+"を見つけました");
+			importElement=importElement.replace(/class="invisivle\s+expandAll"/,'class="expandAll"');
 
-		//参照先レス情報をコピー
-		resdiv=document.createElement('blockquote');
-		resdiv.innerHTML=importElement.replace(/id=\".+?\"/g,"");
+			//参照先レス情報をコピー
+			resdiv=document.createElement('blockquote');
+			resdiv.innerHTML=importElement.replace(/id=\".+?\"/g,"");
 		
-		resdiv.className='folding_container';
-		outerContainer.appendChild(resdiv);
-		outerContainer.childNodes[i].style.display='none';
+			resdiv.className='folding_container';
+			outerContainer.appendChild(resdiv);
+			outerContainer.childNodes[i].style.display='none';
+		}
 	}
 }
 
-function removeRes(outerContainerId,anchors,button) {
+function removeRes(anchors,button) {
 	// 参照元の設定
-	button.onclick=function () {insertRes(outerContainerId,anchors,button)};
+//	button.onclick=function () {insertResAll(anchors,button)};
 	button.src=button.src.replace(/minus/,'plus');
 	outerContainer=button.parentNode.lastChild; // reslistブロック
 	while(outerContainer && outerContainer.className!="reslist") {
 		outerContainer=outerContainer.previousSibling;
 	}
 	children=anchors.split("/");
-
+	for (i=outerContainer.childNodes.length-1;i>=0;i--) {
+//		alert(outerContainer.childNodes[i].className);
+		if (outerContainer.childNodes[i].className == "folding_container") {
+			outerContainer.removeChild(outerContainer.childNodes[i]);
+		}
+	}
+	
 	for (i=0;i<children.length;i++) {
-		outerContainer.removeChild(outerContainer.lastChild);
 		outerContainer.childNodes[children.length-i-1].style.display='block';
 	}
 }

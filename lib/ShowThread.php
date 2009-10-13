@@ -202,11 +202,11 @@ abstract class ShowThread
 			'a_num_suffix'	=>	"(?:さん|さま|様)",
 
 			// 範囲指定群に続く文字列
-			'ranges_suffix'		=>	"(?:です)",
+			'ranges_suffix'		=>	"(?:です|だけど)",
 
 			// レス範囲の列挙
 			'ranges'	=>
-				'(?P<range1>%a_range2%)%a_num_suffix%?(?P<range2>%delimiter%%a_range%%a_num_suffix%?)*%ranges_suffix%?',
+				'(?P<ranges>(?P<range1>%a_range2%)%a_num_suffix%?(?P<range2>%delimiter%%a_range%%a_num_suffix%?)*)',
 
 			// レス番号の列挙
 			'nums'	=>	"%a_num%%a_num_suffix%?(?:%delimiter2%%a_num%%a_num_suffix%?)*+%ranges_suffix%?(?!%a_digit%)",
@@ -220,16 +220,16 @@ abstract class ShowThread
 			'line_suffix'	=>	"%anchor_space%*(?=<br>|$)", //(?=(?:\s|　)*)"
 
 			// 裸のアンカーのプレフィックス／サフィックス
-			'no_prefix'	=>	"((?<=".StrSjis::getSjisRegex()."|[,]).)?",
-			'suffix_no_prefix'	=>	"(?:%a_num_suffix%|%ranges_suffix%|(?:＞|&gt;){1,2}|の続き)",
+			'no_prefix'	=>	"(?P<no_prefix>(?:(?<=".StrSjis::getSjisRegex()."|[,]).)?)",
+			'suffix_no_prefix'	=>	"(?:%a_num_suffix%|(?:＞|&gt;){2}|の続き)",
 
 			'ignore_prefix'	=>	"(?:前スレ)",
-			'full_prefix'	=>	
-				"((?P<ignore_prefix>%ignore_prefix%)?(?P<prefix>%prefix%)|(?P<line_prefix>%line_prefix%)|%no_prefix%)",
-			'full_suffix'	=>	
-				"(?(line_prefix)%line_suffix%|(?(prefix)%suffix%%after_letters%|%suffix_no_prefix%))",
+			'reguler_prefix'	=>	
+				"(?P<ignore_prefix>%ignore_prefix%)?(?P<prefix>%prefix%)|(?P<line_prefix>%line_prefix%)",
+			'reguler_suffix'	=>	
+				"(?(prefix)%suffix%%after_letters%|%line_suffix%)",
 
-			'full'	=>	"%full_prefix%(?P<ranges>%ranges%)%full_suffix%",
+			'full'	=>	"(%reguler_prefix%|%no_prefix%)%ranges%%ranges_suffix%?(?(no_prefix)(?:%suffix_no_prefix%|%ranges_suffix%)|%reguler_suffix%)",
 
 		);
 		foreach ($parts as $k=>$v) {
@@ -254,7 +254,7 @@ END;
             . '(?P<link>(<[Aa] .+?>)(.*?)(</[Aa]>))' // リンク（PCREの特性上、必ずこのパターンを最初に試行する）
             . '|'
             .   '(?P<url>'
-            .       '(ftp|h?ttps?|tps?|ps?)://([0-9A-Za-z][\\w!#%&+*,\\-./:;=?@\\[\\]^~]+)' // URL
+            .       '(ftp|h?ttps?|tps?)://([0-9A-Za-z][\\w!#%&+*,\\-./:;=?@\\[\\]^~]+)' // URL
             .   ')'
             . '|'
             .   '(?P<id>ID: ?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$))' // ID（8,10桁 +PC/携帯識別フラグ）
@@ -367,7 +367,7 @@ END;
         } else {
             echo $buf['body'];
             if (!$return_array) {echo $buf['q'];}
-//            flush();
+            flush();
             return $return_array ? array($buf['body'],$buf['q']) :true;
         }
     }
@@ -1199,7 +1199,7 @@ EOP;
             
         if (!preg_match_all(
 			$this->getAnchorRegex(
-				"/%full%/"
+				"/(%reguler_prefix%|%no_prefix%)%ranges%(?!%ranges_suffix%)(?(no_prefix)%suffix_no_prefix%|%reguler_suffix%)/"
 			) , $msg, $out, PREG_PATTERN_ORDER)) {
 //		echo "_getAnchorsFromMsg:{$num}:return null<br><br>";
 return null;}
@@ -1335,17 +1335,18 @@ return null;}
 		$UouterContainerId=sprintf('reslist%s',$resnum);
 
 		foreach($anchors as $idx=>$anchor) {
-			$anchors2[]=($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
+			$anchors2[$idx]=($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
 		}
-		$style= ($popup ? "none" : "inline"); 
-		$insert=sprintf('<img src="img/btn_plus.gif" style="display:%s;width:15px;height:15px;float:left" onclick="insertRes(\'%s\',\'%s\',this)">',$style,$UouterContainerId,join('/',$anchors2));
+		$style= ($popup ? "invisivle " : ""); 
+		$insert=sprintf('<img src="img/btn_plus.gif" class="%s expandAll fold" style="width:15px;height:15px;float:left" onclick="insertResAll(\'%s\',this)">',$style,join('/',$anchors2));
 		$ret.=$insert;
         $ret.= sprintf('<div class="reslist" id="%s">',$UouterContainerId);
 
         foreach($anchors as $idx=>$anchor) {
             $anchor_link= $this->quoteRes(array('>>'.$anchor, '>>', $anchor));
             $qres_id = ($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
-			$ret.=sprintf('<div>【参照レス：%s】</div>',$anchor_link);
+			$ret.=sprintf('<div class="quoter">【参照レス：<img src="img/show.gif" class="%s expandSingle fold" onmouseover="insertRes(\'%s\',this)">%s】</div>',
+		$style,$anchors2[$idx],$anchor_link);
 		}
         $ret.='</div>';
         return $ret;

@@ -376,6 +376,11 @@ blockquote.folding_container{
     border-style: solid;
     }
 
+/* ê‹ÇËÇΩÇΩÇ›ÅEìWäJ */
+img.invisivle{
+	display: none;
+}
+
 
 EOSTYLE;
 
