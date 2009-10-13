@@ -377,7 +377,7 @@ blockquote.folding_container{
     }
 
 /* Ü‚è‚½‚½‚İE“WŠJ */
-img.invisivle{
+img.invisible{
 	display: none;
 }
 

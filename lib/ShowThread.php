@@ -1337,7 +1337,7 @@ return null;}
 		foreach($anchors as $idx=>$anchor) {
 			$anchors2[$idx]=($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
 		}
-		$style= ($popup ? "invisivle " : ""); 
+		$style= ($popup ? "invisible " : ""); 
 		$insert=sprintf('<img src="img/btn_plus.gif" class="%s expandAll fold" style="width:15px;height:15px;float:left" onclick="insertResAll(\'%s\',this)">',$style,join('/',$anchors2));
 		$ret.=$insert;
         $ret.= sprintf('<div class="reslist" id="%s">',$UouterContainerId);
