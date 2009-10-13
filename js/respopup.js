@@ -80,7 +80,7 @@ function insertResAll(anchors,button) {
 			importElement=copyHTML(""+importId);
 	//		x=importElement.match(/display:\s*none;?/);
 	//		alert(x+"を見つけました");
-			importElement=importElement.replace(/class="invisible\s+expandAll"/,'class="expandAll"');
+		importElement=importElement.replace(/class="invisible\s+(expand(Single|All)[^"]*)"/g,'class="$1"');
 
 			//参照先レス情報をコピー
 			resdiv=document.createElement('blockquote');
