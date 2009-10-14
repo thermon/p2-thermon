@@ -210,10 +210,12 @@ abstract class ShowThread
 
 			// レス番号の列挙
 			'nums'	=>	"%a_num%%a_num_suffix%?(?:%delimiter2%%a_num%%a_num_suffix%?)*+%ranges_suffix%?(?!%a_digit%)",
+
+			// サフィックス以降の正規表現には0x40-0x7fまでの文字は使えない（SJISの２バイト目と被るので誤動作する）
 			// プレフィックス付きレス番号に続くサフィックス
-			'suffix'	=>	"(?!じゃな(?:い|く))",	//(?![\.]|)",
+			'suffix'	=>	"(?:(?!じゃな(?:い|く)|%a_digit%|%prefix%|%anchor_space%(?:<br>|$)).)*",	//(?![\.]|)",
 			// 引用子＋数字に続く文字列（引用子、数字、行末の直前までマッチ）
-			'quote_follow'		=>	"(?:(?![a-zA-Z]|%a_digit%|%prefix%|%anchor_space%(?:<br>|$)).)*", 
+			'quote_follow'		=>	"(?:(?!%a_digit%|%prefix%|%anchor_space%(?:<br>|$)).)*", 
 
 			// 行頭プレフィックス／サフィックス（レス番号のみの行をアンカー扱いする）
 			'line_prefix'	=>	"(?P<line_prefix>(?:^|<br>)\s*)", 
@@ -235,10 +237,11 @@ abstract class ShowThread
 			'full'	=>	
 				"(%reguler_prefix%".
 				"|%no_prefix%".
-				")%ranges%%ranges_suffix%?".
-				"(?P<quote_follow>(?(line_prefix)%line_suffix%|(?(prefix)%suffix%".
-				"|%suffix_no_prefix%".
-				")%quote_follow%))", // %quote_follow%%reguler_suffix%
+				")".
+				"(?(line_prefix)%a_range%|%ranges%)%ranges_suffix%?".
+				"(?P<quote_follow>(?(line_prefix)%line_suffix%|(?(prefix)(%suffix%)".
+				"|%suffix_no_prefix%%quote_follow%".
+				")))", // %quote_follow%%reguler_suffix%
 
 		);
 		foreach ($parts as $k=>$v) {
@@ -248,7 +251,7 @@ abstract class ShowThread
 
 		//助数詞が続くアンカーを排除するための情報を展開する
 		$ignore_letters = <<< END
-./年/月/日/時/分/秒/代/回/世紀/円/度/都/道/府/県/親等/十/百/千/万/億/兆/次/件/%/％/T/G/M/K/m/n/Ｔ/Ｇ/Ｍ/Ｋ/ｍ/μ/ｎ/・/事件
+./年/月/日/時/分/秒/代/回/世紀/円/度/都/道/府/県/親等/十/百/千/万/億/兆/次/件/%/％/T/G/M/K/m/n/Ｔ/Ｇ/Ｍ/Ｋ/ｍ/μ/ｎ/・/事件/世帯
 END;
 		$this->anchor_letter_ignore=explode("/",$ignore_letters);
 	}
