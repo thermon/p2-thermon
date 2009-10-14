@@ -957,7 +957,7 @@ EOP;
         // ˆø—p
         } elseif ($s['quote']) {
 			$s2=array_slice($s,$quote_index+3);
-			if ($s2['no_prefix']) {var_export($s2);echo "<br>";}
+//			if ($s2['no_prefix']) {var_export($s2);echo "<br>";}
 //			if ($s2['prefix']) {var_export($s2);echo "<br>";}
 			return $this->quoteResCallback($s2);
 /*            return  preg_replace_callback(
