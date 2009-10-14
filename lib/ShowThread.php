@@ -180,7 +180,7 @@ abstract class ShowThread
 			'a_digit'	=>	"(?:\d|０|１|２|３|４|５|６|７|８|９)",
 
 			// 範囲指定子
-			'range_delimiter'	=>	"(?:-|‐|ｰ|\x81\\x5b)", // ー
+			'range_delimiter'	=>	"(?:-|‐|ｰ|\x81\\x7c|\x81\\x5b)", // ー
 
 			// 列挙指定子
 			'delimiter'		=>	"(?:%anchor_space%?(?:[,=+]|、|・|＝|，|＆|　)%anchor_space%?)",
@@ -191,12 +191,12 @@ abstract class ShowThread
 			// レス範囲
 
 			// アンカー引用子 >>
-			'prefix'	=>	"(?:(?:(?:&gt;|&lt;|〉|＞){1,2}|》|≫|(?:く){2})%anchor_space%*)",
+			'prefix'	=>	"(?:(?:(?:&gt;|&lt;|〉|＞){1,2}|》|≫|(?:く){2})\/?%anchor_space%*)",
 
 			// レス番号
 			'a_num'		=>	'%a_digit%{1,4}',
-			'a_range'	=>	"(?:%a_num%(?:%range_delimiter%\s*%prefix%?%a_num%)?)",
-			'a_range2'	=>	"(?:(?P<num1>%a_num%)(?P<num2>%range_delimiter%\s*%prefix%?%a_num%)?)",
+			'a_range'	=>	"(?:%a_num%(?:%range_delimiter%\s*%prefix%?%a_num%)?+)",
+			'a_range2'	=>	"(?:(?P<num1>%a_num%)(?P<num2>%range_delimiter%%prefix%?%a_num%)?+)",
 
 			// 範囲指定直後に続く文字列
 			'a_num_suffix'	=>	"(?:さん|さま|様)",
@@ -206,30 +206,39 @@ abstract class ShowThread
 
 			// レス範囲の列挙
 			'ranges'	=>
-				'(?P<ranges>(?P<range1>%a_range2%)%a_num_suffix%?(?P<range2>%delimiter%%a_range%%a_num_suffix%?)*)',
+				"(?P<ranges>(?P<range1>%a_range2%)%a_num_suffix%?(?P<range2>%delimiter%%a_range%%a_num_suffix%?)*+%ranges_suffix%?)",
 
 			// レス番号の列挙
 			'nums'	=>	"%a_num%%a_num_suffix%?(?:%delimiter2%%a_num%%a_num_suffix%?)*+%ranges_suffix%?(?!%a_digit%)",
 			// プレフィックス付きレス番号に続くサフィックス
 			'suffix'	=>	"(?!じゃな(?:い|く))",	//(?![\.]|)",
 			// 引用子＋数字に続く文字列（引用子、数字、行末の直前までマッチ）
-			'after_letters'		=>	"(?P<quote_follow>(?:(?!%prefix%|%a_digit%|%anchor_space%(?:<br>|$)).)*)", 
+			'quote_follow'		=>	"(?:(?![a-zA-Z]|%a_digit%|%prefix%|%anchor_space%(?:<br>|$)).)*", 
 
 			// 行頭プレフィックス／サフィックス（レス番号のみの行をアンカー扱いする）
-			'line_prefix'	=>	"(?=^|<br>)\s*", 
+			'line_prefix'	=>	"(?P<line_prefix>(?:^|<br>)\s*)", 
 			'line_suffix'	=>	"%anchor_space%*(?=<br>|$)", //(?=(?:\s|　)*)"
 
 			// 裸のアンカーのプレフィックス／サフィックス
-			'no_prefix'	=>	"(?P<no_prefix>(?:(?<=".StrSjis::getSjisRegex()."|[,]).)?)",
-			'suffix_no_prefix'	=>	"(?:%a_num_suffix%|(?:＞|&gt;){2}|の続き)",
+			'no_prefix'	=>	
+				 "(?P<no_prefix>((?:^|<br>)\s*)?(" . StrSjis::getSjisRegex() . "|,)*)",
 
-			'ignore_prefix'	=>	"(?:前スレ)",
+			'suffix_no_prefix'	=>	
+				"(?=%a_num_suffix%|%ranges_suffix%|(?:＞|&gt;){2}|の続き)",
+
+			'ignore_prefix'	=>	"(?P<ignore_prefix>前スレ)",
 			'reguler_prefix'	=>	
-				"(?P<ignore_prefix>%ignore_prefix%)?(?P<prefix>%prefix%)|(?P<line_prefix>%line_prefix%)",
+				"%ignore_prefix%?(?P<prefix>%prefix%)|%line_prefix%",
 			'reguler_suffix'	=>	
-				"(?(prefix)%suffix%%after_letters%|%line_suffix%)",
+				"", //|
 
-			'full'	=>	"(%reguler_prefix%|%no_prefix%)%ranges%%ranges_suffix%?(?(no_prefix)(?:%suffix_no_prefix%|%ranges_suffix%)|%reguler_suffix%)",
+			'full'	=>	
+				"(%reguler_prefix%".
+				"|%no_prefix%".
+				")%ranges%%ranges_suffix%?".
+				"(?P<quote_follow>(?(line_prefix)%line_suffix%|(?(prefix)%suffix%".
+				"|%suffix_no_prefix%".
+				")%quote_follow%))", // %quote_follow%%reguler_suffix%
 
 		);
 		foreach ($parts as $k=>$v) {
@@ -239,9 +248,9 @@ abstract class ShowThread
 
 		//助数詞が続くアンカーを排除するための情報を展開する
 		$ignore_letters = <<< END
-.|年|月|日|時|分|秒|代|回|世紀|円|度|都|道|府|県|親等|十|百|千|万|億|兆|次
+./年/月/日/時/分/秒/代/回/世紀/円/度/都/道/府/県/親等/十/百/千/万/億/兆/次/件/%/％/T/G/M/K/m/n/Ｔ/Ｇ/Ｍ/Ｋ/ｍ/μ/ｎ/・/事件
 END;
-		$this->anchor_letter_ignore=explode("|",$ignore_letters);
+		$this->anchor_letter_ignore=explode("/",$ignore_letters);
 	}
 
     /**
@@ -947,8 +956,10 @@ EOP;
             return $this->idFilter($s['id'], $s[$id_index+1]);
         // 引用
         } elseif ($s['quote']) {
-//				var_export($s);echo "<br>";
-			return $this->quoteResCallback($s);
+			$s2=array_slice($s,$quote_index+3);
+			if ($s2['no_prefix']) {var_export($s2);echo "<br>";}
+//			if ($s2['prefix']) {var_export($s2);echo "<br>";}
+			return $this->quoteResCallback($s2);
 /*            return  preg_replace_callback(
                 $this->getAnchorRegex('/(%prefix%)?(%a_range%)(%a_num_suffix%|%ranges_suffix%)?/'),
                 array($this, 'quoteRes'), $s['quote']);
@@ -1199,7 +1210,7 @@ EOP;
             
         if (!preg_match_all(
 			$this->getAnchorRegex(
-				"/(%reguler_prefix%|%no_prefix%)%ranges%(?!%ranges_suffix%)(?(no_prefix)%suffix_no_prefix%|%reguler_suffix%)/"
+				"/%full%/"
 			) , $msg, $out, PREG_PATTERN_ORDER)) {
 //		echo "_getAnchorsFromMsg:{$num}:return null<br><br>";
 return null;}

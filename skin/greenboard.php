@@ -126,6 +126,7 @@ $STYLE['sb_newres_color'] = "#afffaf"; // ("#ff3300") subject 新着レス数の色
 // {{{ スレ内容(read)
 
 $STYLE['read_bgcolor'] = "#1f3f2f"; // ("#efefef") スレッド表示の背景色
+$STYLE['read_bgcolor2'] = "#1f2f3f"; // ("#efefef") スレッド表示の背景色
 $STYLE['read_background'] = ""; // ("") スレッド表示の背景画像
 $STYLE['read_color'] = "#bae4a6"; // ("#000") スレッド表示のテキスト色
 

@@ -380,8 +380,12 @@ blockquote.folding_container{
 img.invisible{
 	display: none;
 }
-
-
+blockquote.bgcolor1{
+	background-color: {$STYLE['read_bgcolor']};
+}
+blockquote.bgcolor2{
+	background-color: {$STYLE['respop_bgcolor']};
+}
 EOSTYLE;
 
 /*
