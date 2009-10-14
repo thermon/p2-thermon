@@ -1331,22 +1331,34 @@ return null;}
     }
     protected function _quoteback_horizontal_list_html($resnum,$anchors,$popup)
     {
+		global $_conf;
 		$ret="";
 		$UouterContainerId=sprintf('reslist%s',$resnum);
+		$class= ($popup ? "invisible " : "");
+//		trigger_error($_conf['ktai']);
 
-		foreach($anchors as $idx=>$anchor) {
-			$anchors2[$idx]=($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
+		if (!$_conf['ktai']) {
+			foreach($anchors as $idx=>$anchor) {
+				$anchors2[$idx]=($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
+			}
+
+			$ret.=sprintf('<img src="img/btn_plus.gif" class="%s expandAll fold" style="width:15px;height:15px;float:left" onclick="insertResAll(\'%s\',this)">',$class,join('/',$anchors2));
 		}
-		$style= ($popup ? "invisible " : ""); 
-		$insert=sprintf('<img src="img/btn_plus.gif" class="%s expandAll fold" style="width:15px;height:15px;float:left" onclick="insertResAll(\'%s\',this)">',$style,join('/',$anchors2));
-		$ret.=$insert;
         $ret.= sprintf('<div class="reslist" id="%s">',$UouterContainerId);
 
         foreach($anchors as $idx=>$anchor) {
             $anchor_link= $this->quoteRes(array('>>'.$anchor, '>>', $anchor));
             $qres_id = ($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
-			$ret.=sprintf('<div class="quoter">yQÆƒŒƒXF<img src="img/show.gif" class="%s expandSingle fold" onmouseover="insertRes(\'%s\',this)">%sz</div>',
-		$style,$anchors2[$idx],$anchor_link);
+			$ret.='<div class="quoter">';
+			if (!$_conf['ktai']) {
+				$insert=sprintf(
+					'<img src="img/show.gif" class="%s expandSingle fold" onmouseover="insertRes(\'%s\',this)">'
+					,$class,$anchors2[$idx]);
+				$ret.=sprintf('yQÆƒŒƒXF%s%sz',$insert,$anchor_link);
+			} else {
+				$ret.=sprintf('yQÆƒŒƒXF%sz',$anchor_link);
+			}
+			$ret.='</div>';
 		}
         $ret.='</div>';
         return $ret;
