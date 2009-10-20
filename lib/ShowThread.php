@@ -191,7 +191,7 @@ abstract class ShowThread
 			// ƒŒƒX”ÍˆÍ
 
 			// ƒAƒ“ƒJ[ˆø—pq >>
-			'prefix'	=>	"(?:(?:(?:&gt;|&lt;|r|„){1,2}|t|â|(?:‚­){2})\/?%anchor_space%*)",
+			'prefix'	=>	"(?:(?:(?:&gt;|&lt;|r|„){1,2}|t|â|(?:‚­){2})(?:\/|\*)?%anchor_space%*)",
 
 			// ƒŒƒX”Ô†
 			'a_num'		=>	'%a_digit%{1,4}',
@@ -251,9 +251,16 @@ abstract class ShowThread
 
 		//•”Œ‚ª‘±‚­ƒAƒ“ƒJ[‚ğ”rœ‚·‚é‚½‚ß‚Ìî•ñ‚ğ“WŠJ‚·‚é
 		$ignore_letters = <<< END
-./”N/Œ/“ú//•ª/•b/‘ã/‰ñ/¢‹I/‰~/“x/“s/“¹/•{/Œ§/e“™/\/•S/ç/–œ/‰­/’›/Ÿ/Œ/%/“/T/G/M/K/m/n/‚s/‚f/‚l/‚j/‚/ƒÊ/‚/E/–Œ/¢‘Ñ
+./”N/Œ/“ú//•ª/•b/‘ã/‰ñ/¢‹I/‰~/“x/“s/“¹/•{/Œ§/e“™/\/•S/ç/–œ/‰­/’›/Ÿ/Œ
+%/“/T/G/M/K/m/n/‚s/‚f/‚l/‚j/‚/ƒÊ/‚/E/–Œ/¢‘Ñ/:/Ë/Î/Š„/’i
 END;
-		$this->anchor_letter_ignore=explode("/",$ignore_letters);
+		$ignore_letters_lines=explode("\n",$ignore_letters);
+//		var_export($ignore_letters_lines);
+		$this->anchor_letter_ignore=array();
+		foreach ($ignore_letters_lines as $line) {
+			$this->anchor_letter_ignore=
+				array_merge($this->anchor_letter_ignore,explode("/",$line));
+		}
 	}
 
     /**
