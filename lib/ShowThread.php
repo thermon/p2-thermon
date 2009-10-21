@@ -788,6 +788,8 @@ END;
                 }
             case 'msg':
                 $target = $msg; break;
+            case 'res':
+                $target = $i; break;
             default: // 'hole'
                 $target = strval($i) . '<>' . $ares;
         }
@@ -1221,25 +1223,31 @@ EOP;
         if (!preg_match_all(
 			$this->getAnchorRegex(
 				"/%full%/"
-			) , $msg, $out, PREG_PATTERN_ORDER)) {
+			) , $msg, $out, PREG_SET_ORDER)) {
 //		echo "_getAnchorsFromMsg:{$num}:return null<br><br>";
 return null;}
 
-			if ($out['quote_follow']) {
+		foreach ($out as $matches) {
+			if ($matches['quote_follow']) {
+//				var_export($matches);
+				//アンカーに続く文字列の先頭に無視する文字列があったら、次のアンカーを処理する。
 				foreach ($this->anchor_letter_ignore as $v) {
-					if (strpos($out['quote_follow'],$v)=== 0) {
-						return null;
+					if (strpos($matches['quote_follow'],$v)=== 0) {
+						continue 2;		
 					}
 				}
 			}
 
-        $joined_ranges_list=$out['ranges'];
-        foreach ($joined_ranges_list as $joined_ranges) {
-            if (!preg_match_all($this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), $joined_ranges, $ranges_list, PREG_PATTERN_ORDER)) {continue;}
-            $anchor_list=array_merge($anchor_list,$ranges_list[1]);
-        }
-        return $anchor_list;                    
+			$joined_ranges=$matches['ranges'];
+			if (!preg_match_all(
+				$this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), 
+				$joined_ranges, $ranges_list, PREG_PATTERN_ORDER)) 
+			{continue;}
+			$anchor_list=array_merge($anchor_list,$ranges_list[1]);
+		}
+		return $anchor_list;                    
     }
+
 
     protected function _addQuoteNum($num,$quotee) {
 		$quoter=$num+1;
@@ -1362,9 +1370,16 @@ return null;}
 			foreach($anchors as $idx=>$anchor) {
 				$anchors2[$idx]=($this->_matome ? "t{$this->_matome}" : "" ) ."qr{$anchor}";
 			}
-
 			$ret.=sprintf('<img src="img/btn_plus.gif" class="%s expandAll fold" style="width:15px;height:15px;float:left" onclick="insertResAll(\'%s\',this)">',$class,join('/',$anchors2));
+
+		} else {
+			$word="^(".join("|",$anchors).")$";
+			$filter_url = "{$_conf['read_php']}?bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;host={$this->thread->host}&amp;ls=all&amp;field=res&amp;word={$word}&amp;method=regex&amp;match=on&amp;idpopup=0&amp;offline=1";
+			$ret.="<a href=\"{$filter_url}&amp;b=k\">";
+			$ret.="参照ﾚｽ一括表示";
+		$ret.='</a>';
 		}
+
         $ret.= sprintf('<div class="reslist" id="%s">',$UouterContainerId);
 
         foreach($anchors as $idx=>$anchor) {
