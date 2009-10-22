@@ -349,9 +349,17 @@ EOP;
                 $no_class .= ' newres';
             }
 
+
+			$quoterList=$this->get_quote_from();
+			if (count($quoterList[$i])) {
+				$quoters=join("%7c",$quoterList[$i]);
+			} else {
+				$quoters='';
+			}
+
             // SPM
             if ($_conf['expack.spm.enabled']) {
-                $no_onclick = " onclick=\"{$this->spmObjName}.show({$i},'{$res_id}',event)\"";
+                $no_onclick = " onclick=\"{$this->spmObjName}.show({$i},'{$res_id}',{$quoters}',event)\"";
             }
 
             // ”Ô†
@@ -595,7 +603,7 @@ var {$this->spmObjName} = {
     'ls':'{$_spm_ls}',
     'client':['{$_conf['b']}','{$_conf['client_type']}']
 };
-{$this->spmObjName}.show = (function(no,id,evt){SPM.show({$this->spmObjName},no,id,evt);});
+{$this->spmObjName}.show = (function(no,id,quoters,evt){SPM.show({$this->spmObjName},no,id,quoters,evt);});
 {$this->spmObjName}.hide = SPM.hide; // (function(evt){SPM.hide(evt);});
 //]]>
 </script>\n

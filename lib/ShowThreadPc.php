@@ -248,18 +248,24 @@ EOMSG;
 
         }
 
-        /*
+        
         //「ここから新着」画像を挿入
         if ($i == $this->thread->readnum +1) {
             $tores .= <<<EOP
                 <div><img src="img/image.png" alt="新着レス" border="0" vspace="4"></div>
 EOP;
         }
-        */
+    	$quoterList=$this->get_quote_from();
+		var_export($quoterList[$i]);
+		if (count($quoterList[$i])) {
+			$quoters=join("%7c",$quoterList[$i]);
+		} else {
+			$quoters='';
+		}
 
         // SPM
         if ($_conf['expack.spm.enabled']) {
-            $spmeh = " onmouseover=\"{$this->spmObjName}.show({$i},'{$msg_id}',event)\"";
+            $spmeh = " onmouseover=\"{$this->spmObjName}.show({$i},'{$msg_id}','{$quoters}',event)\"";
             $spmeh .= " onmouseout=\"{$this->spmObjName}.hide(event)\"";
         } else {
             $spmeh = '';
@@ -438,9 +444,16 @@ EOJS;
             $msg_class .= ' ActiveMona';
         }
 
+    	$quoterList=$this->get_quote_from();
+		if (count($quoterList[$i])) {
+			$quoters=join("%7c",$quoterList[$i]);
+		} else {
+			$quoters='';
+		}
+
         // SPM
         if ($_conf['expack.spm.enabled']) {
-            $spmeh = " onmouseover=\"{$this->spmObjName}.show({$i},'{$qmsg_id}',event)\"";
+            $spmeh = " onmouseover=\"{$this->spmObjName}.show({$i},'{$qmsg_id}','{$quoters}',event)\"";
             $spmeh .= " onmouseout=\"{$this->spmObjName}.hide(event)\"";
         } else {
             $spmeh = '';

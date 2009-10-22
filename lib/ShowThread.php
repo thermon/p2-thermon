@@ -191,7 +191,7 @@ abstract class ShowThread
 			// レス範囲
 
 			// アンカー引用子 >>
-			'prefix'	=>	"(?:(?:(?:&gt;|&lt;|〉|＞){1,2}|》|≫|(?:く){2})(?:\/|\*)?%anchor_space%*)",
+			'prefix'	=>	"(?:(?:(?:&gt;|&lt;|〉|＞|＜){1,2}|》|≫|(?:く){2})(?:\/|\*)?%anchor_space%*)",
 
 			// レス番号
 			'a_num'		=>	'%a_digit%{1,4}',
@@ -223,7 +223,7 @@ abstract class ShowThread
 
 			// 裸のアンカーのプレフィックス／サフィックス
 			'no_prefix'	=>	
-				 "(?P<no_prefix>((?:^|<br>)\s*)?(" . StrSjis::getSjisRegex() . "|,)*)",
+				 "(?P<no_prefix>((?:^|<br>)\s*)|" . StrSjis::getSjisRegex() . "|,)",
 
 			'suffix_no_prefix'	=>	
 				"(?=%a_num_suffix%|%ranges_suffix%|(?:＞|&gt;){2}|の続き)",

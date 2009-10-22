@@ -8,6 +8,7 @@ var spmResNum     = new Number(); // ポップアップで参照するレス番号
 var spmBlockID    = new String(); // フォント変更で参照するID
 var spmSelected   = new String(); // 選択文字列を一時的に保存
 var spmFlexTarget = new String(); // フィルタリング結果を開くウインドウ
+var spmQuoters =new String();
 
 /**
  * スマートポップアップメニューを生成する
@@ -30,7 +31,8 @@ SPM.init = function(aThread)
 	}
 	SPM.setOnPopUp(spm, spm.id, false);
 
-	spm.appendItem('レスを検索', (function(evt){stophide=true; showHtmlPopUp('read.php?bbs=' + aThread.bbs + '&key=' + aThread.key.toString() + '&host=' + aThread.host + '&ls=all&field=msg&word=%3E' + spmResNum + '%5B%5E%5Cd%5D&method=regex&match=on,renzokupop=true',((evt) ? evt : ((window.event) ? event : null)),0);}));
+//	spm.appendItem('レスを検索', (function(evt){stophide=true; showHtmlPopUp('read.php?bbs=' + aThread.bbs + '&key=' + aThread.key.toString() + '&host=' + aThread.host + '&ls=all&field=msg&word=%3E' + spmResNum + '%5B%5E%5Cd%5D&method=regex&match=on,renzokupop=true',((evt) ? evt : ((window.event) ? event : null)),0);}));
+	spm.appendItem('レスを検索', (function(evt){stophide=true; showHtmlPopUp('read.php?bbs=' + aThread.bbs + '&key=' + aThread.key.toString() + '&host=' + aThread.host + '&ls=all&field=res&word=%5e%28' + spmQuoters + '%29%24&method=regex&match=on,renzokupop=true',((evt) ? evt : ((window.event) ? event : null)),0);}));
 
 	// コピペ用フォーム
 	spm.appendItem('レスコピー', (function(){SPM.invite(aThread)}));
@@ -111,8 +113,8 @@ SPM.init = function(aThread)
 	}
 
 	// 表示・非表示メソッドを設定
-	aThread.show = (function(resnum, resid, evt){
-		SPM.show(aThread, resnum, resid, evt);
+	aThread.show = (function(resnum, resid, quoters, evt){
+		SPM.show(aThread, resnum, resid, quoters,evt);
 	});
 	aThread.hide = (function(evt){
 		SPM.hide(aThread, evt);
@@ -124,7 +126,7 @@ SPM.init = function(aThread)
 /**
  * スマートポップアップメニューをポップアップ表示する
  */
-SPM.show = function(aThread, resnum, resid, evt)
+SPM.show = function(aThread, resnum, resid, quoters,evt)
 {
 	var evt = (evt) ? evt : ((window.event) ? event : null);
 	if (spmResNum != resnum || spmBlockID != resid) {
@@ -132,6 +134,7 @@ SPM.show = function(aThread, resnum, resid, evt)
 	}
 	spmResNum  = resnum;
 	spmBlockID = resid;
+	spmQuoters =quoters;
 	if (window.getSelection) {
 		spmSelected = window.getSelection();
 	} else if (document.selection) {

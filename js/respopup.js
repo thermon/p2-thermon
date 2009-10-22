@@ -128,6 +128,7 @@ function copyHTML(qresID) {
  * 引用レス番に onMouseover で呼び出される
  */
 function showResPopUp(divID, ev) {
+//	alert("show");
 	if (divID.indexOf("-") != -1) { return; } // 連番 (>>1-100) は非対応なので抜ける
 
 	var aResPopUp = gResPopCtl.getResPopUp(divID);

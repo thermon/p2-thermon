@@ -504,7 +504,11 @@ function postIt($host, $bbs, $key, $post)
         // +Wiki sambaタイマー
         if ($_conf['wiki.samba_timer']) {
             require_once P2_LIB_DIR . '/wiki/samba.class.php';
-            $samba = &new samba;
+			if (version_compare(PHP_VERSION,'5.0.0','>=')) {
+				$samba = new samba;
+			} else {
+				$samba = &new samba;
+			}
             $samba->setWriteTime($host, $bbs);
             $samba->save();
         }
