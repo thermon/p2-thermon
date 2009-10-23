@@ -188,7 +188,7 @@ class ShowThreadPc extends ShowThread
                         }
                         $ds = $this->qRes($this->thread->datlines[$rnv-1], $rnv);
                         $onPopUp_at = " onmouseover=\"showResPopUp('{$qres_id}',event)\" onmouseout=\"hideResPopUp('{$qres_id}')\"";
-                        $rpop .= "<div id=\"{$qres_id}\" class=\"respopup\"{$onPopUp_at}>\n{$ds}</div>\n";
+                        $rpop .= "<div id=\"{$qres_id}\" class=\"respopup {$qres_id}\"{$onPopUp_at}>\n{$ds}</div>\n";
                     }
                 }
             }
@@ -272,7 +272,7 @@ EOP;
             $spmeh = '';
         }
 
-        $tores .= "<div id=\"{$res_id}\" class=\"res\">\n";
+        $tores .= "<div id=\"{$res_id}\" class=\"res {$res_id}\">\n";
         $tores .= "<div class=\"res-header\">";
 /*        $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$i}";
         $i_with_link="<a href=\"{$read_url}\">{$i}</a>";*/
@@ -322,7 +322,7 @@ EOP;
             $tores .= $this->quoteback_list_html($i, 1);
         }
 
-        $tores .= "<div id=\"{$msg_id}\" class=\"{$msg_class}\">{$msg}</div>\n"; // 内容
+        $tores .= "<div id=\"{$msg_id}\" class=\"{$msg_class} {$msg_id}\">{$msg}</div>\n"; // 内容
         // 被レスリスト(横形式)
         if ($_conf['backlink_list'] == 2) {
             $tores .= $this->quoteback_list_html($i, 2,false);
@@ -378,7 +378,7 @@ EOJS;
                     }
                     $ds = $this->qRes($this->thread->datlines[$rnv-1], $rnv);
                     $onPopUp_at = "onmouseover=\"showResPopUp('{$qres_id}',event)\" onmouseout=\"hideResPopUp('{$qres_id}')\"";
-                    $rpop .= "<div id=\"{$qres_id}\" class=\"respopup\"{$onPopUp_at}>\n{$ds}</div>\n";
+                    $rpop .= "<div id=\"{$qres_id}\" class=\"respopup {$qres_id}\"{$onPopUp_at}>\n{$ds}</div>\n";
                 }
             }
         }
@@ -481,7 +481,7 @@ EOJS;
             $tores .= $this->quoteback_list_html($i, 1);
         }
 
-        $tores .= "<div id=\"{$qmsg_id}\" class=\"{$msg_class}\">{$msg}</div>\n"; // 内容
+        $tores .= "<div id=\"{$qmsg_id}\" class=\"{$msg_class} {$qmsg_id}\">{$msg}</div>\n"; // 内容
         // 被レスリスト(横形式)
         if ($_conf['backlink_list'] == 2) {
             $tores .= $this->quoteback_list_html($i, 2);

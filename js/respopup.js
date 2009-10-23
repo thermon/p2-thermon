@@ -46,7 +46,8 @@ function insertRes(quoter,button) {
 
 	//参照先レス情報をコピー
 	resdiv=document.createElement('blockquote');
-	resdiv.innerHTML=importElement.replace(/id=\".+?\"/g,"");
+	resdiv.innerHTML=importElement.replace(/(id=\".*?)qm(\d+.*?\")/g,"$1im$2");
+//	resdiv.innerHTML=resdiv.innerHTML.replace(/(activeMona\(.*?)qm(?=\d)/g,"$1im");
 	
 	bgcolor=" bgcolor1";
 	if (!Container.parentNode.parentNode.className.match(/bgcolor2/)) { //親:reslist 親の親:folding_container またはres
@@ -97,8 +98,8 @@ function insertResAll(anchors,button) {
 
 			//参照先レス情報をコピー
 			resdiv=document.createElement('blockquote');
-			resdiv.innerHTML=importElement.replace(/id=\".+?\"/g,"");
-		
+			resdiv.innerHTML=importElement.replace(/(id=\".*?)qm(\d+.*?\")/g,"$1im$2");
+//			resdiv.innerHTML=resdiv.innerHTML.replace(/(activeMona\(.*?)qm(?=\d)/g,"$1im");
 			resdiv.className='folding_container'+bgcolor;
 			outerContainer.appendChild(resdiv);
 			outerContainer.childNodes[i].style.display='none';
