@@ -248,15 +248,16 @@ EOMSG;
 
         }
 
-        
+/*        
         //「ここから新着」画像を挿入
         if ($i == $this->thread->readnum +1) {
             $tores .= <<<EOP
                 <div><img src="img/image.png" alt="新着レス" border="0" vspace="4"></div>
 EOP;
         }
+*/
     	$quoterList=$this->get_quote_from();
-		var_export($quoterList[$i]);
+//		var_export($quoterList[$i]);
 		if (count($quoterList[$i])) {
 			$quoters=join("%7c",$quoterList[$i]);
 		} else {
