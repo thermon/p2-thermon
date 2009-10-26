@@ -217,7 +217,7 @@ require_once $P2_LIB_DIR_S . 'p2util.inc.php';
 require_once $P2_LIB_DIR_S . 'wiki/p2utilwiki.class.php';
 
 // 動作環境を確認 (要件を満たしているならコメントアウト可)
-p2checkenv(__LINE__);
+// p2checkenv(__LINE__);
 
 if ($debug) {
     if (!class_exists('Benchmark_Profiler', false)) {

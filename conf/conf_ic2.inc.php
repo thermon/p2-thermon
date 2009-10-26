@@ -18,7 +18,7 @@ $_conf['expack.ic2.general.cachedir'] = "./cache";
 // 注1: username,password,databaseは実際のものと読み替える。
 // 注2: MySQL,PosrgreSQLでは予めデータベースを作っておく。
 // 注3: SQlite3のサポートは実験的なもので、非推奨
-$_conf['expack.ic2.general.dsn'] = "";
+ $_conf['expack.ic2.general.dsn'] = "mysql://thermon:37071th@localhost:3306/p2_ic2";
 
 // DBで使うテーブル名
 $_conf['expack.ic2.general.table'] = "imgcache";
@@ -91,7 +91,7 @@ $_conf['expack.ic2.viewer.title'] = "ImageCache2::Viewer";
 
 // Lightbox Plus で画像を表示 (off:0;on:1)
 // @link http://serennz.sakura.ne.jp/toybox/lightbox/?ja
-$_conf['expack.ic2.viewer.lightbox'] = 0;
+$_conf['expack.ic2.viewer.lightbox'] = 1;
 
 // オリジナル画像が見つからないレコードを自動で消去する (off:0;on:1)
 $_conf['expack.ic2.viewer.delete_src_not_exists'] = 0;
@@ -158,10 +158,10 @@ $_conf['expack.ic2.getter.conn_timeout'] = 60;
 $_conf['expack.ic2.getter.read_timeout'] = 60;
 
 // エラーログにある画像はダウンロードを試みない (no:0;yes:1)
-$_conf['expack.ic2.getter.checkerror'] = 1;
+$_conf['expack.ic2.getter.checkerror'] = 0;
 
 // デフォルトでURL+.htmlの偽リファラを送る (no:0;yes:1)
-$_conf['expack.ic2.getter.sendreferer'] = 0;
+$_conf['expack.ic2.getter.sendreferer'] = 1;
 
 // sendreferer = 0 のとき、例外的にリファラを送るホスト（カンマ区切り）
 $_conf['expack.ic2.getter.refhosts'] = "";
@@ -210,13 +210,13 @@ $_conf['expack.ic2.proxy.pass'] = "";
 $_conf['expack.ic2.source.name'] = "src";
 
 // キャッシュする最大データサイズ（これを越えると禁止リスト行き、0は無制限）
-$_conf['expack.ic2.source.maxsize'] = 10000000;
+$_conf['expack.ic2.source.maxsize'] = 0;
 
 // キャッシュする最大の幅（上に同じく）
-$_conf['expack.ic2.source.maxwidth'] = 4000;
+$_conf['expack.ic2.source.maxwidth'] = 0;
 
 // キャッシュする最大の高さ（〃）
-$_conf['expack.ic2.source.maxheight'] = 4000;
+$_conf['expack.ic2.source.maxheight'] = 0;
 
 // }}}
 // {{{ サムネイル

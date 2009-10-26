@@ -83,13 +83,14 @@ div.thread {
 
 /* ƒŒƒX */
 div.res {
-	margin: 0 0 2.0em 0;
-	padding: 0;
+	margin: 0 0 0.5em 0;
+	padding: 0.5em 0 0 0;
     width: 100%;
+    border-top-width: 3px;
+    border-top-style: solid;
     /*\*//*/
     overflow: hidden;
     /**/
-
 }
 div.res:after {
     height: 0;
@@ -119,7 +120,7 @@ div.respopup {
 /* ‚ ‚Ú[‚ñƒŒƒX */
 div.res.aborned {
 	margin: 0;
-	padding: 0;
+	padding: 4px 0 0 0;
 	font-size: xx-small;
 	line-height: 100%;
 }

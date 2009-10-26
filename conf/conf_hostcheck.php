@@ -19,17 +19,17 @@ $GLOBALS['_HOSTCHKCONF']['host_type'] = array(
     // NTT docomo iモード
     'docomo'    => 0,
     // au EZweb
-    'au'        => 0,
+    'au'        => 1,
     // SoftBank Mobile
     'softbank'  => 0,
     // WILLCOM AIR-EDGE
     'willcom'   => 0,
     // EMOBILE
-    'emobile'   => 0,
+    'emobile'   => 1,
     // iPhone 3G
     'iphone'    => 0,
     // ユーザー設定
-    'custom'    => 0,
+    'custom'    => 1,
     // ユーザー設定 (IPv6)
     'custom_v6' => 0,
 );
@@ -45,9 +45,10 @@ $GLOBALS['_HOSTCHKCONF']['mobile_use_regex'] = false;
 $GLOBALS['_HOSTCHKCONF']['custom_allowed_host'] = array(
     //'192.168.0.0' => 24,
     //'210.143.108.0' => 24, // jig
-    //'117.55.0.0' => 17,   // emb? @link http://pc11.2ch.net/test/read.cgi/software/1216565984/531
-    //'60.254.192.0' => 18, // 同上
-    //'119.72.0.0' => 16,   // 同上
+    '117.55.0.0' => 17,   // emb? @link http://pc11.2ch.net/test/read.cgi/software/1216565984/531
+    '60.254.192.0' => 18, // 同上
+    '119.72.0.0' => 16,   // 同上
+    '114.48.0.0' => 14,
 );
 $GLOBALS['_HOSTCHKCONF']['custom_allowed_host_v6'] = null;
 

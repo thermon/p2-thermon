@@ -24,9 +24,9 @@ $_conf['pref_dir'] = "./data";      // ("./data")
 
 
 // «—ˆ“I‚É‚ÍˆÈ‰º‚Ì‚æ‚¤‚É‚µ‚½‚¢—\’è
-// $_conf['dat_dir']  = $_conf['data_dir'] . '/dat';
-// $_conf['idx_dir']  = $_conf['data_dir'] . '/idx';
-// $_conf['pref_dir'] = $_conf['data_dir'] . '/pref';
+$_conf['dat_dir']  = '../rep2_data/dat';
+$_conf['idx_dir']  = '../rep2_data/idx';
+ $_conf['pref_dir'] = $_conf['data_dir'] . '/pref';
 
 // }}}
 // ----------------------------------------------------------------------

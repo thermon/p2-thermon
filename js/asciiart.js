@@ -48,15 +48,34 @@ function detectAA(blockId)
 // activeMona -- モナーフォントに切り替え、行の高さも縮める
 function activeMona(blockId)
 {
-	var amTargetObj = document.getElementById(blockId);
+//	var amTargetObj = document.getElementById(blockId);	
+	var amTargetObj = getElementsByClass('div',blockId);
+
 	if (!amTargetObj) {
 		return;
 	}
-	if (amTargetObj.className.search(/\bActiveMona\b/) != -1) {
-		amTargetObj.className = amTargetObj.className.replace(/ ?ActiveMona/, '');
-	} else {
-		amTargetObj.className += ' ActiveMona';
+	for (i=0;i<amTargetObj.length;i++){
+		if (amTargetObj[i].className.search(/\bActiveMona\b/) != -1) {
+			amTargetObj[i].className = amTargetObj[i].className.replace(/ ?ActiveMona/, '');
+		} else {
+			amTargetObj[i].className += ' ActiveMona';
+		}
 	}
+}
+// クラス名で要素を探す
+function getElementsByClass(tag,class){
+	el=document.getElementsByTagName(tag);
+	re=new RegExp('\\b'+class+'\\b');
+	console.log(re);
+	matched=new Array();
+	for (i=0;i<el.length;i++){
+		if(el[i].className.match(re)){
+			matched.push(el[i]);
+			console.log(el[i]);
+		}
+	}
+
+	return matched;
 }
 
 // activeMonaForm -- アクティブモナー on フォーム

@@ -317,7 +317,7 @@ EOP;
             $tores .= $this->quoteback_list_html($i, 1);
         }
 
-        $tores .= "<div id=\"{$msg_id}\" class=\"{$msg_class}\">{$msg}</div>\n"; // 内容
+        $tores .= "<div id=\"{$msg_id}\" class=\"{$msg_class} {$msg_id}\">{$msg}</div>\n"; // 内容
         // 被レス展開用ブロック
         if ($_conf['backlink_block'] > 0) {
             $backlinks = $this->backlink_comment($i);
@@ -416,8 +416,10 @@ EOJS;
         $tores = '';
 
         if ($this->_matome) {
+            $msg_id = "t{$this->_matome}m{$i}";
             $qmsg_id = "t{$this->_matome}qm{$i}";
         } else {
+            $msg_id = "m{$i}";
             $qmsg_id = "qm{$i}";
         }
 
@@ -440,7 +442,7 @@ EOJS;
             $date_id = str_replace($idstr, $this->idFilter($idstr, $id), $date_id);
         }
 
-        $msg_class = 'message';
+        $msg_class = 'message ' . $msg_id;
 
         // AA 判定
         if ($this->am_autodetect && $this->activeMona->detectAA($msg)) {
@@ -464,7 +466,7 @@ EOJS;
         }
         $tores .= $date_id; // 日付とID
         if ($this->am_side_of_id) {
-            $tores .= ' ' . $this->activeMona->getMona($qmsg_id);
+            $tores .= ' ' . $this->activeMona->getMona($msg_id);
         }
         $tores .= "</div>\n";
 
