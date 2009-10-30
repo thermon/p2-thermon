@@ -332,15 +332,16 @@ EOP;
             echo $aShowThread->getSpmObjJs();
         }
 
-        $res1 = $aShowThread->quoteOne(); // >>1ポップアップ用
         if ($_conf['coloredid.enable'] > 0 && $_conf['coloredid.click'] > 0 &&
             $_conf['coloredid.rate.type'] > 0) {
-            $mainhtml .= $aShowThread->datToHtml(true);
-            $mainhtml .= $res1['q'];
+            list($body,$quoted)= $aShowThread->datToHtml(true,false,true);
+            $mainhtml .=$body;
         } else {
-            $aShowThread->datToHtml();
-            echo $res1['q'];
+            list($body,$quoted)=$aShowThread->datToHtml(false,false,true);
         }
+        $res1 = $aShowThread->quoteOne(); // >>1ポップアップ用
+        $quoted.=$res1['q'];
+
 
 
         // レス追跡カラー
@@ -380,7 +381,7 @@ EOP;
             echo "<p><b class=\"filtering\">{$all}レス中 {$GLOBALS['filter_hits']}レスがヒット</b></p>\n";
         }
     }
-
+    echo $quoted;
     // フッタ 表示
     require_once P2_LIB_DIR . '/read_footer.inc.php';
 

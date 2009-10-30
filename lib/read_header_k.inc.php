@@ -280,7 +280,7 @@ EOP;
 echo "<hr>";
 echo "<h3><font color=\"{$STYLE['mobile_read_ttitle_color']}\">{$aThread->ttitle_hd}</font></h3>\n";
 
-$filter_fields = array('hole' => '', 'msg' => 'ﾒｯｾｰｼﾞが', 'name' => '名前が', 'mail' => 'ﾒｰﾙが', 'date' => '日付が', 'id' => 'IDが', 'belv' => 'ﾎﾟｲﾝﾄが');
+$filter_fields = array('hole' => '', 'msg' => 'ﾒｯｾｰｼﾞが', 'name' => '名前が', 'mail' => 'ﾒｰﾙが', 'date' => '日付が', 'id' => 'IDが', 'res' => 'ﾚｽ番号が','belv' => 'ﾎﾟｲﾝﾄが');
 
 if ($do_filtering) {
     echo "検索結果: ";

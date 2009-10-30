@@ -33,6 +33,7 @@ $writable_files = array(
                         "p2_aborn_res.txt",
                         //"conf_user_ex.php", "conf_constant.inc",
                         //"conf_user_ex.inc.php", "conf_user_constant.inc.php"
+						"p2_anchor_ignore.txt"
                     );
 
 if ($writable_files and (!in_array(basename($path), $writable_files))) {

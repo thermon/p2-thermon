@@ -174,6 +174,8 @@ $ng_id_txt      = $_conf['pref_dir'] . '/p2_ng_id.txt';
 // +Wiki
 $aborn_be_txt   = $_conf['pref_dir'] . '/p2_aborn_be.txt';
 $ng_be_txt      = $_conf['pref_dir'] . '/p2_ng_be.txt';
+// アンカー
+$anchor_ignore_word  = $_conf['pref_dir'] . '/p2_anchor_ignore.txt';
 
 echo '<div>';
 echo <<<EOP
@@ -324,7 +326,16 @@ EOP;
 
         echo "</td></tr>\n\n";
     }
-
+echo "<td>\n\n";
+echo <<<EOP
+<fieldset>
+<legend>アンカー</legend>
+EOP;
+    printEditFileForm($anchor_ignore_word, "アンカーと認識しない後続単語");
+echo <<<EOP
+</fieldset>\n
+EOP;
+echo "</td></tr>\n\n";
 
     include_once P2_LIB_DIR . '/wiki/editpref.inc.php';
 

@@ -361,7 +361,7 @@ EOP;
 
 if ($aThread->rescount && empty($_GET['renzokupop'])) {
 // レスフィルタ ===============================
-    $selected_field = array('hole' => '', 'name' => '', 'mail' => '', 'date' => '', 'id' => '', 'msg' => '');
+    $selected_field = array('hole' => '', 'name' => '', 'mail' => '', 'date' => '', 'id' => '', 'msg' => '', 'res' => '');
     $selected_field[($res_filter['field'])] = ' selected';
 
     $selected_match = array('on' => '', 'off' => '');
@@ -398,6 +398,7 @@ EOP;
         <option value="date"{$selected_field['date']}>日付が</option>
         <option value="id"{$selected_field['id']}>IDが</option>
         <option value="msg"{$selected_field['msg']}>メッセージが</option>
+        <option value="res"{$selected_field['res']}>レス番号が</option>
     </select>
     <input id="word" name="word" value="{$hd['word']}" size="24">{$select_method_ht}
     を
