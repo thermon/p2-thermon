@@ -18,7 +18,8 @@ $_conf['expack.ic2.general.cachedir'] = "./cache";
 // 注1: username,password,databaseは実際のものと読み替える。
 // 注2: MySQL,PosrgreSQLでは予めデータベースを作っておく。
 // 注3: SQlite3のサポートは実験的なもので、非推奨
- $_conf['expack.ic2.general.dsn'] = "mysql://thermon:37071th@localhost:3306/p2_ic2";
+$_conf['expack.ic2.general.dsn'] = "database://username:password@localhost:3306/p2_ic2";
+require_once P2_CONF_DIR . '/conf_ic2.inc.private.php';
 
 // DBで使うテーブル名
 $_conf['expack.ic2.general.table'] = "imgcache";
