@@ -394,7 +394,6 @@ abstract class ShowThread
         if ($lines = FileCtl::file_read_lines($file)) {
             foreach ($lines as $l) {
                 $lar = explode("\t", trim($l));
-				var_export($lar);
                 if (strlen($lar[0]) == 0) {
                     continue;
                 }
