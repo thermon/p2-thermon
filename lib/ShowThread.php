@@ -379,21 +379,7 @@ abstract class ShowThread
 //		trigger_error($this->getAnchorRegex("/%full%/"))."<br>";
 
 		//•”Œ‚ª‘±‚­ƒAƒ“ƒJ[‚ğ”rœ‚·‚é‚½‚ß‚Ìî•ñ‚ğ“WŠJ‚·‚é
-/*
-		$ignore_letters = <<< END
-./”N/Œ/“ú//•ª/•b/‘ã/‰ñ/¢‹I/‰~/“x/“s/“¹/•{/Œ§/e“™/\/•S/ç/–œ/‰­/’›/Ÿ/Œ
-%/“/T/G/M/K/m/n/‚s/‚f/‚l/‚j/‚/ƒÊ/‚/E/–Œ/¢‘Ñ/:/Ë/Î/Š„/’i/‘ä
-‚¶‚á‚È
-END;
-		$ignore_letters_lines=explode("\n",$ignore_letters);
-//		var_export($ignore_letters_lines);
-		$this->anchor_letter_ignore=array();
-		foreach ($ignore_letters_lines as $line) {
-			$this->anchor_letter_ignore=
-				array_merge($this->anchor_letter_ignore,explode("/",$line));
-		}
-*/
-		$this->anchor_letter_ignore=self::_readWordFromFile('p2_anthor_ignore.txt');
+		$this->anchor_letter_ignore=self::_readWordFromFile('p2_anchor_ignore.txt');
 	}
     /**
      * readNgAbornFromFile
@@ -408,6 +394,7 @@ END;
         if ($lines = FileCtl::file_read_lines($file)) {
             foreach ($lines as $l) {
                 $lar = explode("\t", trim($l));
+				var_export($lar);
                 if (strlen($lar[0]) == 0) {
                     continue;
                 }
