@@ -7,6 +7,7 @@ var spmResNum     = new Number(); // ポップアップで参照するレス番号
 var spmBlockID    = new String(); // フォント変更で参照するID
 var spmSelected   = new String(); // 選択文字列を一時的に保存
 var spmFlexTarget = new String(); // フィルタリング結果を開くウインドウ
+var spmQuoters =new String();
 
 /**
  * スマートポップアップメニューを生成する
@@ -29,7 +30,8 @@ SPM.init = function(aThread)
 	}
 	SPM.setOnPopUp(spm, spm.id, false);
 
-	spm.appendItem('レスを検索', (function(evt){stophide=true; showHtmlPopUp('read.php?bbs=' + aThread.bbs + '&key=' + aThread.key.toString() + '&host=' + aThread.host + '&ls=all&field=msg&word=%3E' + spmResNum + '%5B%5E%5Cd%5D&method=regex&match=on,renzokupop=true',((evt) ? evt : ((window.event) ? event : null)),0);}));
+//	spm.appendItem('レスを検索', (function(evt){stophide=true; showHtmlPopUp('read.php?bbs=' + aThread.bbs + '&key=' + aThread.key.toString() + '&host=' + aThread.host + '&ls=all&field=msg&word=%3E' + spmResNum + '%5B%5E%5Cd%5D&method=regex&match=on,renzokupop=true',((evt) ? evt : ((window.event) ? event : null)),0);}));
+	spm.appendItem('レスを検索', (function(evt){stophide=true; showHtmlPopUp('read.php?bbs=' + aThread.bbs + '&key=' + aThread.key.toString() + '&host=' + aThread.host + '&ls=all&field=res&word=%5e%28' + spmQuoters + '%29%24&method=regex&match=on,renzokupop=true',((evt) ? evt : ((window.event) ? event : null)),0);}));
 
 	// コピペ用フォーム
 	spm.appendItem('レスコピー', (function(){SPM.invite(aThread)}));
@@ -125,8 +127,8 @@ SPM.init = function(aThread)
 	}
 
 	// 表示・非表示メソッドを設定
-	aThread.show = (function(resnum, resid, evt){
-		SPM.show(aThread, resnum, resid, evt);
+	aThread.show = (function(resnum, resid, quoters, evt){
+		SPM.show(aThread, resnum, resid, quoters,evt);
 	});
 	aThread.hide = (function(evt){
 		SPM.hide(aThread, evt);
@@ -138,7 +140,7 @@ SPM.init = function(aThread)
 /**
  * スマートポップアップメニューをポップアップ表示する
  */
-SPM.show = function(aThread, resnum, resid, evt)
+SPM.show = function(aThread, resnum, resid, quoters,evt)
 {
 	var evt = (evt) ? evt : ((window.event) ? event : null);
 	if (spmResNum != resnum || spmBlockID != resid) {
@@ -146,6 +148,7 @@ SPM.show = function(aThread, resnum, resid, evt)
 	}
 	spmResNum  = resnum;
 	spmBlockID = resid;
+	spmQuoters =quoters;
 	if (window.getSelection) {
 		spmSelected = window.getSelection();
 	} else if (document.selection) {
@@ -301,6 +304,7 @@ SPM.createFilterSubMenu = function(menuId, aThread)
 	}
 	SPM.setOnPopUp(fmenu, fmenu.id, true);
 
+	fmenu.appendItem('このレス', this.getOnClick('num', 'on'));
 	fmenu.appendItem('同じ名前', this.getOnClick('name', 'on'));
 	fmenu.appendItem('同じメール', this.getOnClick('mail', 'on'));
 	fmenu.appendItem('同じ日付', this.getOnClick('date', 'on'));
@@ -373,9 +377,18 @@ SPM.openSubWin = function(aThread, inUrl, option)
  */
 SPM.openFilter = function(aThread, field, match)
 {
-	var inUrl = 'read_filter.php?bbs=' + aThread.bbs + '&key=' + aThread.key + '&host=' + aThread.host;
-	inUrl += '&rescount=' + aThread.rc + '&ttitle_en=' + aThread.ttitle_en + '&resnum=' + spmResNum;
-	inUrl += '&ls=all&field=' + field + '&method=just&match=' + match + '&offline=1';
+	var inUrl = '?bbs=' + aThread.bbs + '&key=' + aThread.key + '&host=' + aThread.host;
+	inUrl += '&rescount=' + aThread.rc + '&ttitle_en=' + aThread.ttitle_en ;
+	inUrl += '&offline=1';
+	switch (field) {
+        case 'num' :
+            inUrl= 'read.php' +inUrl;
+            inUrl += '&ls=' +spmResNum;
+            break;
+        default :
+            inUrl= 'read_filter.php' +inUrl;
+    	    inUrl += '&resnum=' + spmResNum +'&ls=all&field=' + field + '&method=just&match=' + match ;
+	}
 
 	switch (spmFlexTarget) {
 		case '_self':

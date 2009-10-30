@@ -14,35 +14,6 @@ abstract class ShowThread
     // {{{ constants
 
     /**
-     * リンクとして扱うパターン
-     *
-     * @type string
-     */
-    const LINK_REGEX = '{
-(?P<link>(<[Aa][ ].+?>)(.*?)(</[Aa]>)) # リンク（PCREの特性上、必ずこのパターンを最初に試行する）
-|
-(?:
-  (?P<quote> # 引用
-    ((?:&gt;|＞){1,2}[ ]?) # 引用符
-    (
-      (?:[1-9]\\d{0,3}) # 1つ目の番号
-      (?:
-        (?:[ ]?(?:[,=]|、)[ ]?[1-9]\\d{0,3})+ # 連続
-        |
-        -(?:[1-9]\\d{0,3})? # 範囲
-      )?
-    )
-    (?=\\D|$)
-  ) # 引用ここまで
-|                                  # PHP 5.3縛りにするなら、↓の\'のエスケープを外し、NOWDOCにする
-  (?P<url>(ftp|h?t?tps?)://([0-9A-Za-z][\\w;/?:@=&$\\-_.+!*\'(),#%\\[\\]^~]+)) # URL
-  ([^\\s<>]*) # URLの直後、タグorホワイトスペースが現れるまでの文字列
-|
-  (?P<id>ID:[ ]?([0-9A-Za-z/.+]{8,11})(?=[^0-9A-Za-z/.+]|$)) # ID（8,10桁 +PC/携帯識別フラグ）
-)
-}x';
-
-    /**
      * リダイレクタの種類
      *
      * @type int
@@ -162,6 +133,7 @@ abstract class ShowThread
     public $am_enabled = false;
 
     protected $_quote_from; // 被アンカーを集計した配列 // [被参照レス番 : [参照レス番, ...], ...)
+	protected $anchor_letter_ignore;	// アンカー直後に続く場合にアンカーそのものを無視する文字の配列
 
     public $BBS_NONAME_NAME = '';
 
@@ -321,6 +293,7 @@ abstract class ShowThread
 			// サフィックス以降の正規表現には0x40-0x7fまでの文字は使えない（SJISの２バイト目と被るので誤動作する）
 			// プレフィックス付きレス番号に続くサフィックス
 			'suffix'	=>	"(?:(?!じゃな(?:い|く)|%a_digit%|%prefix%|%anchor_space%(?:<br>|$)).)*",	//(?![\.]|)",
+
 			'line_prefix'	=>	"(?P<line_prefix>(?:^|<br>)\s*)", 
 			'line_suffix'	=>	"%anchor_space%*(?=<br>|$)", //(?=(?:\s|　)*)"
 
@@ -329,7 +302,6 @@ abstract class ShowThread
 			'quote_follow'		=>	"(?:(?!%a_digit%|%prefix%|%anchor_space%(?:<br>|$)).)*", 
 
 			// 行頭プレフィックス／サフィックス（レス番号のみの行をアンカー扱いする）
-
 
 			// 裸のアンカーのプレフィックス／サフィックス
 			'no_prefix'	=>	
@@ -342,7 +314,8 @@ abstract class ShowThread
 			'reguler_prefix'	=>	
 				"%ignore_prefix%?(?P<prefix>%prefix%)|%line_prefix%",
 			'reguler_suffix'	=>	
-				"", //|
+				"", 
+
 */
 			'quote_follow' =>
 				"(?P<quote_follow>".	//アンカーに続く文字列
@@ -371,7 +344,6 @@ abstract class ShowThread
 				"%ranges_suffix%?".		//アンカーに含まれる文字列
 				"%quote_follow%".
 				"",
-
 		);
 		foreach ($parts as $k=>$v) {
 			$this->getAnchorRegex($v,$k);
@@ -635,6 +607,7 @@ abstract class ShowThread
         // {{{ 連鎖チェック
 
         if ($_conf['ngaborn_chain'] && preg_match_all('/(?:&gt;|＞)([1-9][0-9\\-,]*)/', $msg, $matches)) {
+
             $references = array_unique(preg_split('/[-,]+/',
                                                   trim(implode(',', $matches[1]), '-,'),
                                                   -1,
@@ -1085,7 +1058,13 @@ EOP;
         // マッチしたサブパターンに応じて分岐
         // リンク
         if ($s['link']) {
-            if (preg_match('{ href=(["\'])?(.+?)(?(1)\\1)(?=[ >])}i', $s[2], $m)) {
+
+            if (preg_match('{ href=(["\'])?(.+?)(?(1)\\1)(?=[ >])}i', $s[$link_index+1], $m)) {
+/* 正規表現内で条件判断
+(?(condition)yes-pattern|no-pattern)
+(?(condition)yes-pattern)
+条件式です。(condition)は、括弧の中に置かれた整数(対応するかっこのペアがマッチしているときに正当)もしくは長さゼロの lookahead/lookbehind/evaluate 表明であることが望ましいです。
+*/
                 $url = $m[2];
                 $str = $s[$link_index+2];
             } else {
@@ -1229,8 +1208,32 @@ EOP;
         );
     }
 
-    // {{{ quoteRes()
+	// {{{ getQuoteNum()
+	/**
+	 * アンカー内のレス番号変換
+	 *
+	 * @param   string  $appointed_num    1-100
+	 * @return  string　レス番号、不適な場合はfalseを返す
+	 */
+	public function getQuoteNum($num)
+	{
+		$num = mb_convert_kana($num, 'n');   // 全角数字を半角数字に変換
+		if (preg_match("/\D/",$num)) {
+			$num = preg_replace('/\D+/', '-', $num);
+			if ($num == '-') {
+				return false;
+			}
+			return $num;
+		}
+/*
+		if (preg_match("/^0/", $num)) {
+			return $full;
+		}*/
 
+		return $num;
+	}
+    // }}}
+    // {{{ quoteRes()
     /**
      * 引用変換（単独）
      *
@@ -1387,6 +1390,53 @@ EOP;
     /**
      * 被レスデータを集計して$this->_quote_fromに保存.
      */
+    protected function _getAnchorsFromMsg($msg,$num) {
+// debug_print_backtrace();
+        $anchor_list=array();
+        // >>1のリンクをいったん外す
+        // <a href="../test/read.cgi/accuse/1001506967/1" target="_blank">&gt;&gt;1</a>
+        $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
+            
+        if (!preg_match_all(
+			$this->getAnchorRegex(
+				"/%full%/"
+			) , $msg, $out, PREG_SET_ORDER)) {
+//		echo "_getAnchorsFromMsg:{$num}:return null<br><br>";
+return null;}
+
+		foreach ($out as $matches) {
+			if ($matches['quote_follow']) {
+//				var_export($matches);
+				//アンカーに続く文字列の先頭に無視する文字列があったら、次のアンカーを処理する。
+				foreach ($this->anchor_letter_ignore as $v) {
+					if (strpos($matches['quote_follow'],$v)=== 0) {
+						continue 2;		
+					}
+				}
+			}
+
+			$joined_ranges=$matches['ranges'];
+			if (!preg_match_all(
+				$this->getAnchorRegex('/(?:%prefix%)?(%a_range%)/'), 
+				$joined_ranges, $ranges_list, PREG_PATTERN_ORDER)) 
+			{continue;}
+			$anchor_list=array_merge($anchor_list,$ranges_list[1]);
+		}
+		return $anchor_list;                    
+    }
+
+
+    protected function _addQuoteNum($num,$quotee) {
+		$quoter=$num+1;
+        if ($quotee >= $quoter) {return;}	// スレ番号以降のアンカーは無視する
+        if (!array_key_exists($quotee, $this->_quote_from) || $this->_quote_from[$quotee] === null) {
+            $this->_quote_from[$quotee] = array();
+        }
+        if (!in_array($quoter, $this->_quote_from[$quotee])) {
+            $this->_quote_from[$quotee][] = $quoter;
+        }
+    }
+
     protected function _make_quote_from()
     {
         global $_conf;
@@ -1526,14 +1576,14 @@ preg_match(
         sort($anchors);
 
         if ($type == 1) {
-            return $this->_quoteback_vertical_list_html($anchors);
+            return $this->_quoteback_vertical_list_html($resnum,$anchors);
         } else if ($type == 2) {
             return $this->_quoteback_horizontal_list_html($anchors,$popup);
         } else if ($type == 3) {
             return $this->_quoteback_res_data($anchors);
         }
     }
-    protected function _quoteback_vertical_list_html($anchors)
+    protected function _quoteback_vertical_list_html($resnum,$anchors)
     {
         $ret = '<div class="v_reslist"><ul>';
         $anchor_cnt = 1;
@@ -1575,7 +1625,6 @@ preg_match(
             $ret.='</div>';
             $count++;
         }
-        $ret.='</div>';
         return $ret;
     }
     protected function _quoteback_res_data($anchors)

@@ -81,7 +81,7 @@ echo <<<EOF
 <option value="mail"{$field['mail']}>メール</option>
 <option value="date"{$field['date']}>日付</option>
 <option value="id"{$field['id']}>ID</option>
-<option value="res"{$field['res']}>ﾚｽ番号</option>
+<option value="res"{$field['res']}>レス番号</option>
 <!-- <option value="belv"{$field['belv']}>ポイント</option> -->
 </select>に<br>
 <select id="method" name="method">

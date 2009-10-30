@@ -29,14 +29,29 @@ amaare[0] = /\u3000{4}|(\x20\u3000){2}/;
 amaare[1] = /([^\x00-\x7F\u2010-\u203B\u3000-\u3002\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF])\1\1/;
 // Unicode Note: 一般句読点 = \u2000-\u206F, CJKの記号および句読点 = \u3000-\u303F, CJK統合漢字 = \u4E00-\u9FFF
 
+function getElementsByClass(class){
+	el=document.getElementsByTagName('div');
+	re=new RegExp('\\b'+class+'\\b');
+	console.log(re);
+	matched=new Array();
+	for (i=0;i<el.length;i++){
+		if(el[i].className.match(re)){
+			matched.push(el[i]);
+			console.log(el[i]);
+		}
+	}
+
+	return matched;
+}
+
 // activeMona -- AA自動判定
 function detectAA(blockId)
 {
-	var amTargetObj = document.getElementById(blockId);
+	amTargetObj = getElementByClass(blockId);
 	if (!amTargetObj) {
 		return false;
 	}
-	var amTargetSrc = amTargetObj.innerHTML.replace(amhtre[0], amhtrp[0]).replace(amhtre[1], amhtrp[1]).replace(amhtre[2], amhtrp[2]).replace(amhtre[3], amhtrp[3]).replace(amhtre[4], amhtrp[4]).replace(amhtre[5], amhtrp[5]).replace(amhtre[6], amhtrp[6]);
+	var amTargetSrc = amTargetObj[0].innerHTML.replace(amhtre[0], amhtrp[0]).replace(amhtre[1], amhtrp[1]).replace(amhtre[2], amhtrp[2]).replace(amhtre[3], amhtrp[3]).replace(amhtre[4], amhtrp[4]).replace(amhtre[5], amhtrp[5]).replace(amhtre[6], amhtrp[6]);
 	// 改行が3つ以上あり、AAパターンにマッチしたら真を返す
 	if (amTargetSrc.split("\n").length > 3 && (amTargetSrc.search(amaare[0]) != -1 || amTargetSrc.search(amaare[1]) != -1)) {
 		//window.alert(amTargetSrc);
@@ -113,3 +128,4 @@ function activeMonaForm(size)
 		message.style.fontSize = size;
 	}
 }
+

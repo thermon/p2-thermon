@@ -78,7 +78,7 @@ a img.thumbnail {
 
 div.thread {
 	margin: 0;
-	padding: 1.0em 0 0 0;
+	padding: 0.8em 0 0 0;
 }
 
 /* レス */
@@ -101,7 +101,7 @@ div.res:after {
 }
 
 /* 引用レスポップアップ */
-div.respopup {
+.respopup {
 	position: absolute;
 	visibility: hidden; /* 普段は隠しておく*/
 	{$respop_background}
@@ -123,10 +123,16 @@ div.res.aborned {
 	padding: 4px 0 0 0;
 	font-size: xx-small;
 	line-height: 100%;
+	border-style: dotted;
+	border-width: 0;
 }
 
 div.res.aborned * {
 	display: none;
+}
+
+div.res.aborned hr {
+	display: inline;
 }
 
 /* レスヘッダ */
@@ -135,16 +141,18 @@ div.res-header {
 	padding: 0;
 }
 
+div.message{
+//	margin: 0 0 0 2.5em;
+	padding-left:2.5em;
+//	padding: 2px 0 0 0;
+}
+
 /* レスボディ (通常) */
 div.res div.message {
-	margin: 0 0 0 2.5em;
-	padding: 2px 0 0 0;
 }
 
 /* レスボディ (引用レスポップアップ) */
 div.respopup div.message {
-	margin: 0 0 0 2.5em;
-	padding: 2px 0 0 0;
 }
 
 /* レスボディ内リンクの折り返し */
@@ -339,21 +347,28 @@ div.res div.v_reslist ul li:first-letter {
 }
 
 /* 逆参照リスト 縦配置 (引用レスポップアップ) */
-div.respopup div.v_reslist {
+.respopup div.v_reslist {
     float: left;
     width: 3.5em;
     font-size:70%;
     padding: 0.2em 0 0 0;
     margin: 0;
 }
-div.respopup div.v_reslist ul {
+.respopup div.v_reslist ul {
     list-style-type: none;
     line-height: 0.75;
     margin: 0;
     padding: 0;
 }
-div.respopup div.v_reslist ul li:first-letter {
+.respopup div.v_reslist ul li:first-letter {
     color: #777;
+}
+
+div.reslist {
+//    font-size:90%;
+    margin : 0em 0 0 17px;
+//	border-width: 1px;
+//	border-style: dotted;
 }
 
 /* 逆参照リスト 水平配置(通常) */
@@ -365,6 +380,7 @@ div.res div.reslist {
 /* 逆参照リスト 水平配置(引用レスポップアップ)  */
 div.respopup div.reslist {
 }
+
 
 .preview-video-switch {
 	cursor: pointer;

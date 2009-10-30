@@ -27,7 +27,8 @@ gShowTimerIds = new Object();
 isIE = /*@cc_on!@*/false;
 
 function getElement(id) {
-//	// alert(id);
+	// alert(id);
+
 	if (typeof(id) == "string") {
 		if (isIE) { // IE用
 			return document.all[id];
@@ -244,6 +245,7 @@ function _findAnchorComment(res) {
  * 引用レス番に onMouseover で呼び出される
  */
 function showResPopUp(divID, ev) {
+//	alert("show");
 	if (divID.indexOf("-") != -1) { return; } // 連番 (>>1-100) は非対応なので抜ける
 
 	var aResPopUp = gResPopCtl.getResPopUp(divID);
@@ -262,9 +264,8 @@ function showResPopUp(divID, ev) {
 		aShowTimer.y = y;
 
 		gShowTimerIds[divID] = aShowTimer;
-		//alert(gShowTimerIds[divID].timerID);
+		//// alert(gShowTimerIds[divID].timerID);
 	}
-
 }
 
 /**
@@ -447,8 +448,8 @@ function ResPopUp(divID) {
 			//y = getPageX(ev); // 現在のマウス位置のY座標
 			this.popOBJ.style.left = x + x_adjust + "px"; //ポップアップ位置
 			this.popOBJ.style.top = y + y_adjust + "px";
-			//alert(window.pageYOffset);
-			//alert(this.popOBJ.offsetTop);
+			//// alert(window.pageYOffset);
+			//// alert(this.popOBJ.offsetTop);
 
 			var scrollY = getScrollY();
 			var windowHeight = getWindowHeight();

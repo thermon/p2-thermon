@@ -192,7 +192,7 @@ class ShowThreadPc extends ShowThread
                         $ds = $this->qRes($this->thread->datlines[$rnv-1], $rnv);
 //	echo "transRes:quote:";var_export(array($rnv=>$ds));echo "<br>";
                         $onPopUp_at = " onmouseover=\"showResPopUp('{$qres_id}',event)\" onmouseout=\"hideResPopUp('{$qres_id}')\"";
-                        $rpop .= "<div id=\"{$qres_id}\" class=\"respopup\"{$onPopUp_at}>\n{$ds}</div>\n";
+                        $rpop .= "<div id=\"{$qres_id}\" class=\"respopup {$qres_id}\"{$onPopUp_at}>\n{$ds}</div>\n";
                     }
                 }
             }
@@ -252,18 +252,25 @@ EOMSG;
 
         }
 
-        /*
+/*        
         //「ここから新着」画像を挿入
         if ($i == $this->thread->readnum +1) {
             $tores .= <<<EOP
                 <div><img src="img/image.png" alt="新着レス" border="0" vspace="4"></div>
 EOP;
         }
-        */
+*/
+    	$quoterList=$this->get_quote_from();
+//		var_export($quoterList[$i]);
+		if (count($quoterList[$i])) {
+			$quoters=join("%7c",$quoterList[$i]);
+		} else {
+			$quoters='';
+		}
 
         // SPM
         if ($_conf['expack.spm.enabled']) {
-            $spmeh = " onmouseover=\"{$this->spmObjName}.show({$i},'{$msg_id}',event)\"";
+            $spmeh = " onmouseover=\"{$this->spmObjName}.show({$i},'{$msg_id}','{$quoters}',event)\"";
             $spmeh .= " onmouseout=\"{$this->spmObjName}.hide(event)\"";
         } else {
             $spmeh = '';
@@ -276,21 +283,23 @@ EOP;
             $tores .= "<div id=\"{$res_id}\" class=\"res\">\n";
         }
         $tores .= "<div class=\"res-header\">";
-
+/*        $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$i}";
+        $i_with_link="<a href=\"{$read_url}\">{$i}</a>";*/
+        $i_with_link=$i;
         if ($this->thread->onthefly) {
             $GLOBALS['newres_to_show_flag'] = true;
             //番号（オンザフライ時）
-            $tores .= "<span class=\"ontheflyresorder spmSW\"{$spmeh}>{$i}</span> : ";
-        } elseif ($i > $this->thread->readnum) {
+            $tores .= "<span class=\"ontheflyresorder spmSW\"{$spmeh}>{$i_with_link}</span> : ";
+        } elseif ($i_with_link > $this->thread->readnum) {
             $GLOBALS['newres_to_show_flag'] = true;
             // 番号（新着レス時）
-            $tores .= "<span style=\"color:{$STYLE['read_newres_color']}\" class=\"spmSW\"{$spmeh}>{$i}</span> : ";
+            $tores .= "<span style=\"color:{$STYLE['read_newres_color']}\" class=\"spmSW\"{$spmeh}>{$i_with_link}</span> : ";
         } elseif ($_conf['expack.spm.enabled']) {
             // 番号（SPM）
-            $tores .= "<span class=\"spmSW\"{$spmeh}>{$i}</span> : ";
+            $tores .= "<span class=\"spmSW\"{$spmeh}>{$i_with_link}</span> : ";
         } else {
             // 番号
-            $tores .= "{$i} : ";
+            $tores .= "{$i_with_link} : ";
         }
         // 名前
         $tores .= preg_replace('{<b>[ ]*</b>}i', '', "<span class=\"name\"><b>{$name}</b></span> : ");
@@ -335,6 +344,7 @@ EOP;
         if ($_conf['backlink_list'] == 2 || $_conf['backlink_list'] > 2) {
             $tores .= $this->quoteback_list_html($i, 2,false);
         }
+        $tores .= "<p>";
         $tores .= "</div>\n";
 
 //        $tores .= $rpop; // レスポップアップ用引用
@@ -373,8 +383,6 @@ EOJS;
         $rpop = '';
         $this->_quote_check_depth = 0;
         $quote_res_nums = array_keys($this->checkQuoteResNums(0, '1', ''));
-//	echo "quoteOne:";var_export($quote_res_nums);echo "<br>";
-//	echo "quoteOne:";var_export($this->_quote_res_nums_done);echo "<br>";
 
         foreach ($quote_res_nums as $rnv) {
             if (!isset($this->_quote_res_nums_done[$rnv])) {
@@ -386,7 +394,6 @@ EOJS;
                         $qres_id = "qr{$rnv}";
                     }
                     $ds = $this->qRes($this->thread->datlines[$rnv-1], $rnv);
-//	echo "quoteOne:quote:";var_export(array($rnv=>$ds));echo "<br>";
                     $onPopUp_at = " onmouseover=\"showResPopUp('{$qres_id}',event)\" onmouseout=\"hideResPopUp('{$qres_id}')\"";
                     $rpop .= "<div id=\"{$qres_id}\" class=\"respopup\"{$onPopUp_at}>\n{$ds}</div>\n";
                 }
@@ -457,17 +464,27 @@ EOJS;
             $msg_class .= ' ActiveMona';
         }
 
+    	$quoterList=$this->get_quote_from();
+		if (count($quoterList[$i])) {
+			$quoters=join("%7c",$quoterList[$i]);
+		} else {
+			$quoters='';
+		}
+
         // SPM
         if ($_conf['expack.spm.enabled']) {
-            $spmeh = " onmouseover=\"{$this->spmObjName}.show({$i},'{$qmsg_id}',event)\"";
+            $spmeh = " onmouseover=\"{$this->spmObjName}.show({$i},'{$qmsg_id}','{$quoters}',event)\"";
             $spmeh .= " onmouseout=\"{$this->spmObjName}.hide(event)\"";
         } else {
             $spmeh = '';
         }
 
         // $toresにまとめて出力
+/*        $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$i}";
+        $i_with_link="<a href=\"{$read_url}\">{$i}</a>";*/
+        $i_with_link=$i;
         $tores .= '<div class="res-header">';
-        $tores .= "<span class=\"spmSW\"{$spmeh}>{$i}</span> : "; // 番号
+        $tores .= "<span class=\"spmSW\"{$spmeh}>{$i_with_link}</span> : "; // 番号
         $tores .= preg_replace('{<b>[ ]*</b>}i', '', "<b>{$name}</b> : ");
         if ($mail) {
             $tores .= $mail . ' : '; // メール
@@ -483,7 +500,7 @@ EOJS;
             $tores .= $this->quoteback_list_html($i, 1);
         }
 
-        $tores .= "<div id=\"{$qmsg_id}\" class=\"{$msg_class}\">{$msg}</div>\n"; // 内容
+        $tores .= "<div id=\"{$qmsg_id}\" class=\"{$msg_class} {$qmsg_id}\">{$msg}</div>\n"; // 内容
         // 被レスリスト(横形式)
         if ($_conf['backlink_list'] == 2 || $_conf['backlink_list'] > 2) {
             $tores .= $this->quoteback_list_html($i, 2);
@@ -623,8 +640,7 @@ EOJS;
         if ($_conf['ngaborn_purge_aborn']) return '';
         return <<<EOP
 <div id="{$res_id}" class="res aborned">
-<div class="res-header">&nbsp;</div>
-<div class="message">&nbsp;</div>
+<hr style="display:block;width:95%;height:1em" >
 </div>\n
 EOP;
     }
@@ -765,10 +781,6 @@ EOP;
     public function quoteResRange($full, $qsign, $appointed_num)
     {
         global $_conf;
-
-        if ($appointed_num == '-') {
-            return $full;
-        }
 
         $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$appointed_num}n";
 
@@ -949,12 +961,10 @@ EOP;
     function _coloredIdStrClassed($idstr, $id) {
         $ret = array();
         foreach ($arr = explode(':', $idstr) as $i => $str) {
-            if ($i == 0 || $i == 1) {
-                $ret[] = '<span class="' . ShowThreadPc::cssClassedId($id)
-                    . ($i == 0 ? '-l' : '-b') . '">' . $str . '</span>';
-            } else {
-                $ret[] = $str;
-            }
+			$ret[] = ($i == 0 || $i == 1) ? 
+				'<span class="' . ShowThreadPc::cssClassedId($id) 
+				. ($i == 0 ? '-l' : '-b') . '">' . $str . '</span>'
+			: $str;
         }
         return implode(':', $ret);
     }
@@ -975,11 +985,7 @@ EOP;
         }
         $ret = array();
         foreach ($arr = explode(':', $idstr) as $i => $str) {
-            if ($colored[$i]) {
-                $ret[] = "<span style=\"{$colored[$i]}\">{$str}</span>";
-            } else {
-                $ret[] = $str;
-            }
+			$ret[] = ($colored[$i]) ? "<span style=\"{$colored[$i]}\">{$str}</span>" : $str;;
         }
         return implode(':', $ret);
     }
@@ -1000,11 +1006,7 @@ EOP;
                     $idstr2[0]=substr($idstr2[0],0,4);
         }
         foreach ($idstr2 as $i=>$str) {
-            if ($colored[$i]) {
-                $ret .= "<span style=\"{$colored[$i]}\">{$str}</span>";
-            } else {
-                $ret .= $str;
-            }
+			$ret .= ($colored[$i]) ? "<span style=\"{$colored[$i]}\">{$str}</span>" : $str;
         }
         return $ret;
     }
@@ -1061,8 +1063,6 @@ EOP;
 				$quotees[] = (int) (mb_convert_kana($a_range, 'n'));
 			}
 		}
-//		echo "checkQuoteResNums({$res_num}):";var_export($quotees);echo "<br>";
-
 		if ($_conf['backlink_list'] > 0 || $_conf['backlink_block'] > 0) {
 			 // レスが付いている場合はそれも対象にする
 			$quoter_lists = $this->get_quote_from();
@@ -1112,7 +1112,7 @@ EOP;
 		return $_cache[$matome][$res_num]=$quote_res_nums;
 	}
     // }}}
-    // {{{ imageHtmlPopup()
+    // {{{ imageHtmlPopup() 
 
     /**
      * 画像をHTMLポップアップ&ポップアップウインドウサイズに合わせる
@@ -1434,7 +1434,7 @@ EOJS;
 EOP;
             } else {
                 return <<<EOP
-{$link}<div class="preview-video preview-video-youtuve"><object width="425" height="350"><param name="movie" value="http://www.youtube.com/v/{$id}" valuetype="ref" type="application/x-shockwave-flash"><param name="wmode" value="transparent"><embed src="http://www.youtube.com/v/{$id}" type="application/x-shockwave-flash" wmode="transparent" width="425" height="350"></object></div>
+{$link}<div class="preview-video preview-video-youtuve"><object width="425" height="344"><param name="movie" value="http://www.youtube.com/v/{$id}" valuetype="ref" type="application/x-shockwave-flash"><param name="wmode" value="transparent"><embed src="http://www.youtube.com/v/{$id}" type="application/x-shockwave-flash" wmode="transparent" width="425" height="344"></object></div>
 EOP;
             }
         }
@@ -1918,15 +1918,15 @@ EOP;
             $this->_make_quote_from();  // 被レスデータ集計
         }
         $ret = array();
-        foreach ($this->_quote_from as $resnum => $quote_from) {
-            if (!$quote_from) continue;
-            if ($resnum != 1 && ($resnum < $this->thread->resrange['start'] || $resnum > $this->thread->resrange['to'])) continue;
+        foreach ($this->_quote_from as $a_quotee => $quoters) {
+            if (!$quoters) continue;
+            if ($a_quotee != 1 && ($a_quotee < $this->thread->resrange['start'] || $a_quotee > $this->thread->resrange['to'])) continue;
             $tmp = array();
-            foreach ($quote_from as $quote) {
-                if ($quote != 1 && ($quote < $this->thread->resrange['start'] || $quote > $this->thread->resrange['to'])) continue;
-                $tmp[] = $quote;
+            foreach ($quoters as $a_quoter) {
+                if ($a_quoter != 1 && ($a_quoter < $this->thread->resrange['start'] || $a_quoter > $this->thread->resrange['to'])) continue;
+                $tmp[] = $a_quoter;
             }
-            if ($tmp) $ret[] = "{$resnum}:[" . join(',', $tmp) . "]";
+            if ($tmp) $ret[] = "{$a_quotee}:[" . join(',', $tmp) . "]";
         }
         return '{' . join(',', $ret) . '}';
     }

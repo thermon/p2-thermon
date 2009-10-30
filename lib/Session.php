@@ -178,7 +178,7 @@ class Session
      *
      * @return bool
      */
-    private function _checkAcTime($minutes = 30)
+    private function _checkAcTime($minutes = 60)
     {
         // 最終アクセス時間から、一定時間以上が経過していればExpire
         if ($_SESSION[$this->sess_array]['actime'] + $minutes * 60 < time()) {

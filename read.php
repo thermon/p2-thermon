@@ -306,7 +306,7 @@ if ($_conf['ktai']) {
 
         $GLOBALS['filter_hits'] = 0;
 
-        echo "<p><b id=\"filterstart\">{$all}レス中 <span id=\"searching\">{$GLOBALS['filter_hits']}</span>レスがヒット</b></p>\n";
+        echo $insert="<p><b id=\"filterstart\">{$all}レス中 <span id=\"searching\">{$GLOBALS['filter_hits']}</span>レスがヒット</b></p>\n";
         echo <<<EOP
 <script type="text/javascript">
 //<![CDATA[
@@ -341,8 +341,6 @@ EOP;
         }
         $res1 = $aShowThread->quoteOne(); // >>1ポップアップ用
         $quoted.=$res1['q'];
-
-
 
         // レス追跡カラー
         if ($_conf['backlink_coloring_track']) {
@@ -382,6 +380,7 @@ EOP;
         }
     }
     echo $quoted;
+
     // フッタ 表示
     require_once P2_LIB_DIR . '/read_footer.inc.php';
 
