@@ -1,0 +1,110 @@
+/* rep2expack - additional stylesheet for iui */
+
+/* {{{ General classes */
+
+.align-c { text-align: center !important; }
+.align-l { text-align: left   !important; }
+.align-r { text-align: right  !important; }
+
+.color-r { color: red  !important; }
+.color-b { color: blue !important; }
+
+.size-l { font-size: large  !important; }
+.size-m { font-size: medium !important; }
+.size-s { font-size: small  !important; }
+
+.style-i { font-style: italic !important; }
+.style-n { font-style: normal !important; }
+
+.weight-b { font-weight: bold   !important; }
+.weight-n { font-weight: normal !important; }
+
+/* }}} */
+/* {{{ Element specific styles */
+
+body > div > ul {
+	padding-left: 1.5em;
+}
+
+ul > li > a[target="_self"] {
+	-webkit-tap-highlight-color: transparent;
+}
+
+ul.tgrep-result > li > a, div#tgrep_info > ul > li > a {
+	word-break: break-all;
+}
+
+li.info-pop {
+	margin: 0;
+	padding: 10px 5px;
+	background-color: #333333;
+	color: #ffffff;
+	font-size: 16px;
+	line-heihgt: 100%;
+}
+
+div.info-pop-buttons {
+	margin: 0;
+	padding: 0;
+	width: auto;
+	text-align: center;
+	font-size: 14px;
+	line-height: 14px;
+}
+
+div.info-pop-buttons input[type="button"] {
+	margin: 0;
+	padding: 0;
+	width: auto;
+	height: auto;
+	font-size: 14px;
+	color: #000000;
+}
+
+table.info-pop-fav {
+	margin: 10px auto 0 auto;
+	padding: 0;
+	width: auto;
+}
+
+table.info-pop-fav tbody,
+table.info-pop-fav tr {
+	margin: 0;
+	padding: 0;
+}
+
+table.info-pop-fav td {
+	margin: 0;
+	padding: 2px;
+	line-height: 100%;
+	text-align: left;
+	vertical-align: middle;
+}
+
+table.info-pop-fav td:first-child {
+	padding-right: 8px;
+}
+
+table.info-pop-fav div.toggle {
+	position: relative;
+	width: 80px;
+	height: 28px;
+}
+
+table.info-pop-fav div.toggle > span.toggleOn,
+table.info-pop-fav div.toggle > span.toggleOff {
+	width: 45px;
+}
+
+/* }}} */
+
+/*
+ * Local Variables:
+ * mode: css
+ * coding: cp932
+ * tab-width: 4
+ * c-basic-offset: 4
+ * indent-tabs-mode: t
+ * End:
+ */
+/* vim: set syn=css fenc=cp932 ai noet ts=4 sw=4 sts=4 fdm=marker: */
