@@ -122,6 +122,40 @@ class StrSjis
     }
 
     // }}}
+    // {{{ getSjisRegex()
+
+    /**
+     * SJIS文字にマッチする正規表現を返す
+     *
+     * @return  string  
+     * SJIS 2バイトの第1バイト範囲 129～159、224～239（0x81～0x9F、0xE0～0xEF）
+     * SJIS 2バイトの第2バイト範囲 64～126、128～252（0x40～0x7E、0x80～0xFC）（第1バイト範囲を包括している）
+     */
+    static public function getSjisRegex()
+    {
+        return "(?:[\x81-\x9f\xe0-\xef][\x40-\x7e\x80-\xfc])";
+    }
+
+	/* SJISコードを含む正規表現で誤動作を起こす部分を16進表記に変換 */
+	static public function fixSjisRegex ($str) {
+//		return preg_replace_callback("/".self::getSjisRegex()."|\C/",'StrSjis::fixSjisRegexChar',$str);
+		return preg_replace_callback("/[\x81-\x9f\xe0-\xef][\x40-\x7e\x80-\xfc]/",'StrSjis::fixSjisRegexChar',$str);
+	}
+
+	static public function fixSjisRegexChar ($chr) {
+		if (//strlen($chr[0]) > 1 && 
+			strpos('[{|',substr($chr[0],-1)) !== false	// [{|
+		) {	
+		$ary=unpack('C2',$chr[0]);
+		$hex=sprintf("\x%x\x%x",$ary[0],$ary[1]);
+//		trigger_error("正規表現中の「{$chr[0]}」を「{$hex}」に置き換えました。",E_USER_NOTICE);
+		return $hex;
+		} else {
+			return $chr[0];
+		}
+	}
+
+    // }}}
 }
 
 // }}}

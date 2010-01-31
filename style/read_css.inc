@@ -83,8 +83,21 @@ div.thread {
 
 /* レス */
 div.res {
-	margin: 0 0 2.0em 0;
-	padding: 0;
+	margin: 0 0 0.5em 0;
+	padding: 0.5em 0 0 0;
+    width: 100%;
+//    border-top-width: 3px;
+//    border-top-style: solid;
+    /*\*//*/
+    overflow: hidden;
+    /**/
+}
+div.res:after {
+    height: 0;
+    visibility: hidden;
+    content: ".";
+    display: block;
+    clear: both;
 }
 
 /* 引用レスポップアップ */
@@ -98,19 +111,25 @@ div.respopup {
 	margin: 0;
 	padding: 8px;
 	line-height: 120%;
+	top: 0px;
+	-moz-box-shadow: 4px 4px 16px #555;
+	-webkit-box-shadow: 4px 4px 16px #555;
+	box-shadow: 4px 4px 16px #555;
 }
 
 /* あぼーんレス */
-div.res.aborned {
-	margin: 0;
-	padding: 0;
-	font-size: xx-small;
-	line-height: 100%;
-}
-
-div.res.aborned * {
+.aborned {
 	display: none;
 }
+
+div.res.aborned {
+	margin: 0;
+	padding: 4px 0 0 0;
+	font-size: xx-small;
+	line-height: 100%;
+	display: block;
+}
+
 
 /* レスヘッダ */
 div.res-header {
@@ -120,18 +139,18 @@ div.res-header {
 
 /* レスボディ (通常) */
 div.res div.message {
-	margin: 0;
-	padding: 2px 0 0 2.5em;
+	margin: 0 0 0 2.5em;
+	padding: 2px 0 0 0;
 }
 
 /* レスボディ (引用レスポップアップ) */
 div.respopup div.message {
-	margin: 0;
-	padding: 2px 0 0 1.0em;
+	margin: 0 0 0 2.5em;
+	padding: 2px 0 0 0;
 }
 
 /* レスボディ内リンクの折り返し */
-div.message a {
+.message a {
 	word-wrap: break-word;
 	word-break: break-all;
 }
@@ -163,6 +182,19 @@ div.ngmsg {
 	display: none;
 }
 
+.nganchor {
+	text-decoration: line-through;
+}
+
+.abornanchor {
+	text-decoration: line-through;
+	color: {$STYLE['read_ngword']};
+}
+
+span.abornanchor {
+	cursor: pointer;
+}
+
 #iframespace{ /* HTMLポップアップスペース */
 	position:absolute;
 	z-index:100;
@@ -180,7 +212,7 @@ div.ngmsg {
 	background-color:#ceddf7;
 }
 
-div#kakiko{
+#kakiko{
 	display:none;
 }
 
@@ -245,6 +277,9 @@ a.newres:link, a.newres:visited, a.newres:hover, a.newres:active{ /* 新着レス */
 	width: 8.5em;
 	margin: 0px;
 	padding: 2px 4px;
+	-moz-box-shadow: 4px 4px 16px #555;
+	-webkit-box-shadow: 4px 4px 16px #555;
+	box-shadow: 4px 4px 16px #555;
 }
 
 .spm p {	/* スマートポップアップメニュー：ヘッダ */
@@ -281,31 +316,130 @@ a.newres:link, a.newres:visited, a.newres:hover, a.newres:active{ /* 新着レス */
 	border: {$STYLE['respop_b_style']} 1px {$STYLE['respop_b_color']};
 }
 
+.highlight {
+    background-color: {$STYLE['respop_bgcolor']};
+}
+
 /* }}} */
+
+/* 逆参照リスト 縦配置 (通常) */
+.res .v_reslist {
+    float: left;
+    width: 3.5em;
+    font-size:70%;
+    padding: 0.2em 0 0 0;
+    margin: 0;
+}
+.res .v_reslist_block {
+    list-style-type: none;
+    line-height: 0.75;
+    margin: 0;
+    padding: 0;
+}
+.res .v_reslist_block li:first-letter {
+    color: #777;
+}
+
+/* 逆参照リスト 縦配置 (引用レスポップアップ) */
+.respopup .v_reslist {
+    float: left;
+    width: 3.5em;
+    font-size:70%;
+    padding: 0.2em 0 0 0;
+    margin: 0;
+}
+.respopup .v_reslist_block {
+    list-style-type: none;
+    line-height: 0.75;
+    margin: 0;
+    padding: 0;
+}
+.respopup .v_reslist_block li:first-letter {
+    color: #777;
+}
+
+/* 逆参照リスト 水平配置(通常) */
+.res .reslist {
+	position:relative;
+    margin : 0 0 0 1.5em;
+}
+
+/* 逆参照リスト 水平配置(引用レスポップアップ)  */
+.respopup .reslist {
+}
 
 .preview-video-switch {
 	cursor: pointer;
 }
 
-/* ツールバー */
-table.toolbar {
-	width: 100%;
-	margin: 0;
-	padding: 0 10px 0 0;
+.reslist_inner {
+	position:relative;
+//	margin:0 0 0 17px;
+	
 }
 
-table.toolbar td.lblock {
-	text-align: left;
-} 
+blockquote.folding_container{
+	margin:0;
+	padding: 3px;
+}
 
-table.toolbar td.cblock {
-	text-align: center;
-} 
+blockquote.folding_container:after {
+	height: 0;
+	visibility: hidden;
+	content: ".";
+	display: block;
+	clear: both;
+}
 
-table.toolbar td.rblock {
-	text-align: right;
-} 
+.resblock {
+    margin: 0.5em 0 0 0;
+}
 
+.resblock .resblock_inner {
+	margin: 0 0 0 2em;
+	line-height: 120%;
+	{$respop_background}
+	{$respop_border}
+	{$respop_color}
+	font-size:{$STYLE['respop_fontsize']};
+	-moz-box-shadow: 2px 2px 2px #999;
+	-webkit-box-shadow: 2px 2px 2px #999;
+	box-shadow: 2px 2px 2px #999;
+}
+
+.res .readmessage, 
+.folding_container .readmessage,
+.respopup .readmessage,
+.res.readmessage *
+{
+	color: {$STYLE['read_ngword']};
+	font-style: italic;
+}
+.res .anchorToCaller,
+.folding_container .anchorToCaller,
+.reslist_inner .anchorToCaller
+{
+	font-weight:bold;
+} /* ポップアップ元のレスを指すアンカーを強調 */
+
+.pre{
+	white-space:pre;
+}
+
+/*ハイライト文字のスタイル*/
+.live_highlight {
+    font-weight: bolder;
+    background-color: {$STYLE['respop_bgcolor']};
+    border-bottom-size: 5px;
+    border-bottom-style: solid;
+}
+/*ハイライト文字のスタイル*/
+.live_highlight_chain {
+    font-weight: bolder;
+    background-color: {$STYLE['respop_bgcolor']};
+    border-size: 3px;
+    border-style: double;
+}
 EOSTYLE;
 
 /*

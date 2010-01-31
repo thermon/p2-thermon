@@ -32,7 +32,15 @@ if (isset($_POST['filecont'])) {
 
 // 書き込めるファイルを限定する
 $writable_files = array(
-    'p2_aborn_res.txt'  => 'あぼーんレス',
+    'p2_aborn_res.txt'  			=> 'あぼーんレス',
+	'p2_anchor_ignore.txt'			=> 'アンカーを認識しない後続文字',
+	'p2_anchor_prefix_double.txt'	=> 'アンカー引用子（ダブル）',
+	'p2_anchor_prefix_single.txt'	=> 'アンカー引用子（シングル）',
+	'p2_anchor_prefix_option.txt'	=> 'アンカー引用子（オプション）',
+	'p2_anchor_delimiter.txt'		=> 'レス番号区切り文字',
+	'p2_anchor_range_delimiter.txt'	=> 'レス範囲指定子',
+	'p2_anchor_num_option.txt'		=> 'レス番号オプション',
+	'p2_anchor_ranges_option.txt'	=> 'レス範囲オプション',	
 );
 
 if (!array_key_exists($filename, $writable_files)) {

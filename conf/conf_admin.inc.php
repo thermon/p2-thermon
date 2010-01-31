@@ -143,7 +143,7 @@ $_conf['k_accesskey'] = array(
 include P2_CONF_DIR . '/conf_admin_ex.inc.php';
 
 // }}}
-
+@include_once P2_CONF_DIR  . '/conf_admin.inc.private.php';
 /*
  * Local Variables:
  * mode: php

@@ -13,11 +13,15 @@
  */
 function show_ng_message(id, ng)
 {
-	document.getElementById(id).style.display = 'block';
-
-	if (ng && ng.parentNode) {
-		ng.parentNode.removeChild(ng);
+	if (document.getElementById(id).style.display == 'block') {
+		document.getElementById(id).style.display = 'none';
+	} else {
+		document.getElementById(id).style.display = 'block';
 	}
+
+/*	if (ng && ng.parentNode) {
+		ng.parentNode.removeChild(ng);
+	}*/
 }
 
 // }}}

@@ -32,11 +32,21 @@ amaare[1] = /([^\x00-\x7F\u2010-\u203B\u3000-\u3002\u3040-\u309F\u30A0-\u30FF\uF
 // activeMona -- AA自動判定
 function detectAA(blockId)
 {
-	var amTargetObj = document.getElementById(blockId);
+//	var amTargetObj = document.getElementById(blockId);	
+	var amTargetObj = getElementsByClass('div',blockId);
 	if (!amTargetObj) {
 		return false;
 	}
-	var amTargetSrc = amTargetObj.innerHTML.replace(amhtre[0], amhtrp[0]).replace(amhtre[1], amhtrp[1]).replace(amhtre[2], amhtrp[2]).replace(amhtre[3], amhtrp[3]).replace(amhtre[4], amhtrp[4]).replace(amhtre[5], amhtrp[5]).replace(amhtre[6], amhtrp[6]);
+	if (blockId.match(/q/)) {
+		var origId = blockId.replace(/q/,'');
+		var orig = (document.all) ?  document.all[origId]
+			: ((document.getElementById) ? document.getElementById(origId)
+					: null);
+		if (orig) {
+			amTargetObj.unshift(orig);
+		}
+	}
+	var amTargetSrc = amTargetObj[0].innerHTML.replace(amhtre[0], amhtrp[0]).replace(amhtre[1], amhtrp[1]).replace(amhtre[2], amhtrp[2]).replace(amhtre[3], amhtrp[3]).replace(amhtre[4], amhtrp[4]).replace(amhtre[5], amhtrp[5]).replace(amhtre[6], amhtrp[6]);
 	// 改行が3つ以上あり、AAパターンにマッチしたら真を返す
 	if (amTargetSrc.split("\n").length > 3 && (amTargetSrc.search(amaare[0]) != -1 || amTargetSrc.search(amaare[1]) != -1)) {
 		//window.alert(amTargetSrc);
@@ -48,15 +58,38 @@ function detectAA(blockId)
 // activeMona -- モナーフォントに切り替え、行の高さも縮める
 function activeMona(blockId)
 {
-	var amTargetObj = document.getElementById(blockId);
+//	var amTargetObj = document.getElementById(blockId);	
+	var amTargetObj = getElementsByClass('div',blockId);
+
 	if (!amTargetObj) {
 		return;
 	}
-	if (amTargetObj.className.search(/\bActiveMona\b/) != -1) {
-		amTargetObj.className = amTargetObj.className.replace(/ ?ActiveMona/, '');
-	} else {
-		amTargetObj.className += ' ActiveMona';
+	
+	var aa=(amTargetObj[0].className.search(/\bActiveMona\b/) != -1);
+	var pre=(amTargetObj[0].className.search(/\bpre\b/) != -1);
+	
+	for (i=0;i<amTargetObj.length;i++){
+		amTargetObj[i].className = amTargetObj[i].className.replace(/ ?(ActiveMona|pre)/, '');
+		if (aa) {	// aaモードからpreモードへ
+			amTargetObj[i].className += ' pre';
+		} else if (!pre) {	// aaモードでもpreモードでもなければaaモードへ
+			amTargetObj[i].className += ' ActiveMona';
+		}
 	}
+}
+
+// クラス名で要素を探す
+function getElementsByClass(tag,class){
+	el=document.getElementsByTagName(tag);
+	re=new RegExp('\\b'+class+'\\b');
+	matched=new Array();
+	for (i=0;i<el.length;i++){
+		if(el[i].className.match(re)){
+			matched.push(el[i]);
+		}
+	}
+
+	return matched;
 }
 
 // activeMonaForm -- アクティブモナー on フォーム

@@ -310,13 +310,32 @@ if ($flags & P2_EDIT_CONF_USER_SKIPPED) {
         array('link_youtube', 'YouTubeのリンクをプレビュー表示<br>(手動の場合はURLの横の<img src="img/show.png" width="30" height="12" alt="show">をクリックして表示)'),
         array('link_niconico', 'ニコニコ動画のリンクをプレビュー表示<br>(手動の場合はURLの横の<img src="img/show.png" width="30" height="12" alt="show">をクリックして表示)'),
         array('iframe_popup', 'HTMLポップアップ'),
+        array('iframe_popup_event', 'HTMLポップアップをする場合のイベント'),
+        array('iframe_popup_type', 'HTMLポップアップの種類'),
 //        array('iframe_popup_delay', 'HTMLポップアップの表示遅延時間 (秒)'),
         array('flex_idpopup', 'ID:xxxxxxxxをIDフィルタリングのリンクに変換'),
         array('ext_win_target', '外部サイト等へジャンプする時に開くウィンドウのターゲット名<br>(空なら同じウインドウ、_blank で新しいウインドウ)'),
         array('bbs_win_target', 'rep2対応BBSサイト内でジャンプする時に開くウィンドウのターゲット名<br>(空なら同じウインドウ、_blank で新しいウインドウ)'),
         array('bottom_res_form', 'スレッド下部に書き込みフォームを表示'),
         array('quote_res_view', '引用レスを表示'),
+        array('quote_res_view_ng', 'NGレスを引用レス表示するか'),
+        array('quote_res_view_aborn', 'あぼーんレスを引用レス表示するか'),
         array('strip_linebreaks', '文末の改行と連続する改行を除去'),
+        array('link_wikipedia', '[[単語]]をWikipediaへのリンクにする'),
+        array('backlink_list', '逆参照ポップアップリストの表示'),
+        array('backlink_list_future_anchor', '逆参照リストで未来アンカーを有効にするか'),
+        array('backlink_list_range_anchor_limit', '逆参照リストでこの値より広い範囲レスを対象外にする(0で制限なし)'),
+        array('backlink_block', '逆参照ブロックを展開できるようにするか'),
+        array('backlink_block_readmark', '逆参照ブロックで展開されているレスの本体に装飾するか'),
+        array('backlink_coloring_track', '本文をダブルクリックすると着色してレス追跡'),
+        array('backlink_coloring_track_colors', '本文をダブルクリックてレス追跡時の色リスト(カンマ区切り)'),
+        array('coloredid.enable', 'IDに色を付ける'),
+        array('coloredid.rate.type', '画面表示時にIDに着色しておく条件'),
+        array('coloredid.rate.times', '条件が出現数の場合の数(n以上)'),
+        array('coloredid.rate.hissi.times', '必死判定(IDブリンク)の出現数(0で無効。IE/Safariはblink非対応)'),
+        array('coloredid.click', 'ID出現数をクリックすると着色をトグル(「しない」にするとJavascriptではなくPHPで着色)'),
+        array('coloredid.marking.colors', 'ID出現数をダブルクリックしてマーキングの色リスト(カンマ区切り)'),
+        array('coloredid.coloring.type', 'カラーリングのタイプ（thermon版はPHPで着色(coloredid.click=しない)の場合のみ有効）'),
     );
     printEditConfGroupHtml($groupname, $conflist, $flags);
 }
@@ -338,6 +357,8 @@ if ($flags & P2_EDIT_CONF_USER_SKIPPED) {
         array('ngaborn_chain', '連鎖NGあぼーん<br>「する」ならあぼーんレスへのレスはあぼーん、NGレスへのレスはNG。<br>「すべてNGにする」の場合、あぼーんレスへのレスもNGにする。'),
         array('ngaborn_chain_all', '表示範囲外のレスも連鎖NGあぼーんの対象にする<br>(処理を軽くするため、デフォルトではしない)'),
         array('ngaborn_daylimit', 'この期間、NGあぼーんにHITしなければ、登録ワードを自動的に外す (日数)'),
+        array('ngaborn_purge_aborn', 'あぼーんレスは不可視divブロックも描画しない'),
+		array('live.highlight_chain', '連鎖ハイライト (連鎖範囲は ngaborn_chain_all にて設定)'),
     );
     printEditConfGroupHtml($groupname, $conflist, $flags);
 }
@@ -462,6 +483,7 @@ if ($flags & P2_EDIT_CONF_USER_SKIPPED) {
         array('mobile.ryaku_size', 'レスを省略したときの表示サイズ'),
         array('mobile.aa_ryaku_size', 'AAらしきレスを省略するサイズ (0なら無効)'),
         array('mobile.before_respointer', 'ポインタの何コ前のレスから表示するか'),
+        array('mobile.anchor_link_page', 'アンカー先をページ単位で表示するか'),
         array('mobile.use_tsukin', '外部リンクに通勤ブラウザ(通)を利用'),
         array('mobile.use_picto', '画像リンクにpic.to(ﾋﾟ)を利用'),
         array('mobile.link_youtube', 'YouTubeのリンクをサムネイル表示'),
@@ -474,6 +496,8 @@ if ($flags & P2_EDIT_CONF_USER_SKIPPED) {
         array('mobile.strip_linebreaks', '文末の改行と連続する改行を除去'),
 
         array('mobile.copy_divide_len', '「写」のコピー用テキストボックスを分割する文字数'),
+        array('mobile.link_wikipedia', '[[単語]]をWikipediaへのリンクにする'),
+        array('mobile.backlink_list', '逆参照リストの表示'),
     );
     printEditConfGroupHtml($groupname, $conflist, $flags);
 }
@@ -645,6 +669,11 @@ if ($flags & P2_EDIT_CONF_USER_SKIPPED) {
         array('expack.ic2.pre_thumb_limit_k', '携帯でインライン・サムネイルが有効のときの表示する制限数 (0で無制限)'),
         array('expack.ic2.newres_ignore_limit', '新着レスの画像は pre_thumb_limit を無視して全て表示'),
         array('expack.ic2.newres_ignore_limit_k', '携帯で新着レスの画像は pre_thumb_limit_k を無視して全て表示'),
+        array('expack.ic2.thread_imagelink', 'スレ表示時に画像キャッシュ一覧へのスレタイ検索リンクを表示する'),
+        array('expack.ic2.thread_imagecount', 'スレ表示時にスレタイで検索した時の画像数を表示する'),
+        array('expack.ic2.fav_auto_rank', 'お気にスレに登録されているスレの画像に自動ランクを設定する'),
+        array('expack.ic2.fav_auto_rank_setting', 'お気にスレの画像を自動ランク設定する場合の設定値(カンマ区切り)[お気に0のランク値,お気に1のランク値, , ,]'),
+        array('expack.ic2.fav_auto_rank_override', 'お気にスレの画像を自動ランク設定する場合に、キャッシュ済み画像に自動ランクを上書きするか'),
     );
     printEditConfGroupHtml($groupname, $conflist, $flags);
 }
@@ -996,6 +1025,7 @@ function notHtmlColorToDef($val, $def)
  */
 function notCssColorToDef($val, $def)
 {
+//	print_backtrace(debug_backtrace());
     if (strlen($val) == 0) {
         return $def;
     }

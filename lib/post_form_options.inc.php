@@ -88,7 +88,6 @@ if ($lines = FileCtl::file_read_lines($key_idx, FILE_IGNORE_NEW_LINES)) {
 
 // }}}
 // {{{ データベースから前回のPOST失敗データとberes/p2resの設定を読込み
-
 $post_backup_key = PostDataStore::getKeyForBackup($host, $bbs, $key, !empty($_REQUEST['newthread']));
 $post_config_key = PostDataStore::getKeyForConfig($host, $bbs);
 

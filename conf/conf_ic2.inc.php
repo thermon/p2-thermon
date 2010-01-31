@@ -255,7 +255,7 @@ $_conf['expack.ic2.dynamic.presets'] = array(
 );
 
 // }}}
-
+@include_once P2_CONF_DIR  . '/conf_ic2.inc.private.php';
 /*
  * Local Variables:
  * mode: php

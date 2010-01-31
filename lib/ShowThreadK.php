@@ -56,6 +56,8 @@ class ShowThreadK extends ShowThread
             'plugin_linkThread',
             'plugin_link2chSubject',
         );
+        // +Wiki
+        if (isset($GLOBALS['replaceimageurl'])) $this->_url_handlers[] = 'plugin_replaceImageURL';
         if (P2_IMAGECACHE_AVAILABLE == 2) {
             $this->_url_handlers[] = 'plugin_imageCache2';
         } elseif ($_conf['mobile.use_picto']) {
@@ -148,7 +150,7 @@ class ShowThreadK extends ShowThread
 
         list($name, $mail, $date_id, $msg) = $this->thread->explodeDatLine($ares);
         if (($id = $this->thread->ids[$i]) !== null) {
-            $idstr = 'ID:' . $id;
+            $idstr = $this->thread->idp[$i] . $id;
             $date_id = str_replace($this->thread->idp[$i] . $id, $idstr, $date_id);
         } else {
             $idstr = null;
@@ -336,6 +338,7 @@ EOP;
         }
         */
 
+		$tores .="<a name=\"{$res_id}\"></a>";
         if ($_conf['iphone']) {
             $tores .= "<div id=\"{$res_id}\" class=\"res\"><div class=\"res-header\">";
 
@@ -366,7 +369,15 @@ EOP;
             // 日付とID
             $tores .= " <span class=\"date-id\">{$date_id}</span></div>\n";
             // 内容
-            $tores .= "<div class=\"message\">{$msg}</div></div>\n";
+            $tores .= "<div class=\"message\">{$msg}</div>";
+            // 被レスリスト
+            if ($_conf['mobile.backlink_list'] == 1) {
+                $linkstr = $this->quoteback_list_html($i, 2);
+                if (strlen($linkstr)) {
+                    $tores .= '<br>' . $linkstr;
+                }
+            }
+            $tores .= "</div>\n"; // 内容を閉じる
         } else {
             // 番号（オンザフライ時）
             if ($this->thread->onthefly) {
@@ -391,7 +402,15 @@ EOP;
             // 日付とID
             $tores .= "{$date_id}<br>\n";
             // 内容
-            $tores .= "{$msg}</div><hr>\n";
+            $tores .= "{$msg}</div>\n";
+            // 被レスリスト
+            if ($_conf['mobile.backlink_list'] == 1) {
+                $linkstr = $this->quoteback_list_html($i, 2);
+                if (strlen($linkstr)) {
+                    $tores .= '<br>' . $linkstr;
+                }
+            }
+            $tores .= "<hr>\n";
         }
 
         // まとめてフィルタ色分け
@@ -433,8 +452,18 @@ EOP;
         }
 
         // 数字を引用レスポップアップリンク化
-        $name = preg_replace_callback('/^( ?(?:&gt;|＞)* ?)?([1-9]\\d{0,3})(?=\\D|$)/',
-                                      array($this, 'quoteResCallback'), $name, 1);
+        if (strlen($name) && $name != $this->BBS_NONAME_NAME) {
+			try{
+	            $name = preg_replace_callback(
+	                $this->getAnchorRegex('/((?P<prefix>%prefix2%)|%line_prefix%)%nums%(?(line_prefix)%line_suffix%)/'),
+	                array($this, 'quote_name_callback'), $name
+	            );
+			} catch (Exception $e) {
+				trigger_error(
+					"正規表現が不正です。<br>".$e->getMessage(),E_USER_ERROR
+				);
+			}
+        }
 
         if ($trip) {
             $name .= $trip;
@@ -473,6 +502,9 @@ EOP;
             $msg = preg_replace('/&amp(?=[^;])/', '&', $msg);
         }
 
+        // セミコロンのない実体参照を修正
+        $msg = preg_replace("/(&#\d{3,5});?/","$1;",$msg);
+
         // &補正
         $msg = preg_replace('/&(?!#?\\w+;)/', '&amp;', $msg);
 
@@ -488,8 +520,16 @@ EOP;
             $msg = preg_replace('/ *<[^>]*$/', '', $msg);
 
             // >>1, >1, ＞1, ＞＞1を引用レスポップアップリンク化
-            $msg = preg_replace_callback('/((?:&gt;|＞){1,2})([1-9](?:[0-9\\-,])*)+/', array($this, 'quoteResCallback'), $msg);
-
+			try{
+	            $msg = preg_replace_callback(
+	                $this->getAnchorRegex('/%full%/m'),
+	                array($this, 'quoteResCallback'), $msg
+	            );
+			} catch (Exception $e) {
+				trigger_error(
+					"正規表現が不正です。<br>".$e->getMessage(),E_USER_ERROR
+				);
+			}
             $msg .= "<a href=\"{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;ls={$mynum}&amp;k_continue=1&amp;offline=1{$_conf['k_at_a']}\"{$this->respopup_at}{$this->target_at}>略</a>";
             return $msg;
         }
@@ -507,6 +547,11 @@ EOP;
         // 引用やURLなどをリンク
         $msg = $this->transLink($msg);
 
+        // Wikipedia記法への自動リンク
+        if ($_conf['mobile.link_wikipedia']) {
+            $msg = $this->wikipediaFilter($msg);
+        }
+
         return $msg;
     }
 
@@ -521,6 +566,8 @@ EOP;
      */
     protected function _abornedRes($res_id)
     {
+        global $_conf;
+        if ($_conf['ngaborn_purge_aborn']) return '';
         return <<<EOP
 <div id="{$res_id}" name="{$res_id}" class="res aborned">&nbsp;</div>\n
 EOP;
@@ -649,30 +696,89 @@ EOP;
     }
 
     // }}}
+    // {{{ link_wikipedia()
+
+    /**
+     * @see ShowThread
+     */
+    function link_wikipedia($word) {
+        global $_conf;
+        $link = 'http://ja.wapedia.org/' . rawurlencode($word);
+        return  '<a href="' . ($_conf['through_ime'] ?
+            P2Util::throughIme($link) : $link) .  "\">{$word}</a>";
+    }
+
+    // }}}
     // {{{ quoteRes()
 
     /**
      * 引用変換（単独）
      *
-     * @param   string  $full           >>1-100
-     * @param   string  $qsign          >>
-     * @param   string  $appointed_num    1-100
+     * @param  array  $s array([0]=">>1-100",['prefix']=">>",['num1']=1,['num2']=100)
      * @return string
      */
-    public function quoteRes($full, $qsign, $appointed_num)
+    public function quoteRes(array $s)
     {
-        global $_conf;
+        global $_conf, $STYLE;
 
-        if ($appointed_num == '-') {
-            return $full;
+		$full=$s[0];
+		$qsign=$s['prefix'];
+		$qnum=intval(
+			preg_replace("/\s/",'',
+				mb_convert_kana($s['num1'], 'ns')
+			)
+		);	// 全角の数字とスペースを半角に変換しつつスペース削除
+
+        if ($s['num2']) {
+			$to=intval(
+				preg_replace("/\s/",'',
+					mb_convert_kana($s['num2'], 'ns')
+				)
+			);	// 全角の数字とスペースを半角に変換しつつスペース削除
+			if ($to < $qnum) {		// 範囲指定が逆順だったら
+				return $full;
+//				list($qnum,$to)=array($to,$qnum);	// 番号入れ替え
+			}
+            return $this->quoteResRange($full, $qsign, $qnum, $to);
         }
-        $qnum = intval($appointed_num);
+
         if ($qnum < 1 || $qnum > $this->thread->rescount) {
             return $full;
         }
 
-        $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$appointed_num}";
-        return "<a href=\"{$read_url}{$_conf['k_at_a']}\"{$this->respopup_at}{$this->target_at}>{$qsign}{$appointed_num}</a>";
+		$start=$this->thread->resrange['start'];
+		$end=min($this->thread->resrange['to'],$this->thread->rescount);
+		$nofirst=$this->thread->resrange['nofirst'];
+		$range=$_conf['mobile.rnum_range'];
+		$anchor_jump=true;
+
+		$read_url="";
+		if ($_conf['mobile.anchor_link_page']>=1 &&
+			$this->isFiltered($qnum) &&
+			( 
+				($qnum == 1 && !$nofirst) ||
+				($qnum >= $start && $qnum <= $end)
+			)
+	 	) {	// ページ内にジャンプ先が表示されている
+			$read_url = "#" .  $this->get_res_id("r{$qnum}"); //($this->_matome ? "t{$this->_matome}" : '') . "r{$qnum}";
+
+		} elseif ($_conf['mobile.anchor_link_page']==1) {	// ページ単位でジャンプ先を表示する
+			if ($qnum<$start) {		// 前のページにジャンプ
+				$new_start=$end+1 -ceil(($end -$qnum)/$range)*$range;
+				if ($new_start<=0) {$new_start=1;}
+			} else	{	// 後ろのページにジャンプ
+				$new_start=$start +floor(($qnum-$start)/$range)*$range;	// ls=allの場合、$startは1のはず
+			}
+			$new_end=min($new_start-1+$range,$this->thread->rescount);
+			return $this->quoteResRange($full, $qsign, $new_start, $new_end, $qnum);
+		}
+		if (!$read_url) {
+			$read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$qnum}{$_conf['k_at_a']}";	// 参照先だけのページを開くURL
+//	        $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls=all&amp;field=res&amp;word=^{$qnum}$&amp;method=regex&amp;match=on&amp;idpopup=0{$_conf['k_at_a']}";	// レス番号を検索するURL
+		}
+        return "<a href=\"{$read_url}\"{$this->respopup_at}{$this->target_at}>"
+            . (in_array($qnum, $this->_aborn_nums) ? "<s><font color=\"{$STYLE['mobile_read_ngword_color']}\">{$full}</font></s>" :
+                (in_array($qnum, $this->_ng_nums) ? "<s>{$full}</s>" : "{$full}")) . "</a>";
     }
 
     // }}}
@@ -683,18 +789,18 @@ EOP;
      *
      * @param   string  $full           >>1-100
      * @param   string  $qsign          >>
-     * @param   string  $appointed_num    1-100
+     * @param   int  $from    1
+     * @param   int  $to      100
+     * @param   int  $anchor  リンク先URL内のアンカーレス番号
      * @return string
      */
-    public function quoteResRange($full, $qsign, $appointed_num)
+    public function quoteResRange($full, $qsign, $from, $to, $anchor="")
     {
         global $_conf;
 
-        if ($appointed_num == '-') {
-            return $full;
-        }
-
-        list($from, $to) = explode('-', $appointed_num);
+		if ($anchor) {
+			$anchor="#r".$anchor;
+		}
         if (!$from) {
             $from = 1;
         } elseif ($from < 1 || $from > $this->thread->rescount) {
@@ -709,7 +815,7 @@ EOP;
 
         $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$from}-{$to}";
 
-        return "<a href=\"{$read_url}{$_conf['k_at_a']}\"{$this->target_at}>{$qsign}{$appointed_num}</a>";
+        return "<a href=\"{$read_url}{$_conf['k_at_a']}{$anchor}\"{$this->target_at}>{$full}</a>";
     }
 
     // }}}
@@ -954,6 +1060,12 @@ EOP;
             $src_url2 = 'ic2.php?r=1&amp;t=0&amp;id=';
             $src_exists = false;
 
+            // お気にスレ自動画像ランク
+            $rank = null;
+            if ($_conf['expack.ic2.fav_auto_rank']) {
+                $rank = $this->getAutoFavRank();
+            }
+
             // DBに画像情報が登録されていたとき
             if ($icdb->get($url)) {
                 $img_id = $icdb->id;
@@ -1017,6 +1129,20 @@ EOP;
                         $update->memo = $this->img_memo;
                     }
                     $update->whereAddQuoted('uri', '=', $url);
+                }
+
+                // expack.ic2.fav_auto_rank_override の設定とランク条件がOKなら
+                // お気にスレ自動画像ランクを上書き更新
+                if ($rank !== null &&
+                        self::isAutoFavRankOverride($icdb->rank, $rank)) {
+                    if ($update === null) {
+                        $update = new IC2_DataObject_Images;
+                        $update->whereAddQuoted('uri', '=', $url);
+                    }
+                    $update->rank = $rank;
+
+                }
+                if ($update !== null) {
                     $update->update();
                 }
 
@@ -1073,8 +1199,192 @@ EOP;
         return false;
     }
 
+    function plugin_replaceImageURL($url, $purl, $str)
+    {
+        global $_conf;
+        global $pre_thumb_unlimited, $pre_thumb_ignore_limit, $pre_thumb_limit_k;
+
+        if (P2Util::isUrlWikipediaJa($url)) {
+            return false;
+        }
+
+        // if (preg_match('{^https?://.+?\\.(jpe?g|gif|png)$}i', $url) && empty($purl['query'])) {
+        // +Wiki
+        global $replaceimageurl;
+        $url = $purl[0];
+        $replaced = $replaceimageurl->replaceImageURL($url);
+        if (!$replaced[0]) return FALSE;
+        foreach($replaced as $v) {
+            // インラインプレビューの有効判定
+            if ($pre_thumb_unlimited || $pre_thumb_ignore_limit || $pre_thumb_limit_k > 0) {
+                $inline_preview_flag = true;
+                $inline_preview_done = false;
+            } else {
+                $inline_preview_flag = false;
+                $inline_preview_done = false;
+            }
+
+            // +Wiki
+            // $url_en = rawurlencode($url);
+            $url_ht = $url;
+            $url_en = rawurlencode($v['url']);
+            $ref_en = $v['referer'] ? '&amp;ref=' . rawurlencode($v['referer']) : '';
+            $img_str = null;
+            $img_id = null;
+
+            $icdb = new IC2_DataObject_Images;
+
+            // r=0:リンク;r=1:リダイレクト;r=2:PHPで表示
+            // t=0:オリジナル;t=1:PC用サムネイル;t=2:携帯用サムネイル;t=3:中間イメージ
+            $img_url = 'ic2.php?r=0&amp;t=2&amp;uri=' . $url_en . $ref_en;
+            $img_url2 = 'ic2.php?r=0&amp;t=2&amp;id=';
+            $src_url = 'ic2.php?r=1&amp;t=0&amp;uri=' . $url_en . $ref_en;
+            $src_url2 = 'ic2.php?r=1&amp;t=0&amp;id=';
+            $src_exists = false;
+
+            // お気にスレ自動画像ランク
+            $rank = null;
+            if ($_conf['expack.ic2.fav_auto_rank']) {
+                $rank = $this->getAutoFavRank();
+            }
+
+            // DBに画像情報が登録されていたとき
+            if ($icdb->get($v['url'])) {
+                $img_id = $icdb->id;
+
+                // ウィルスに感染していたファイルのとき
+                if ($icdb->mime == 'clamscan/infected') {
+                    return '[IC2:ウィルス警告]';
+                }
+                // あぼーん画像のとき
+                if ($icdb->rank < 0) {
+                    return '[IC2:あぼーん画像]';
+                }
+
+                // オリジナルの有無を確認
+                $_src_url = $this->thumbnailer->srcPath($icdb->size, $icdb->md5, $icdb->mime);
+                if (file_exists($_src_url)) {
+                    $src_exists = true;
+                    $img_url = $img_url2 . $icdb->id;
+                    $src_url = $_src_url;
+                } else {
+                    $img_url = $this->thumbnailer->thumbPath($icdb->size, $icdb->md5, $icdb->mime);
+                    $src_url = $src_url2 . $icdb->id;
+                }
+
+                // インラインプレビューが有効のとき
+                $prv_url = null;
+                if ($this->thumbnailer->ini['General']['inline'] == 1) {
+                    // PCでread_new_k.phpにアクセスしたとき等
+                    if (!isset($this->inline_prvw) || !is_object($this->inline_prvw)) {
+                        $this->inline_prvw = $this->thumbnailer;
+                    }
+                    $prv_url = $this->inline_prvw->thumbPath($icdb->size, $icdb->md5, $icdb->mime);
+
+                    // サムネイル表示制限数以内のとき
+                    if ($inline_preview_flag) {
+                        // プレビュー画像が作られているかどうかでimg要素の属性を決定
+                        if (file_exists($prv_url)) {
+                            $prvw_size = explode('x', $this->inline_prvw->calc($icdb->width, $icdb->height));
+                            $img_str = "<img src=\"{$prv_url}\" width=\"{$prvw_size[0]}\" height=\"{$prvw_size[1]}\">";
+                        } else {
+                            $r_type = ($this->thumbnailer->ini['General']['redirect'] == 1) ? 1 : 2;
+                            if ($src_exists) {
+                                $prv_url = "ic2.php?r={$r_type}&amp;t=1&amp;id={$icdb->id}";
+                            } else {
+                                $prv_url = "ic2.php?r={$r_type}&amp;t=1&amp;uri={$url_en}";
+                            }
+                            $img_str = "<img src=\"{$prv_url}{$_conf['sid_at_a']}\">";
+                        }
+                        $inline_preview_done = true;
+                    } else {
+                        $img_str = '[p2:既得画像(ﾗﾝｸ:' . $icdb->rank . ')]';
+                    }
+                }
+
+                // 自動スレタイメモ機能がONでスレタイが記録されていないときはDBを更新
+                if (!is_null($this->img_memo) && strpos($icdb->memo, $this->img_memo) === false){
+                    $update = new IC2_DataObject_Images;
+                    if (!is_null($icdb->memo) && strlen($icdb->memo) > 0) {
+                        $update->memo = $this->img_memo . ' ' . $icdb->memo;
+                    } else {
+                        $update->memo = $this->img_memo;
+                    }
+                    $update->whereAddQuoted('uri', '=', $v['url']);
+                }
+
+                // expack.ic2.fav_auto_rank_override の設定とランク条件がOKなら
+                // お気にスレ自動画像ランクを上書き更新
+                if ($rank !== null &&
+                        self::isAutoFavRankOverride($icdb->rank, $rank)) {
+                    if ($update === null) {
+                        $update = new IC2_DataObject_Images;
+                        $update->whereAddQuoted('uri', '=', $v['url']);
+                    }
+                    $update->rank = $rank;
+
+                }
+                if ($update !== null) {
+                    $update->update();
+                }
+
+            // 画像がキャッシュされていないとき
+            // 自動スレタイメモ機能がONならクエリにUTF-8エンコードしたスレタイを含める
+            } else {
+                // 画像がブラックリストorエラーログにあるか確認
+                if (false !== ($errcode = $icdb->ic2_isError($v['url']))) {
+                    return "<s>[IC2:ｴﾗｰ({$errcode})]</s>";
+                }
+
+                // インラインプレビューが有効で、サムネイル表示制限数以内なら
+                if ($this->thumbnailer->ini['General']['inline'] == 1 && $inline_preview_flag) {
+                    $rank_str = ($rank !== null) ? '&rank=' . $rank : '';
+                    $img_str = "<img src=\"ic2.php?r=2&amp;t=1&amp;uri={$url_en}{$this->img_memo_query}{$_conf['sid_at_a']}{$rank_str}{$ref_en}\">";
+                    $inline_preview_done = true;
+                } else {
+                    $img_url .= $this->img_memo_query;
+                }
+            }
+
+            // 表示数制限をデクリメント
+            if ($inline_preview_flag && $inline_preview_done) {
+                $pre_thumb_limit_k--;
+            }
+
+            if (!empty($_SERVER['REQUEST_URI'])) {
+                $backto = '&amp;from=' . rawurlencode($_SERVER['REQUEST_URI']);
+            } else {
+                $backto = '';
+            }
+
+            if (is_null($img_str)) {
+                $result .= sprintf('<a href="%s%s">[IC2:%s:%s]</a>',
+                               $img_url,
+                               $backto,
+                               htmlspecialchars($purl['host'], ENT_QUOTES),
+                               htmlspecialchars(basename($purl['path']), ENT_QUOTES)
+                               );
+            }
+
+            if ($_conf['iphone']) {
+                $img_title = htmlspecialchars($purl['host'], ENT_QUOTES)
+                           . '&#10;'
+                           . htmlspecialchars(basename($purl['path']), ENT_QUOTES);
+                $result .= "<a class=\"limelight\" href=\"{$src_url}\" title=\"{$img_title}\" target=\"_blank\">{$img_str}</a>"
+                   //. ' <img class="ic2-show-info" src="img/s2a.png" width="16" height="16" onclick="ic2info.show('
+                     . ' <input type="button" class="ic2-show-info" value="i" onclick="ic2info.show('
+                     . (($img_id) ? $img_id : "'{$v['url']}'") . ', event)">';
+            } else {
+                $result .= "<a href=\"{$img_url}{$backto}\">{$img_str}</a>";
+            }
+        }
+        $result .= $this->plugin_linkURL($url, $purl, $str);
+        return $result;
+    }
+
     // }}}
     // }}}
+
 }
 
 // }}}

@@ -47,23 +47,34 @@ SPM.init = function(aThread)
 
 	// ここまで読んだ
 	spm.appendItem('ここまで読んだ', (function(){
-		SPM.httpcmd('setreadnum', aThread, SPM.callbacks.setreadnum);
+		SPM.httpcmd('setreadnum', aThread, (function(result, cmd, aThread, num, url){
+			var msg = 'スレッド“' + aThread.title + '”の既読数を';
+			if (result == '1') {
+				msg += ' ' + num + ' にセットしました。';
+			} else {
+				msg += 'セットできませんでした。';
+			}
+			window.alert(msg);
+		}));
 	}));
 
 	// ブックマーク (未実装)
 
-	// あぼーんワード・NGワード
+	// あぼーん/NG/ハイライトワード
 	if (opt[2] == 1 || opt[2] == 2) {
 		var abnId = threadId + '_ab';
 		var ngId = threadId + '_ng';
+		var highlightId = threadId + '_highlight';
 		spm.appendItem('あぼーんする', [aThread, 'info_sp.php', 'mode=aborn_res']);
 		spm.appendItem('あぼーんワード', null, abnId);
 		spm.appendItem('NGワード', null, ngId);
+		spm.appendItem('ハイライトワード', null, highlightId);
 		// サブメニュー生成
 		var spmAborn = SPM.createNgAbornSubMenu(abnId, aThread, 'aborn');
 		var spmNg = SPM.createNgAbornSubMenu(ngId, aThread, 'ng');
+		var spmHighlight = SPM.createNgAbornSubMenu(highlightId, aThread, 'highlight');
 	} else {
-		var spmAborn = false, spmNg = false;
+		var spmAborn = false, spmNg = false, spmHighlight = false;
 	}
 
 	// フィルタリング
@@ -118,11 +129,14 @@ SPM.init = function(aThread)
 	if (spmNg) {
 		container.appendChild(spmNg);
 	}
+	// ハイライトワード・サブメニューをコンテナに追加
+	if (spmHighlight) {
+		container.appendChild(spmHighlight);
+	}
 	// フィルタリング・サブメニューをコンテナに追加
 	if (spmFilter) {
 		container.appendChild(spmFilter);
 	}
-
 	// 表示・非表示メソッドを設定
 	aThread.show = (function(resnum, resid, evt){
 		SPM.show(aThread, resnum, resid, evt);
@@ -150,7 +164,7 @@ SPM.show = function(aThread, resnum, resid, evt)
 	} else if (document.selection) {
 		spmSelected = document.selection.createRange().text;
 	}
-	showResPopUp(aThread.objName + '_spm' ,evt);
+	showResPopUp(aThread.objName + '_spm' ,evt,'this');
 	return false;
 };
 
@@ -160,7 +174,7 @@ SPM.show = function(aThread, resnum, resid, evt)
 SPM.hide = function(aThread, evt)
 {
 	var evt = (evt) ? evt : ((window.event) ? event : null);
-	hideResPopUp(aThread.objName + '_spm');
+	hideResPopUp(aThread.objName + '_spm','this');
 	return false;
 };
 
@@ -208,7 +222,7 @@ SPM.setOnPopUp = function(obj, targetId, isSubMenu)
 	{
 		evt = (evt) ? evt : ((window.event) ? window.event : null);
 		if (evt) {
-			showResPopUp(targetId, evt);
+			showResPopUp(targetId, evt,'this');
 		}
 	};
 	// ロールアウト
@@ -216,7 +230,7 @@ SPM.setOnPopUp = function(obj, targetId, isSubMenu)
 	{
 		evt = (evt) ? evt : ((window.event) ? window.event : null);
 		if (evt) {
-			hideResPopUp(targetId);
+			hideResPopUp(targetId,'this');
 		}
 	}
 };
@@ -308,6 +322,7 @@ SPM.createFilterSubMenu = function(menuId, aThread)
 
 	return fmenu;
 };
+
 
 /* ==================== 覚え書き ====================
  * <a href="javascript:void(0);" onclick="foo()">は

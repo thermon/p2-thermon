@@ -4,6 +4,25 @@
  * フレーム分割画面、右下部分
  */
 
+require_once '/opt/lampp/htdocs/pqp/classes/PhpQuickProfiler.php';
+class ExampleLandingPage {
+
+    private $profiler;
+    private $db;
+
+    public function __construct() {
+        $this->profiler = new PhpQuickProfiler(PhpQuickProfiler::getMicroTime());
+    }
+
+    public function __destruct() {
+		global $debugMode;
+
+        if($debugMode == true) $this->profiler->display($this->db);
+    }
+
+}
+$db=new ExampleLandingPage;
+//$debugMode=true;
 require_once './conf/conf.inc.php';
 
 $_login->authorize(); // ユーザ認証
@@ -321,10 +340,35 @@ EOP;
         }
 
         $res1 = $aShowThread->quoteOne(); // >>1ポップアップ用
-        echo $res1['q'];
+        if ($_conf['coloredid.enable'] > 0 && $_conf['coloredid.click'] > 0 &&
+            $_conf['coloredid.rate.type'] > 0) {
+            $mainhtml .= $aShowThread->datToHtml(true);
+            $mainhtml .= $res1['q'];
+        } else {
+            $aShowThread->datToHtml();
+            echo $res1['q'];
+        }
 
-        $aShowThread->datToHtml();
+
+        // レス追跡カラー
+        if ($_conf['backlink_coloring_track']) {
+            echo $aShowThread->getResColorJs();
+        }
+
+        // IDカラーリング
+        if ($_conf['coloredid.enable'] > 0 && $_conf['coloredid.click'] > 0) {
+            echo $aShowThread->getIdColorJs();
+            // ブラウザ負荷軽減のため、CSS書き換えスクリプトの後でコンテンツを
+            // レンダリングさせる
+            echo $mainhtml;
+        }
+    } else if ($aThread->diedat && count($aThread->datochi_residuums) > 0) {
+        require_once P2_LIB_DIR . '/ShowThreadPc.php';
+        $aShowThread = new ShowThreadPc($aThread);
+        echo $aShowThread->getDatochiResiduums();
     }
+
+    //$GLOBALS['debug'] && $GLOBALS['profiler']->leaveSection("datToHtml");
 
     //$GLOBALS['debug'] && $GLOBALS['profiler']->leaveSection("datToHtml");
 
@@ -465,7 +509,6 @@ function recRecent($data)
 
     return true;
 }
-
 // }}}
 
 /*

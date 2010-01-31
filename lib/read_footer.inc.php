@@ -126,7 +126,7 @@ GOTO;
             {$htm['dsize']}
             {$htm['spd']}
         </td>
-        <td class="rblock">{$htm['p2frame']} {$toolbar_right_ht}</td>
+        <td class="rblock">{$htm['p2frame']} {$htm['ic2navi']} {$toolbar_right_ht}</td>
         <td class="rblock"><a href="#header">Å£</a></td>
     </tr>
 </table>

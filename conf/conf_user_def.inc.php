@@ -176,9 +176,17 @@ $conf_user_rad['link_niconico'] = array('1' => 'する', '0' => 'しない', '2' => '
 $conf_user_def['iframe_popup'] = 2; // (2)
 $conf_user_sel['iframe_popup'] = array('1' => 'する', '0' => 'しない', '2' => 'pでする', '3' => '画像でする');
 
+// HTMLポップアップをする場合のイベント（クリック:1, マウスオーバー:0）
+$conf_user_def['iframe_popup_event'] = 1; // (1)
+$conf_user_rad['iframe_popup_event'] = array('1' => 'クリック', '0' => 'マウスオーバー');
+
 // HTMLポップアップの表示遅延時間（秒）
 $conf_user_def['iframe_popup_delay'] = 0.2; // (0.2)
 //$conf_user_rules['iframe_popup_delay'] = array('FloatExceptMinus');
+
+// HTMLポップアップの種類
+$conf_user_def['iframe_popup_type'] = 1;
+$conf_user_rad['iframe_popup_type'] = array('0' => '通常', '1' => '可変');
 
 // ID:xxxxxxxxをIDフィルタリングのリンクに変換（する:1, しない:0）
 $conf_user_def['flex_idpopup'] = 1; // (1)
@@ -198,9 +206,41 @@ $conf_user_rad['bottom_res_form'] = array('1' => 'する', '0' => 'しない');
 $conf_user_def['quote_res_view'] = 1; // (1)
 $conf_user_rad['quote_res_view'] = array('1' => 'する', '0' => 'しない');
 
+// NGレスを引用レス表示するか（する:1, しない:0）
+$conf_user_def['quote_res_view_ng'] = 0; // (0)
+$conf_user_rad['quote_res_view_ng'] = array('1' => 'する', '0' => 'しない');
+
+// あぼーんレスを引用レス表示するか（する:1, しない:0）
+$conf_user_def['quote_res_view_aborn'] = 0; // (0)
+$conf_user_rad['quote_res_view_aborn'] = array('1' => 'する', '0' => 'しない');
+
 // PC閲覧時、文末の改行と連続する改行を除去（する:1, しない:0）
 $conf_user_def['strip_linebreaks'] = 0; // (0)
 $conf_user_rad['strip_linebreaks'] = array('1' => 'する', '0' => 'しない');
+
+// [[単語]]をWikipediaへのリンクにする（する:1, しない:0）
+$conf_user_def['link_wikipedia'] = 1; // (0)
+$conf_user_rad['link_wikipedia'] = array('1' => 'する', '0' => 'しない');
+
+// 逆参照リストの表示
+$conf_user_def['backlink_list'] = 1;
+$conf_user_rad['backlink_list'] = array('1' => 'ツリーぽく表示', '2' => '横表示', '3' => '両方', '0' => 'しない');
+
+// 逆参照リストで未来アンカーを有効にするか
+$conf_user_def['backlink_list_future_anchor'] = 1;
+$conf_user_rad['backlink_list_future_anchor'] = array('1' => '有効', '0' => '無効');
+
+// 逆参照リストでこの値より広い範囲レスを対象外にする(0で制限なし)
+$conf_user_def['backlink_list_range_anchor_limit'] = 0;
+$conf_user_rules['backlink_list_range_anchor_limit'] = array('notIntExceptMinusToDef');
+
+// 逆参照ブロックを展開できるようにするか
+$conf_user_def['backlink_block'] = 1;
+$conf_user_rad['backlink_block'] = array('1' => 'する', '0' => 'しない');
+
+// 逆参照ブロックで展開されているレスの本体に装飾するか
+$conf_user_def['backlink_block_readmark'] = 1;
+$conf_user_rad['backlink_block_readmark'] = array('1' => 'する', '0' => 'しない');
 
 // 携帯閲覧時、文末の改行と連続する改行を除去（する:1, しない:0）
 $conf_user_def['mobile.strip_linebreaks'] = 0; // (0)
@@ -225,6 +265,14 @@ $conf_user_rules['mobile.aa_ryaku_size'] = array('notIntExceptMinusToDef');
 // 携帯閲覧時、ポインタの何コ前のレスから表示するか
 $conf_user_def['mobile.before_respointer'] = 0; // (0)
 $conf_user_rules['mobile.before_respointer'] = array('notIntExceptMinusToDef');
+
+// 携帯閲覧時、アンカー先をページ単位で表示(する:1, しない:0)
+$conf_user_def['mobile.anchor_link_page'] = 1; // (1)
+$conf_user_rad['mobile.anchor_link_page'] = array('1' => 'する', '0' => 'しない', '2' => 'しない（ﾍﾟｰｼﾞ内ｼﾞｬﾝﾌﾟのみ）');
+
+// 携帯閲覧時、アンカー先をページ単位で表示(する:1, しない:0)
+$conf_user_def['mobile.anchor_link_page'] = 1; // (1)
+$conf_user_rad['mobile.anchor_link_page'] = array('1' => 'する', '0' => 'しない', '2' => 'しない（ﾍﾟｰｼﾞ内ｼﾞｬﾝﾌﾟのみ）');
 
 // 携帯閲覧時、外部リンクに通勤ブラウザ(通)を利用(する:1, しない:0)
 $conf_user_def['mobile.use_tsukin'] = 1; // (1)
@@ -262,6 +310,76 @@ $conf_user_rad['mobile.underline_id'] = array('1' => 'する', '0' => 'しない');
 $conf_user_def['mobile.copy_divide_len'] = 0; // (0)
 $conf_user_rules['mobile.copy_divide_len'] = array('notIntExceptMinusToDef');
 
+// 携帯閲覧時、[[単語]]をWikipediaへのリンクにする（する:1, しない:0）
+$conf_user_def['mobile.link_wikipedia'] = 1; // (0)
+$conf_user_rad['mobile.link_wikipedia'] = array('1' => 'する', '0' => 'しない');
+
+// 携帯閲覧時、逆参照リストの表示
+$conf_user_def['mobile.backlink_list'] = 1;
+$conf_user_rad['mobile.backlink_list'] = array('1' => 'する', '0' => 'しない');
+
+// 本文をダブルクリックしてレス追跡カラーリング
+$conf_user_def['backlink_coloring_track'] = 1;
+$conf_user_rad['backlink_coloring_track'] = array('1' => 'する', '0' => 'しない');
+// 本文をダブルクリックしてレス追跡カラーリングの色リスト(カンマ区切り)
+$conf_user_def['backlink_coloring_track_colors'] = '#479e01,#0033ff,#0099cc,#9900ff,#ff5599,#ff9900,#993333,#ff6600,#0066cf,#ff3300';
+
+// IDに色を付ける
+$conf_user_def['coloredid.enable'] = 1;
+$conf_user_rad['coloredid.enable'] = array('1' => 'する', '0' => 'しない');
+// 画面表示時にIDに着色しておく条件
+$conf_user_def['coloredid.rate.type'] = 1;
+$conf_user_rad['coloredid.rate.type'] = array('0' => 'しない', '1' => '出現数', '2' => 'スレ内トップ10', '3' => 'スレ内平均以上');
+// 条件が出現数の場合の数(n以上)
+$conf_user_def['coloredid.rate.times'] = 2;
+$conf_user_rules['coloredid.rate.times'] = array('notIntExceptMinusToDef');
+// 必死判定(IDブリンク)の出現数(0で無効。IE/Safariはblink非対応)
+$conf_user_def['coloredid.rate.hissi.times'] = 25;
+$conf_user_rules['coloredid.rate.hissi.times'] = array('notIntExceptMinusToDef');
+// ID出現数をクリックすると着色をトグル(「しない」にするとJavascriptではなくPHPで着色)
+$conf_user_def['coloredid.click'] = 0;
+$conf_user_rad['coloredid.click'] = array('1' => 'する', '0' => 'しない');
+// ID出現数をダブルクリックしてマーキングする色リスト(カンマ区切り)
+$conf_user_def['coloredid.marking.colors'] = '#f00,#0f0,#00f,#f90,#f0f,#ff0,#90f,#0ff,#9f0';
+// カラーリングのタイプ
+$conf_user_def['coloredid.coloring.type'] = 0;
+$conf_user_rad['coloredid.coloring.type'] = array('0' => 'オリジナル', '1' => 'thermon版');
+
+// 携帯閲覧時、[[単語]]をWikipediaへのリンクにする（する:1, しない:0）
+$conf_user_def['mobile.link_wikipedia'] = 1; // (0)
+$conf_user_rad['mobile.link_wikipedia'] = array('1' => 'する', '0' => 'しない');
+
+// 携帯閲覧時、逆参照リストの表示
+$conf_user_def['mobile.backlink_list'] = 1;
+$conf_user_rad['mobile.backlink_list'] = array('1' => 'する', '0' => 'しない');
+
+// 本文をダブルクリックしてレス追跡カラーリング
+$conf_user_def['backlink_coloring_track'] = 1;
+$conf_user_rad['backlink_coloring_track'] = array('1' => 'する', '0' => 'しない');
+// 本文をダブルクリックしてレス追跡カラーリングの色リスト(カンマ区切り)
+$conf_user_def['backlink_coloring_track_colors'] = '#479e01,#0033ff,#0099cc,#9900ff,#ff5599,#ff9900,#993333,#ff6600,#0066cf,#ff3300';
+
+// IDに色を付ける
+$conf_user_def['coloredid.enable'] = 1;
+$conf_user_rad['coloredid.enable'] = array('1' => 'する', '0' => 'しない');
+// 画面表示時にIDに着色しておく条件
+$conf_user_def['coloredid.rate.type'] = 1;
+$conf_user_rad['coloredid.rate.type'] = array('0' => 'しない', '1' => '出現数', '2' => 'スレ内トップ10', '3' => 'スレ内平均以上');
+// 条件が出現数の場合の数(n以上)
+$conf_user_def['coloredid.rate.times'] = 2;
+$conf_user_rules['coloredid.rate.times'] = array('notIntExceptMinusToDef');
+// 必死判定(IDブリンク)の出現数(0で無効。IE/Safariはblink非対応)
+$conf_user_def['coloredid.rate.hissi.times'] = 25;
+$conf_user_rules['coloredid.rate.hissi.times'] = array('notIntExceptMinusToDef');
+// ID出現数をクリックすると着色をトグル(「しない」にするとJavascriptではなくPHPで着色)
+$conf_user_def['coloredid.click'] = 0;
+$conf_user_rad['coloredid.click'] = array('1' => 'する', '0' => 'しない');
+// ID出現数をダブルクリックしてマーキングする色リスト(カンマ区切り)
+$conf_user_def['coloredid.marking.colors'] = '#f00,#0f0,#00f,#f90,#f0f,#ff0,#90f,#0ff,#9f0';
+// カラーリングのタイプ
+$conf_user_def['coloredid.coloring.type'] = 0;
+$conf_user_rad['coloredid.coloring.type'] = array('0' => 'オリジナル', '1' => 'thermon版');
+
 // }}}
 // {{{ NG/あぼーん
 
@@ -293,6 +411,22 @@ $conf_user_rad['ngaborn_chain_all'] = array('1' => 'する', '0' => 'しない');
 // この期間、NGあぼーんにHITしなければ、登録ワードを自動的に外す（日数）
 $conf_user_def['ngaborn_daylimit'] = 180; // (180)
 $conf_user_rules['ngaborn_daylimit'] = array('emptyToDef', 'notIntExceptMinusToDef');
+
+// あぼーんレスは不可視divブロックも描画しない
+$conf_user_def['ngaborn_purge_aborn'] = 0;  // (0)
+$conf_user_rad['ngaborn_purge_aborn'] = array('1' => 'はい', '0' => 'いいえ');
+
+// 連鎖ハイライト (表示範囲のレスのみに連鎖)
+$conf_user_def['live.highlight_chain'] = 0; // (0)
+$conf_user_rad['live.highlight_chain'] = array('1' => 'する', '0' => 'しない');
+
+// あぼーんレスは不可視divブロックも描画しない
+$conf_user_def['ngaborn_purge_aborn'] = 0;  // (0)
+$conf_user_rad['ngaborn_purge_aborn'] = array('1' => 'はい', '0' => 'いいえ');
+
+// 連鎖ハイライト (表示範囲のレスのみに連鎖)
+$conf_user_def['live.highlight_chain'] = 0; // (0)
+$conf_user_rad['live.highlight_chain'] = array('1' => 'する', '0' => 'しない');
 
 // }}}
 // {{{ ETC

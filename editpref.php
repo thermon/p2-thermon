@@ -173,6 +173,23 @@ $ng_name_txt        = 'p2_ng_name.txt';
 $ng_mail_txt        = 'p2_ng_mail.txt';
 $ng_msg_txt         = 'p2_ng_msg.txt';
 $ng_id_txt          = 'p2_ng_id.txt';
+// +live ハイライトワード用
+$highlight_name_txt = 'p2_highlight_name.txt';
+$highlight_mail_txt = 'p2_highlight_mail.txt';
+$highlight_msg_txt  = 'p2_highlight_msg.txt';
+$highlight_id_txt   = 'p2_highlight_id.txt';
+// +Wiki
+$aborn_be_txt       = 'p2_aborn_be.txt';
+$ng_be_txt          = 'p2_ng_be.txt';
+// アンカー
+$anchor_ignore_word     = 'p2_anchor_ignore.txt';
+$anchor_prefix_single   = 'p2_anchor_prefix_single.txt';
+$anchor_prefix_double   = 'p2_anchor_prefix_double.txt';
+$anchor_prefix_option   = 'p2_anchor_prefix_option.txt';
+$anchor_delimiter       = 'p2_anchor_delimiter.txt';
+$anchor_range_delimiter = 'p2_anchor_range_delimiter.txt';
+$anchor_num_option      = 'p2_anchor_num_option.txt';
+$anchor_ranges_option   = 'p2_anchor_ranges_option.txt';
 
 echo '<div>';
 echo <<<EOP
@@ -227,6 +244,8 @@ EOP;
     printEditFileForm($ng_mail_txt, 'メール');
     printEditFileForm($ng_msg_txt, '本文');
     printEditFileForm($ng_id_txt, 'ID');
+    // +Wiki
+    printEditFileForm($ng_be_txt, 'BE');
     echo <<<EOP
 </fieldset>\n\n
 EOP;
@@ -248,6 +267,8 @@ EOP;
     printEditFileForm($aborn_msg_txt, '本文');
     printEditFileForm($aborn_id_txt, 'ID');
     printEditFileForm($aborn_thread_txt, 'スレッド');
+    // +Wiki
+    printEditFileForm($aborn_be_txt, 'BE');
     echo <<<EOP
 </fieldset>\n
 EOP;
@@ -255,6 +276,46 @@ EOP;
     echo "</td></tr>";
 
     // }}}
+	// {{{ PC - +live ハイライトワード編集
+
+	echo "<td>\n\n";
+
+	echo <<<EOP
+<fieldset>
+<legend>ハイライトワード編集</legend>\n
+EOP;
+	printEditFileForm($highlight_name_txt, '名前');
+	printEditFileForm($highlight_mail_txt, 'メール');
+	printEditFileForm($highlight_msg_txt, '本文');
+	printEditFileForm($highlight_id_txt, 'ID');
+	echo <<<EOP
+</fieldset>\n
+EOP;
+
+	echo "</td></tr>";
+
+	// }}}
+	// {{{ PC - アンカー編集
+
+echo "<td colspan=\"2\">\n\n";
+echo <<<EOP
+<fieldset>
+<legend>アンカーの正規表現設定</legend>
+EOP;
+    printEditFileForm($anchor_prefix_single,	"シングル引用子（&gt;）");
+    printEditFileForm($anchor_prefix_double,	"ダブル引用子（&gt;&gt;）");
+    printEditFileForm($anchor_prefix_option,	"引用子オプション");
+    printEditFileForm($anchor_delimiter,		"番号の区切り文字（，）");
+    printEditFileForm($anchor_range_delimiter,	"番号の範囲指定文字（－）");
+    printEditFileForm($anchor_num_option,		"レス番号オプション");
+    printEditFileForm($anchor_ranges_option,	"アンカーオプション");
+    printEditFileForm($anchor_ignore_word,		"アンカーであることを否定する後続文字");
+echo <<<EOP
+</fieldset>\n
+EOP;
+echo "</td></tr>\n\n";
+
+	// }}}
     // {{{ PC - ホストの同期 HTMLのセット
 
     echo <<<EOP
@@ -322,10 +383,12 @@ if ($_conf['ktai']) {
 <option value="{$aborn_mail_txt}">ｱﾎﾞﾝ:ﾒｰﾙ</option>
 <option value="{$aborn_msg_txt}">ｱﾎﾞﾝ:本文</option>
 <option value="{$aborn_id_txt}">ｱﾎﾞﾝ:ID</option>
+<option value="{$aborn_be_txt}">ｱﾎﾞﾝ:BE</option>
 <option value="{$ng_name_txt}">NG:名前</option>
 <option value="{$ng_mail_txt}">NG:ﾒｰﾙ</option>
 <option value="{$ng_msg_txt}">NG:本文</option>
 <option value="{$ng_id_txt}">NG:ID</option>
+<option value="{$ng_id_txt}">NG:BE</option>
 </select>
 <input type="submit" value="編集">
 </form>
@@ -336,6 +399,51 @@ if ($_conf['ktai']) {
 </form>
 <hr>
 EOP;
+
+    echo "<p>アンカー認識の設定</p>\n";
+	echo <<<EOP
+<form method="GET" action="editfile.php">
+{$_conf['k_input_ht']}
+<input type="hidden" name="path" value="{$anchor_prefix_single}">
+<input type="submit" value="シングル引用子(&gt;)">
+</form>
+<form method="GET" action="editfile.php">
+{$_conf['k_input_ht']}
+<input type="hidden" name="path" value="{$anchor_prefix_double}">
+<input type="submit" value="ダブル引用子(&gt;&gt;)">
+</form>
+<form method="GET" action="editfile.php">
+{$_conf['k_input_ht']}
+<input type="hidden" name="path" value="{$anchor_prefix_option}">
+<input type="submit" value="引用子オプション">
+</form>
+<form method="GET" action="editfile.php">
+{$_conf['k_input_ht']}
+<input type="hidden" name="path" value="{$anchor_delimiter}">
+<input type="submit" value="番号の区切り文字(,)">
+</form>
+<form method="GET" action="editfile.php">
+{$_conf['k_input_ht']}
+<input type="hidden" name="path" value="{$anchor_range_delimiter}">
+<input type="submit" value="番号の範囲指定文字(-)">
+</form>
+<form method="GET" action="editfile.php">
+{$_conf['k_input_ht']}
+<input type="hidden" name="path" value="{$anchor_num_option}">
+<input type="submit" value="レス番号オプション">
+</form>
+<form method="GET" action="editfile.php">
+{$_conf['k_input_ht']}
+<input type="hidden" name="path" value="{$anchor_ranges_option}">
+<input type="submit" value="アンカーオプション">
+</form>
+<form method="GET" action="editfile.php">
+{$_conf['k_input_ht']}
+<input type="hidden" name="path" value="{$anchor_ignore_word}">
+<input type="submit" value="アンカーであることを否定する後続文字">
+</form>
+EOP;
+
     echo "<p>ﾎｽﾄの同期（2chの板移転に対応します）</p>\n";
     echo getSyncFavoritesFormHt('all', 'すべて');
     foreach ($synctitles as $syncmode => $syncname) {
@@ -360,7 +468,7 @@ EOP;
 EOP;
     }
 
-    // }}}
+    include_once P2_LIB_DIR . '/wiki/editpref.inc.php';
 
 }
 
@@ -499,7 +607,7 @@ function printEditFileForm($filename, $submit_value)
     $cols = 92; // 90
 
     if ($filename == 'p2_aborn_thread.txt' ||
-        preg_match('/^p2_(aborn|ng)_(name|mail|id|msg)\\.txt$/', $filename))
+        preg_match('/^p2_(aborn|ng|highlight)_(name|mail|id|msg)\\.txt$/', $filename))
     {
         $edit_php = 'edit_aborn_word.php';
         $target = '_self';

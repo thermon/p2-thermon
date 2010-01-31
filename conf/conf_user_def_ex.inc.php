@@ -181,6 +181,43 @@ $conf_user_rad['expack.ic2.newres_ignore_limit'] = array('1' => 'する', '0' => '
 $conf_user_def['expack.ic2.newres_ignore_limit_k'] = 0; // (0)
 $conf_user_rad['expack.ic2.newres_ignore_limit_k'] = array('1' => 'する', '0' => 'しない');
 
+// スレ表示時に画像キャッシュ一覧へのスレタイ検索リンクを表示する
+$conf_user_def['expack.ic2.thread_imagelink'] = 1; // (1)
+$conf_user_rad['expack.ic2.thread_imagelink'] = array('1' => 'する', '0' => 'しない');
+
+// スレ表示時にスレタイで検索した時の画像数を表示する
+$conf_user_def['expack.ic2.thread_imagecount'] = 1; // (1)
+$conf_user_rad['expack.ic2.thread_imagecount'] = array('1' => 'する', '0' => 'しない');
+
+// お気にスレに登録されているスレの画像に自動ランクを設定する
+$conf_user_def['expack.ic2.fav_auto_rank'] = 0; // (0)
+$conf_user_rad['expack.ic2.fav_auto_rank'] = array('1' => 'する', '0' => 'しない');
+
+// お気にスレの画像を自動ランク設定する場合の設定値(カンマ区切り)[お気に0のランク値,お気に1のランク値, , ,]
+$conf_user_def['expack.ic2.fav_auto_rank_setting'] = '1,1,2,3,4,5';
+
+// お気にスレの画像を自動ランク設定する場合に、キャッシュ済み画像に自動ランクを上書きするか
+$conf_user_def['expack.ic2.fav_auto_rank_override'] = 3; // (0)
+$conf_user_rad['expack.ic2.fav_auto_rank_override'] = array('1' => 'する', '2' => 'ランク0だったらする', '3' => 'ランクが上がるならする', '0' => 'しない');
+
+// }}}
+// {{{ Google検索
+
+// Google Web APIs の登録キー
+$conf_user_def['expack.google.key'] = ""; // ("")
+
+// 検索履歴を記録する数（off:0）
+//$conf_user_def['expack.google.recent_num'] = 10; // (10)
+//$conf_user_rules['expack.google.recent_num'] = array('notIntExceptMinusToDef');
+
+// サーチボックスに検索履歴を記録する数、Safari専用（off:0）
+$conf_user_def['expack.google.recent2_num'] = 10; // (10)
+$conf_user_rules['expack.google.recent2_num'] = array('notIntExceptMinusToDef');
+
+// SOAP エクステンション が利用可能なときも PEAR の SOAP パッケージを使う（0:no; 1:yes;）
+$conf_user_def['expack.google.force_pear'] = 0; // (0)
+$conf_user_rad['expack.google.force_pear'] = array('1' => 'PEAR', '0' => 'SOAPエクステンション');
+
 // }}}
 // {{{ AAS
 

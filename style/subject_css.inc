@@ -60,7 +60,7 @@ table.toolbar {
 	background: {$STYLE['sb_tool_bgcolor']} {$STYLE['sb_tool_background']};
 }
 
-table.toolbar td {
+.toolbar td {
 	margin: 0;
 	padding: 4px;
 	white-space: nowrap;
@@ -71,27 +71,27 @@ table.toolbar td {
 	line-height: 100%;
 }
 
-table.toolbar td.toolbar-title {
+.toolbar td.toolbar-title {
 	padding-left: 12px;
 }
-table.toolbar td.toolbar-update {
+.toolbar td.toolbar-update {
 }
-table.toolbar td.toolbar-filter {
+.toolbar td.toolbar-filter {
 }
-table.toolbar td.toolbar-edit {
+.toolbar td.toolbar-edit {
 }
-table.toolbar td.toolbar-anchor {
+.toolbar td.toolbar-anchor {
 	padding-right: 12px;
 	text-align: right;
 }
 
-table.toolbar a{
+.toolbar a{
 	color: {$STYLE['sb_tool_acolor']};
 }
-table.toolbar a:visited {
+.toolbar a:visited {
 	color: {$STYLE['sb_tool_acolor_v']};
 }
-table.toolbar a:hover {
+.toolbar a:hover {
 	color: {$STYLE['sb_tool_acolor_h']};
 }
 
@@ -102,7 +102,7 @@ table.threadlist {
 	padding: 0;
 }
 
-table.threadlist td, table.threadlist th {
+.threadlist td, .threadlist th {
 	margin: 0;
 	padding: 4px;
 	white-space: nowrap;
@@ -111,7 +111,7 @@ table.threadlist td, table.threadlist th {
 	line-height: 100%;
 }
 
-table.threadlist tr.tableheader th {
+.threadlist .tableheader th {
 	font-family: "{$STYLE['fontfamily']}";
 	font-weight: normal;
 	background: {$STYLE['sb_th_bgcolor']} {$STYLE['sb_th_background']};
@@ -207,58 +207,64 @@ a.te:visited { color: #999; }
 a.te:hover   { color: {$STYLE['sb_tacolor_h']}; }
 
 /* r スレッドリスト 行 */
-table.threadlist tr.r1{
+.threadlist tr.r1{
 	background: {$STYLE['sb_tbgcolor1']} {$STYLE['sb_tbackground1']};
 }
-table.threadlist tr.r2 {
+.threadlist tr.r2 {
 	background: {$STYLE['sb_tbgcolor']} {$STYLE['sb_tbackground']};
+}
+.threadlist tr.nosubject {
+	background: {$STYLE['sb_tbgcolor_nosubject']} {$STYLE['sb_tbackground']};
+}
+.threadlist tr.r_new {
+	background: {$STYLE['sb_th_bgcolor']} {$STYLE['sb_tbackground']};
 }
 
 /* t スレッドリスト テーブル欄 基本 */
-table.threadlist td.t , table.threadlist th.t {
+.threadlist .t {
 }
 
 /* te スレッドリスト 並び替え欄 */
-table.threadlist td.te, table.threadlist th.te {
+.threadlist .te {
 	width: 70px;
 }
 
 /* tu スレッドリスト 新着レス数欄 */
-table.threadlist td.tu, table.threadlist th.tu {
+.threadlist .tu {
 	width: 26px;
 	text-align: right;
 }
 
 /* tn スレッドリストのレス数欄 */
-table.threadlist td.tn, table.threadlist th.tn {
+.threadlist .tn {
 	width: 36px;
 	color: {$STYLE['sb_ttcolor']};
 }
 
 /* tc スレッドリスト チェックボックス欄 */
-table.threadlist td.tc, table.threadlist th.tc {
+.threadlist .tc {
 	width: 20px;
 	padding: 0px 2px;
 	text-align: right;
 }
 
 /* to スレッドリスト オーダー番号欄 */
-table.threadlist td.to, table.threadlist th.to {
+.threadlist .to {
 	width: 26px;
 	text-align: right;
 }
 
 /* tl スレッドリスト タイトル名欄 */
-table.threadlist td.tl, table.threadlist th.tl {
+.threadlist .tll {
 }
 
 /* ti スレッドリスト すばやさ欄 */
-table.threadlist td.ts, table.threadlist th.ts {
+.threadlist .ts {
 	text-align: right;
 }
 
 /* ti スレッドリスト 勢い欄 */
-table.threadlist td.ti, table.threadlist th.ti {
+.threadlist .ti {
 	text-align: right;
 }
 

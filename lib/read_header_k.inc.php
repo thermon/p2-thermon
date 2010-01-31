@@ -29,8 +29,10 @@ $do_filtering = (isset($GLOBALS['word']) && strlen($GLOBALS['word']) > 0);
 
 if ($do_filtering) {
     $hd['word'] = htmlspecialchars($GLOBALS['word'], ENT_QUOTES);
+    $hd['field'] = $res_filter['field'];
+    $hd['method'] = $res_filter['method'];
+    $hd['match'] = $res_filter['match'];
 }
-
 //=================================================================
 // ヘッダ
 //=================================================================
@@ -136,6 +138,24 @@ $read_navi_filter_btm = <<<EOP
 EOP;
 
 // }}}
+
+// IC2リンク
+if ($_conf['expack.ic2.enabled'] && $_conf['expack.ic2.thread_imagelink']) {
+    $cnt = '';
+/*
+    if ($_conf['expack.ic2.thread_imagecount']) {
+        require_once P2EX_LIB_DIR . '/ic2_getcount.inc.php';
+        $cnt = getIC2ImageCount($aThread->ttitle);
+    }
+*/
+    if ($cnt === '' || $cnt > 0) {
+        $htm['ic2navi'] = '<a href="iv2.php?field=memo&amp;key=' .
+            rawurlencode($aThread->ttitle) .
+            '&amp;session_no_close=1' .
+            '&amp;b=' . ($_conf['iphone'] ? 'i' : 'k') .
+            '">IC2(' . $cnt . ')</a>';
+    }
+}
 
 // iPhone
 if ($_conf['iphone']) {
@@ -255,6 +275,7 @@ if (($aThread->rescount or $_GET['one'] && !$aThread->diedat) && empty($_GET['re
 {$read_navi_previous}
 {$read_navi_next}
 {$read_navi_latest}
+{$htm['ic2navi']}
 <a href="#footer"{$_conf['k_accesskey_at']['bottom']}>{$_conf['k_accesskey_st']['bottom']}▼</a></div>\n
 EOP;
 
@@ -263,7 +284,7 @@ EOP;
 echo "<hr>";
 echo "<h3><font color=\"{$STYLE['mobile_read_ttitle_color']}\">{$aThread->ttitle_hd}</font></h3>\n";
 
-$filter_fields = array('hole' => '', 'msg' => 'ﾒｯｾｰｼﾞが', 'name' => '名前が', 'mail' => 'ﾒｰﾙが', 'date' => '日付が', 'id' => 'IDが', 'belv' => 'ﾎﾟｲﾝﾄが');
+$filter_fields = array('hole' => '', 'msg' => 'ﾒｯｾｰｼﾞが', 'name' => '名前が', 'mail' => 'ﾒｰﾙが', 'date' => '日付が', 'id' => 'IDが', 'res' => 'ﾚｽ番号が','belv' => 'ﾎﾟｲﾝﾄが');
 
 if ($do_filtering) {
     echo "検索結果: ";

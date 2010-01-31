@@ -228,6 +228,23 @@ if ($_conf['expack.ic2.enabled']) {
 EOP;
 }
 
+if ($_conf['backlink_coloring_track']) {
+    echo <<<EOP
+    <script type="text/javascript" src="js/backlink_color.js?{$_conf['p2_version_id']}"></script>
+EOP;
+}
+if ($_conf['coloredid.enable'] > 0 && $_conf['coloredid.click'] > 0) {
+    echo <<<EOP
+    <script type="text/javascript" src="js/colorLib.js?{$_conf['p2_version_id']}"></script>
+    <script type="text/javascript" src="js/coloredId.js?{$_conf['p2_version_id']}"></script>
+EOP;
+}
+if ($_conf['expack.ic2.enabled'] && $_conf['expack.ic2.thread_imagecount']) {
+    echo <<<EOP
+    <script type="text/javascript" src="js/ic2_getcount.js?{$_conf['p2_version_id']}"></script>
+EOP;
+}
+
 $onload_script = '';
 
 if ($_conf['bottom_res_form']) {
@@ -402,6 +419,21 @@ if (empty($_GET['renzokupop']) && ($aThread->rescount || (!empty($_GET['one']) &
     } else {
         $id_header = '';
     }
+
+// IC2リンク、件数
+if ($_conf['expack.ic2.enabled'] && $_conf['expack.ic2.thread_imagelink']) {
+    $cnt = '';
+/*    if ($_conf['expack.ic2.thread_imagecount']) {
+        require_once P2EX_LIB_DIR . '/ic2_getcount.inc.php';
+        $cnt = getIC2ImageCount($aThread->ttitle);
+    }*/
+//    if ($cnt === '' || $cnt > 0) {
+    $htm['ic2navi'] = '<a href="iv2.php?field=memo&amp;key=' . rawurlencode($aThread->ttitle) . '" target="_blank">キャッシュ画像' .
+//    ($_conf['expack.ic2.thread_imagecount'] ? "<span id=\"ic2_count_h\">({$cnt})</span>" : '') .
+    '</a>';
+//}
+}
+
     echo <<<EOP
 <table{$id_header} class="toolbar">
     <tr>
@@ -411,7 +443,7 @@ if (empty($_GET['renzokupop']) && ($aThread->rescount || (!empty($_GET['one']) &
             {$read_navi_previous_header}
             <a href="{$_conf['read_php']}?{$host_bbs_key_q}&amp;ls=l{$latest_show_res_num}">{$latest_st}{$latest_show_res_num}</a> {$htm['goto']}
         </td>
-        <td class="rblock">{$htm['p2frame']} {$toolbar_right_ht}</td>
+        <td class="rblock">{$htm['p2frame']} {$htm['ic2navi']} {$toolbar_right_ht}</td>
         <td class="rblock"><a href="#footer">▼</a></td>
     </tr>
 </table>\n

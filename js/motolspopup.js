@@ -68,12 +68,12 @@ function showMotoLsPopUp(event, origin, title)
 
 function showMotoLsPopUpDo(event)
 {
-	showResPopUp('motols', event || window.event);
+	showResPopUp('motols', event || window.event,this);
 }
 
 function hideMotoLsPopUp()
 {
-	hideResPopUp('motols');
+	hideResPopUp('motols',this);
 }
 
 /*
