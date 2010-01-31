@@ -243,7 +243,7 @@ class P2Util
                                         $disp_error = true,
                                         $trace_redirection = false)
     {
-        global $_conf, $_info_msg_ht;
+        global $_conf;
 
         $perm = (isset($_conf['dl_perm'])) ? $_conf['dl_perm'] : 0606;
 
@@ -255,7 +255,8 @@ class P2Util
 
         // DL
         $wap_ua = new WapUserAgent();
-        $wap_ua->setTimeout($_conf['fsockopen_time_limit']);
+        $wap_ua->setTimeout($_conf['http_conn_timeout'], $_conf['http_read_timeout']);
+        $wap_ua->setAtFsockopen(true);
         $wap_req = new WapRequest();
         $wap_req->setUrl($url);
         $wap_req->setModified($modified);
@@ -275,14 +276,15 @@ class P2Util
         // エラーメッセージを設定
         if ($wap_res->isError() && $disp_error) {
             $url_t = self::throughIme($wap_req->url);
-            $_info_msg_ht .= "<div>Error: {$wap_res->code} {$wap_res->message}<br>";
+            $info_msg_ht = "<p class=\"info-msg\">Error: {$wap_res->code} {$wap_res->message}<br>";
             if ($wap_res->isRedirect() && array_key_exists('Location', $wap_res->headers)) {
                 $location = $wap_res->headers['Location'];
                 $location_ht = htmlspecialchars($location, ENT_QUOTES);
                 $location_t = self::throughIme($location);
-                $_info_msg_ht .= "Location: <a href=\"{$location_t}\"{$_conf['ext_win_target_at']}>{$location_ht}</a><br>";
+                $info_msg_ht .= "Location: <a href=\"{$location_t}\"{$_conf['ext_win_target_at']}>{$location_ht}</a><br>";
             }
-            $_info_msg_ht .= "p2 info: <a href=\"{$url_t}\"{$_conf['ext_win_target_at']}>{$wap_req->url}</a> に接続できませんでした。</div>";
+            $info_msg_ht .= "rep2 info: <a href=\"{$url_t}\"{$_conf['ext_win_target_at']}>{$wap_req->url}</a> に接続できませんでした。</p>";
+            self::pushInfoHtml($info_msg_ht);
         }
 
         // 更新されていたら
@@ -304,34 +306,37 @@ class P2Util
      */
     static public function checkDirWritable($aDir)
     {
-        global $_info_msg_ht, $_conf;
+        global $_conf;
 
         // マルチユーザモード時は、情報メッセージを抑制している。
+        $info_msg_ht = '';
 
         if (!is_dir($aDir)) {
             /*
-            $_info_msg_ht .= '<p class="infomsg">';
-            $_info_msg_ht .= '注意: データ保存用ディレクトリがありません。<br>';
-            $_info_msg_ht .= $aDir."<br>";
+            $info_msg_ht .= '<p class="info-msg">';
+            $info_msg_ht .= '注意: データ保存用ディレクトリがありません。<br>';
+            $info_msg_ht .= $aDir."<br>";
             */
             if (is_dir(dirname(realpath($aDir))) && is_writable(dirname(realpath($aDir)))) {
-                //$_info_msg_ht .= "ディレクトリの自動作成を試みます...<br>";
+                //$info_msg_ht .= "ディレクトリの自動作成を試みます...<br>";
                 if (mkdir($aDir, $_conf['data_dir_perm'])) {
-                    //$_info_msg_ht .= "ディレクトリの自動作成が成功しました。";
+                    //$info_msg_ht .= "ディレクトリの自動作成が成功しました。";
                     chmod($aDir, $_conf['data_dir_perm']);
                 } else {
-                    //$_info_msg_ht .= "ディレクトリを自動作成できませんでした。<br>手動でディレクトリを作成し、パーミッションを設定して下さい。";
+                    //$info_msg_ht .= "ディレクトリを自動作成できませんでした。<br>手動でディレクトリを作成し、パーミッションを設定して下さい。";
                 }
             } else {
-                    //$_info_msg_ht .= "ディレクトリを作成し、パーミッションを設定して下さい。";
+                    //$info_msg_ht .= "ディレクトリを作成し、パーミッションを設定して下さい。";
             }
-            //$_info_msg_ht .= '</p>';
+            //$info_msg_ht .= '</p>';
 
         } elseif (!is_writable($aDir)) {
-            $_info_msg_ht .= '<p class="infomsg">注意: データ保存用ディレクトリに書き込み権限がありません。<br>';
-            //$_info_msg_ht .= $aDir.'<br>';
-            $_info_msg_ht .= 'ディレクトリのパーミッションを見直して下さい。</p>';
+            $info_msg_ht .= '<p class="info-msg">注意: データ保存用ディレクトリに書き込み権限がありません。<br>';
+            //$info_msg_ht .= $aDir.'<br>';
+            $info_msg_ht .= 'ディレクトリのパーミッションを見直して下さい。</p>';
         }
+
+        self::pushInfoHtml($info_msg_ht);
     }
 
     // }}}
@@ -353,7 +358,7 @@ class P2Util
 
         $cachefile = $_conf['cache_dir'] . '/' . $save_uri;
 
-        FileCtl::mkdir_for($cachefile);
+        FileCtl::mkdirFor($cachefile);
 
         return $cachefile;
     }
@@ -1067,18 +1072,44 @@ class P2Util
         // 変数設定
         $date = date('Y/m/d (D) G:i:s');
 
-        // HOSTを取得
-        if (!$remoto_host = $_SERVER['REMOTE_HOST']) {
-            $remoto_host = gethostbyaddr($_SERVER['REMOTE_ADDR']);
-        }
-        if ($remoto_host == $_SERVER['REMOTE_ADDR']) {
-            $remoto_host = "";
+        // IPアドレスを取得
+        if (array_key_exists('REMOTE_ADDR', $_SERVER)) {
+            $remote_addr = $_SERVER['REMOTE_ADDR'];
+        } else {
+            $remote_addr = '';
         }
 
-        $user = (isset($_login->user_u)) ? $_login->user_u : "";
+        // HOSTを取得
+        if (array_key_exists('REMOTE_HOST', $_SERVER)) {
+            $remote_host = $_SERVER['REMOTE_HOST'];
+        } else {
+            $remote_host = '';
+        }
+        if (!$remote_host) {
+            $remote_host = gethostbyaddr($_SERVER['REMOTE_ADDR']);
+        }
+        if ($remote_host == $_SERVER['REMOTE_ADDR']) {
+            $remote_host = '';
+        }
+
+        // UAを取得
+        if (array_key_exists('HTTP_USER_AGENT', $_SERVER)) {
+            $user_agent = $_SERVER['HTTP_USER_AGENT'];
+        } else {
+            $user_agent = '';
+        }
+
+        // リファラを取得
+        if (array_key_exists('HTTP_REFERER', $_SERVER)) {
+            $referrer = $_SERVER['HTTP_REFERER'];
+        } else {
+            $referrer = '';
+        }
+
+        $user = (isset($_login->user_u)) ? $_login->user_u : '';
 
         // 新しいログ行を設定
-        $newdata = $date."<>".$_SERVER['REMOTE_ADDR']."<>".$remoto_host."<>".$_SERVER['HTTP_USER_AGENT']."<>".$_SERVER['HTTP_REFERER']."<>".""."<>".$user;
+        $newdata = implode('<>', array($date, $remote_addr, $remote_host, $user_agent, $referrer, '', $user));
         //$newdata = htmlspecialchars($newdata, ENT_QUOTES);
 
         // まずタブを全て外して
@@ -1642,6 +1673,10 @@ ERR;
     {
         global $_info_msg_ht;
 
+        // 表示フォーマットを統一する試み
+        $html = preg_replace('!^<p>!', '<p class="info-msg">', $html);
+        $html = preg_replace('!\\b(?:re)?p2(?:　| )+(error|info)(?: *[:\\-] *)!', 'rep2 $1: ', $html);
+
         if (!isset($_info_msg_ht)) {
             $_info_msg_ht = $html;
         } else {
@@ -1663,7 +1698,7 @@ ERR;
             return;
         }
 
-        if ($_conf['ktai'] && $_conf['k_save_packet']) {
+        if ($_conf['ktai'] && $_conf['mobile.save_packet']) {
             echo mb_convert_kana($_info_msg_ht, 'rnsk');
         } else {
             echo $_info_msg_ht;
@@ -1690,6 +1725,23 @@ ERR;
         $_info_msg_ht = '';
 
         return $info_msg_ht;
+    }
+
+    // }}}
+    // {{{ hasInfoHtml()
+
+    /**
+     * @return  boolean
+     */
+    static public function hasInfoHtml()
+    {
+        global $_info_msg_ht;
+
+        if (isset($_info_msg_ht) && strlen($_info_msg_ht)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     // }}}
@@ -1766,7 +1818,7 @@ ERR;
                 $key = $matches[4];
                 $ls = '';
                 $kakolog_url = $matches[1];
-                $_GET['kakolog'] = rawurlencode($kakolog_url);
+                $_GET['kakolog'] = $kakolog_url;
 
             // まちBBS - http://kanto.machi.to/bbs/read.cgi/kanto/1241815559/
             } elseif (preg_match('<^http://(\\w+\\.machi(?:bbs\\.com|\\.to))/bbs/read\\.cgi
@@ -1940,7 +1992,7 @@ ERR;
         global $_conf;
 
         if (!is_dir($_conf['db_dir'])) {
-            FileCtl::mkdir_r($_conf['db_dir']);
+            FileCtl::mkdirRecursive($_conf['db_dir']);
         }
 
         try {
@@ -1989,6 +2041,7 @@ ERR;
 // }}}
 
 //register_shutdown_function(array('P2Util', 'debug'));
+//register_shutdown_function(array('P2Util', 'printInfoHtml'));
 
 /*
  * Local Variables:

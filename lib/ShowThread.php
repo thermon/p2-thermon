@@ -13,13 +13,13 @@ abstract class ShowThread
     /**
      * リンクとして扱うパターン
      *
-     * @type string
+     * @var string
      */
 
     /**
      * リダイレクタの種類
      *
-     * @type int
+     * @var int
      */
     const REDIRECTOR_NONE = 0;
     const REDIRECTOR_IMENU = 1;
@@ -29,7 +29,7 @@ abstract class ShowThread
     /**
      * NGあぼーんの種類
      *
-     * @type int
+     * @var int
      */
     const ABORN = -1;
     const NG_NONE = 0;
@@ -55,26 +55,39 @@ abstract class ShowThread
     /**
      * まとめ読みモード時のスレッド数
      *
-     * @type int
+     * @var int
      */
     static private $_matome_count = 0;
 
     /**
      * 本文以外がNGあぼーんにヒットした総数
      *
-     * @type int
+     * @var int
      */
     static protected $_ngaborns_head_hits = 0;
 
     /**
      * 本文がNGあぼーんにヒットした総数
      *
-     * @type int
+     * @var int
      */
     static protected $_ngaborns_body_hits = 0;
 
 	static protected $_highlight_head_hits = 0; // 本文以外がハイライトにヒットした総数
 	static protected $_highlight_body_hits = 0; // 本文がハイライトにヒットした総数
+    /**
+     * getAnchorRegex() のキャッシュ
+     *
+     * @var array
+     */
+    static private $_anchorRegexes = array();
+
+    /**
+     * _getAnchorRegexParts() のキャッシュ
+     *
+     * @var array
+     */
+    static private $_anchorRegexParts = null;
 
     // }}}
     // {{{ properties
@@ -82,7 +95,7 @@ abstract class ShowThread
     /**
      * まとめ読みモード時のスレッド番号
      *
-     * @type int
+     * @var int
      */
     protected $_matome;
 
@@ -90,7 +103,7 @@ abstract class ShowThread
      * URLを処理する関数・メソッド名などを格納する配列
      * (組み込み)
      *
-     * @type array
+     * @var array
      */
     protected $_url_handlers;
 
@@ -98,21 +111,21 @@ abstract class ShowThread
      * URLを処理する関数・メソッド名などを格納する配列
      * (ユーザ定義、組み込みのものより優先)
      *
-     * @type array
+     * @var array
      */
     protected $_user_url_handlers;
 
     /**
      * 頻出IDをあぼーんする
      *
-     * @type bool
+     * @var bool
      */
     protected $_ngaborn_frequent;
 
     /**
      * NG or あぼーんレスがあるかどうか
      *
-     * @type bool
+     * @var bool
      */
     protected $_has_ngaborns;
 
@@ -120,7 +133,7 @@ abstract class ShowThread
      * あぼーんレス番号およびNGレス番号を格納する配列
      * array_intersect()を効率よく行うため、該当するレス番号は文字列にキャストして格納する
      *
-     * @type array
+     * @var array
      */
     protected $_aborn_nums;
     protected $_ng_nums;
@@ -131,28 +144,28 @@ abstract class ShowThread
     /**
      * リダイレクタの種類
      *
-     * @type int
+     * @var int
      */
     protected $_redirector;
 
     /**
      * スレッドオブジェクト
      *
-     * @type ThreadRead
+     * @var ThreadRead
      */
     public $thread;
 
     /**
      * アクティブモナー・オブジェクト
      *
-     * @type ActiveMona
+     * @var ActiveMona
      */
     public $activeMona;
 
     /**
      * アクティブモナーが有効か否か
      *
-     * @type bool
+     * @var bool
      */
     public $am_enabled = false;
 
@@ -178,7 +191,7 @@ abstract class ShowThread
 
         // スレッドオブジェクトを登録
         $this->thread = $aThread;
-		$this->getAnchorRegexParts();
+		$this->_getAnchorRegexParts();
         $this->str_to_link_regex = $this->buildStrToLinkRegex();
 
         // まとめ読みモードか否か
@@ -237,254 +250,6 @@ abstract class ShowThread
         }
     }
 
-    /**
-     * static
-     * @access  public
-     * @param   string  $pattern  ex)'/%full%/'
-     * @return  string
-     */
-    function getAnchorRegex($pattern,$name="")
-    {
-        static $caches_ = array();
-		static $parts= array(); //ShowThread::getAnchorRegexParts()
-
-        if (!array_key_exists($pattern, $caches_) || $name) {
-            $caches_[$pattern] = StrSjis::fixSjisRegex(strtr($pattern, $parts));
-            // 大差はないが compileMobile2chUriCallBack() のように preg_relplace_callback()してもいいかも。
-			if (preg_match("/%(\w+)%/",$caches_[$pattern],$out) ) {
-				trigger_error("{$out[1]}の正規表現が未設定です。",E_USER_WARNING);
-			}
-
-			// 正規表現が文法的に正しいかどうかテスト
-			if (preg_match("/^[\/{]/",$pattern)) {
-				$matched=@preg_match($caches_[$pattern],"test");
-			} else {
-				$matched=@preg_match("/".$caches_[$pattern]."/","test");
-			}
-			if ($matched === false) {
-				$errobj=error_get_last();
-				if (preg_match("/offset (\d+)/",$errobj['message'],$out)) {
-					$offsetChr=substr($caches_[$pattern],$out[1],1);
-					$caches_[$pattern]=substr_replace($caches_[$pattern],"<b>{$offsetChr}</b>",$out[1],1);
-				}
-				$p=htmlspecialchars($pattern);
-				$v=htmlspecialchars($caches_[$pattern]);
-
-				$v=preg_replace("{&lt;(/?)b&gt;}","<$1b>",$v);
-				throw new Exception(
-					$errobj['message']
-					."<br>展開前正規表現：<pre><code>".$p."</code><pre>"
-					."<br>展開後正規表現：<pre><code>".$v."</code><pre>"
-				);
-			}
-
-			if ($name && !array_key_exists($name, $parts)) {
-				if (preg_match("/\W/",$name)) {
-					throw new Exception("不正なトークン名です：{$name}");
-				}
-				$parts['%'.$name.'%']=$caches_[$pattern];
-			}
-//			trigger_error(htmlspecialchars("{$pattern} changed {$caches_[$pattern]}"));
-        }
-        return $caches_[$pattern];
-    }
-
-    /**
-     * static
-     * @access  private
-     * @return  string
-     */
-    function getAnchorRegexParts()
-    {
-
-		$partsRegex['anchor_space']="(?:[ ]|　)";	// 空白文字
-
-		// アンカー引用子（ダブル、シングル）
-		$prefix_double=self::_readRegexFromFile('p2_anchor_prefix_double.txt');
-		array_unshift($prefix_double,"&gt;");	// デフォルト引用子
-
-		$partsRegex['prefix_double']="(?:".join("|",$prefix_double).")";
-		$partsRegex['prefix_double'].="%anchor_space%*".$partsRegex['prefix_double'];
-
-		// アンカー引用子（シングル）
-		$prefix_single=self::_readRegexFromFile('p2_anchor_prefix_single.txt');
-		array_unshift($prefix_single,"&gt;");	// デフォルト引用子
-
-		$partsRegex['prefix_single']="(?:".join("|",$prefix_single).")";
-
-		// アンカー引用子（オプション）
-		$prefix_option=self::_readRegexFromFile('p2_anchor_prefix_option.txt');
-		$partsRegex['prefix_option']=count($prefix_option) ? "(?:".join("|",$prefix_option).")?" : "";
-
-		// レス番号の区切り
-		$delimiter=self::_readRegexFromFile('p2_anchor_delimiter.txt');
-		array_unshift($delimiter,",");	// デフォルトの区切り文字
-
-//		array_unshift($delimiter,"%anchor_space%?");
-//		array_push($delimiter,"%anchor_space%?");
-
-		$partsRegex['delimiter']="(?:".join("|",$delimiter).")";
-
-		// レス範囲指定
-		$range_delimiter=self::_readRegexFromFile('p2_anchor_range_delimiter.txt');
-		array_unshift($range_delimiter,"-");	// デフォルトの範囲指定文字
-
-		$partsRegex['range_delimiter']="(?:".join("|",$range_delimiter).")";
-
-		// レス番号に付随する単語
-		$a_num_suffix=self::_readRegexFromFile('p2_anchor_num_option.txt');
-		$partsRegex['a_num_suffix']=count($num_suffix) ? "(?:".join("|",$a_num_suffix).")?" : "";
-
-		// 範囲指定群に付随する単語
-		$ranges_suffix=	self::_readRegexFromFile('p2_anchor_ranges_option.txt');
-		$partsRegex['ranges_suffix']=count($ranges_suffix) ? "(?:".	join("|",$ranges_suffix).")?" : "";
-
-		$partsRegex['no_prefix_suffix']="(".join("|",
-			array_merge($a_num_suffix,$ranges_suffix,
-				array(
-					"%anchor_space%*(＞|&gt;){1,2}",
-					"の続き"
-				)
-			)
-		).")";
-
-		// アンカーを無視する後続文字列
-		$ignore_suffix=self::_readRegexFromFile('p2_anchor_ignore.txt');
-		$partsRegex['ignore_suffix']=count($ignore_suffix) ? "(?!".join("|",$ignore_suffix).")" : "";
-
-		$non_prefix_enable=false;	// プレフィックスなしのアンカーを許可するかどうか
-
-        // アンカーの構成要素（正規表現パーツの配列）
-		$parts=array(
-
-			// 数字
-			'a_digit'	=>	"(?:\d|０|１|２|３|４|５|６|７|８|９)",
-
-			// アンカー引用子 >>
-//			'prefix'	=>	"(((?P<prefix_double>%prefix_double%)|(?P<prefix_single>%prefix_single%))%prefix_option%%anchor_space%*)",
-			'prefix'	=>	"(?:(?:%prefix_double%|%prefix_single%)%prefix_option%%anchor_space%*)",
-			'prefix2'	=>	"(?:(?:%prefix_double%|%prefix_single%)%prefix_option%%anchor_space%*)",
-
-			// レス番号
-			'a_num'		=>	'(?:%a_digit%{1,4}|%a_digit%(?:%anchor_space%+%a_digit%){1,3})',
-//			'a_num'		=>	'(%a_digit%{1,4}+)',
-			'a_range'	=>	"(?P<a_range>(?P<num1>%a_num%)%a_num_suffix%(?:%range_delimiter%%prefix2%?(?P<num2>%a_num%)%a_num_suffix%)?+)",
-			'a_range2'	=>	"(?P<a_range2>%a_num%%a_num_suffix%(?:%range_delimiter%%prefix2%?%a_num%%a_num_suffix%)?+)",
-
-			// レス範囲の列挙
-			'ranges'	=>
-				"(?P<ranges>%a_range%(?:(?:%delimiter%%prefix2%?|%prefix2%)%a_range2%)*%ranges_suffix%(?!%a_digit%))",
-
-			// レス番号の列挙
-			'nums'	=>	"%a_num%%a_num_suffix%(%delimiter%%a_num%%a_num_suffix%)*%ranges_suffix%(?!%a_digit%)",
-
-			// サフィックス以降の正規表現には0x40-0x7fまでの文字は使えない（SJISの２バイト目と被るので誤動作する）
-			// プレフィックス付きレス番号に続くサフィックス
-			'line_prefix'	=>	"(?P<line_prefix>^%anchor_space%*)", 
-			'line_suffix'	=>	"(%prefix2%?%anchor_space%*$)", //(?=(\s|　)*)"
-
-			'full'	=>	
-				"(?P<ignore_prefix>前スレ)?".	// アンカー引用子や数字の前にある場合アンカーそのものを無視する
-				"(".
-					"(?P<prefix>%prefix%)".		// 通常プレフィックス
-					"|%line_prefix%".	//行頭プレフィックス
-					($non_prefix_enable ? "|(?P<non_prefix>[^\d\w\.\/\-;&])" : "").		// プレフィックスなし
-				")".
-				"%ranges%".		//レス範囲・単独レスの列挙
-				"(?P<anchor_option>".
-					"(?(prefix)%ignore_suffix%|".	// プレフィックス付き
-						"(?(line_prefix)%line_suffix%".	//行頭プレフィックスならばスペースだけ
-						($non_prefix_enable ? "|%no_prefix_suffix%" : "").	// プレフィックスなし
-						")". 
-				"))".
-
-				"",
-
-		);
-		$parts=array_merge($partsRegex,$parts);
-		foreach ($parts as $k=>$v) {
-			try{
-				$this->getAnchorRegex($v,$k);
-			} catch (Exception $e) {
-				$print_v=htmlspecialchars($v);
-				trigger_error(
-					"トークン %{$k}% に設定するパターン<pre><code>{$print_v}</code></pre>が正しくありません。<br>".$e->getMessage(),E_USER_WARNING
-				);
-			}
-		}
-	}
-
-    /**
-     * readRegexFromFile
-     */
-    static private function _readRegexFromFile($filename)
-    {
-        global $_conf;
-
-        $file = $_conf['pref_dir'] . '/' . $filename;
-		$array=array();
-
-        if ($lines = FileCtl::file_read_lines($file)) {
-			$lineno=0;
-            foreach ($lines as $l) {
-				$lineno++;
-                $lar = explode("\t", trim($l));
-                if (strlen($lar[0]) == 0) {
-                    continue;
-                }
-				try{
-					$array[]=self::getAnchorRegex($lar[0]);
-				} catch (Exception $e) {
-					$print_v=htmlspecialchars($lar[0]);
-					trigger_error(
-						"{$filename}の{$lineno}行目から読み込んだ正規表現<pre><code>{$lar[0]}</code></pre>が正しくありません。"
-//						." in <b>".__FILE__ ."</b> on line <b>".__LINE__."</b>"
-						."<br>".$e->getMessage(),E_USER_ERROR
-					);
-				}
-			}
-        }
-        return $array;
-    }
-
-    /**
-     * @access  private
-     * @return  string
-     */
-    function buildStrToLinkRegex()
-    {
-		try{
-			return $str_to_link_regex = $this->getAnchorRegex(
-				'{'
-	            . '(?P<link>(<[Aa] .+?>)(.*?)(</[Aa]>))' // リンク（PCREの特性上、必ずこのパターンを最初に試行する）
-	            . '|'
-	            .   '(?P<url>'
-	            .       '(ftp|h?ttps?|tps?)://([0-9A-Za-z][\\w!#%&+*,\\-./:;=?@\\[\\]^~]+)' // URL
-	            .   ')'
-	            . '|'
-	            .   '(?P<id>'.
-						'(?:ID: ?([0-9A-Za-z/.+]{8,11}))'. // ID（8,10桁 +PC/携帯識別フラグ）
-					'|'.
-						'(?:発信元:((?:[1-9]\d{0,2})(?:\.[1-9]\d{0,2}){3}))'.
-					')'
-	            . '|'
-	            .   '(?P<quote>' // 引用
-				.       "%full%"
-	            .   ')'
-	            . '}m'
-			)
-			;
-		} catch (Exception $e) {
-			trigger_error(
-				"$str_to_link_regexが正しくありません。<br>".$e->getMessage(),E_USER_ERROR
-			);
-		}
-    }
-
-// (?(11)yes-regexp|no-regexp) 
-// 11番目のキャプチャグループ(%prefix%)にマッチする場合はyes-regexpを、
-// そうでない場合はno-regexpを使う
-
     // {{{ getDatToHtml()
 
     /**
@@ -527,6 +292,8 @@ abstract class ShowThread
         $to = $this->thread->resrange['to'];
         $nofirst = $this->thread->resrange['nofirst'];
 
+        $count = count($this->thread->datlines);
+
         $buf['body'] = $is_fragment ? '' : "<div class=\"thread\">\n";
         $buf['q'] = '';
 
@@ -543,7 +310,8 @@ abstract class ShowThread
 
         // 連鎖のため、範囲外のNGあぼーんチェック
         if ($_conf['ngaborn_chain_all'] && empty($_GET['nong'])) {
-            for ($i = ($nofirst) ? 0 : 1; $i < $start; $i++) {
+            $pre = min($count, $start);
+            for ($i = ($nofirst) ? 0 : 1; $i < $pre; $i++) {
                 list($name, $mail, $date_id, $msg) = $this->thread->explodeDatLine($this->thread->datlines[$i]);
                 if (($id = $this->thread->ids[$i]) !== null) {
                     $date_id = str_replace($this->thread->idp[$i] . $id, $idstr, $date_id);
@@ -553,13 +321,10 @@ abstract class ShowThread
         }
 
         // 指定範囲を表示
-        for ($i = $start - 1; $i < $to; $i++) {
+        $end = min($count, $to);
+        for ($i = $start - 1; $i < $end; $i++) {
             if (!$nofirst and $i == 0) {
                 continue;
-            }
-            if (!$this->thread->datlines[$i]) {
-                $this->thread->readnum = $i;
-                break;
             }
             $res = $this->transRes($this->thread->datlines[$i], $i + 1);
             if (is_array($res)) {
@@ -573,6 +338,9 @@ abstract class ShowThread
                 flush();
                 $buf['body'] = '';
             }
+        }
+        if ($this->thread->readnum < $end) {
+            $this->thread->readnum = $end;
         }
 
         if (!$is_fragment) {
@@ -1764,7 +1532,255 @@ return $this->thread->res_matched[$i]=false;
 		}
 		return $this->thread->res_matched[$i]=true;
 	}
-    // }}}
+
+    /**
+     * static
+     * @access  public
+     * @param   string  $pattern  ex)'/%full%/'
+     * @return  string
+     */
+    function getAnchorRegex($pattern,$name="")
+    {
+        static $caches_ = array();
+		static $parts= array(); //ShowThread::getAnchorRegexParts()
+
+        if (!array_key_exists($pattern, $caches_) || $name) {
+            $caches_[$pattern] = StrSjis::fixSjisRegex(strtr($pattern, $parts));
+            // 大差はないが compileMobile2chUriCallBack() のように preg_relplace_callback()してもいいかも。
+			if (preg_match("/%(\w+)%/",$caches_[$pattern],$out) ) {
+				trigger_error("{$out[1]}の正規表現が未設定です。",E_USER_WARNING);
+			}
+
+			// 正規表現が文法的に正しいかどうかテスト
+			if (preg_match("/^[\/{]/",$pattern)) {
+				$matched=@preg_match($caches_[$pattern],"test");
+			} else {
+				$matched=@preg_match("/".$caches_[$pattern]."/","test");
+			}
+			if ($matched === false) {
+				$errobj=error_get_last();
+				if (preg_match("/offset (\d+)/",$errobj['message'],$out)) {
+					$offsetChr=substr($caches_[$pattern],$out[1],1);
+					$caches_[$pattern]=substr_replace($caches_[$pattern],"<b>{$offsetChr}</b>",$out[1],1);
+				}
+				$p=htmlspecialchars($pattern);
+				$v=htmlspecialchars($caches_[$pattern]);
+
+				$v=preg_replace("{&lt;(/?)b&gt;}","<$1b>",$v);
+				throw new Exception(
+					$errobj['message']
+					."<br>展開前正規表現：<pre><code>".$p."</code><pre>"
+					."<br>展開後正規表現：<pre><code>".$v."</code><pre>"
+				);
+			}
+
+			if ($name && !array_key_exists($name, $parts)) {
+				if (preg_match("/\W/",$name)) {
+					throw new Exception("不正なトークン名です：{$name}");
+				}
+				$parts['%'.$name.'%']=$caches_[$pattern];
+			}
+//			trigger_error(htmlspecialchars("{$pattern} changed {$caches_[$pattern]}"));
+        }
+        return $caches_[$pattern];
+    }
+
+    /**
+     * static
+     * @access  private
+     * @return  string
+     */
+    function _getAnchorRegexParts()
+    {
+
+		$partsRegex['anchor_space']="(?:[ ]|　)";	// 空白文字
+
+		// アンカー引用子（ダブル、シングル）
+		$prefix_double=self::_readRegexFromFile('p2_anchor_prefix_double.txt');
+		array_unshift($prefix_double,"&gt;");	// デフォルト引用子
+
+		$partsRegex['prefix_double']="(?:".join("|",$prefix_double).")";
+		$partsRegex['prefix_double'].="%anchor_space%*".$partsRegex['prefix_double'];
+
+		// アンカー引用子（シングル）
+		$prefix_single=self::_readRegexFromFile('p2_anchor_prefix_single.txt');
+		array_unshift($prefix_single,"&gt;");	// デフォルト引用子
+
+		$partsRegex['prefix_single']="(?:".join("|",$prefix_single).")";
+
+		// アンカー引用子（オプション）
+		$prefix_option=self::_readRegexFromFile('p2_anchor_prefix_option.txt');
+		$partsRegex['prefix_option']=count($prefix_option) ? "(?:".join("|",$prefix_option).")?" : "";
+
+		// レス番号の区切り
+		$delimiter=self::_readRegexFromFile('p2_anchor_delimiter.txt');
+		array_unshift($delimiter,",");	// デフォルトの区切り文字
+
+//		array_unshift($delimiter,"%anchor_space%?");
+//		array_push($delimiter,"%anchor_space%?");
+
+		$partsRegex['delimiter']="(?:".join("|",$delimiter).")";
+
+		// レス範囲指定
+		$range_delimiter=self::_readRegexFromFile('p2_anchor_range_delimiter.txt');
+		array_unshift($range_delimiter,"-");	// デフォルトの範囲指定文字
+
+		$partsRegex['range_delimiter']="(?:".join("|",$range_delimiter).")";
+
+		// レス番号に付随する単語
+		$a_num_suffix=self::_readRegexFromFile('p2_anchor_num_option.txt');
+		$partsRegex['a_num_suffix']=count($num_suffix) ? "(?:".join("|",$a_num_suffix).")?" : "";
+
+		// 範囲指定群に付随する単語
+		$ranges_suffix=	self::_readRegexFromFile('p2_anchor_ranges_option.txt');
+		$partsRegex['ranges_suffix']=count($ranges_suffix) ? "(?:".	join("|",$ranges_suffix).")?" : "";
+
+		$partsRegex['no_prefix_suffix']="(".join("|",
+			array_merge($a_num_suffix,$ranges_suffix,
+				array(
+					"%anchor_space%*(＞|&gt;){1,2}",
+					"の続き"
+				)
+			)
+		).")";
+
+		// アンカーを無視する後続文字列
+		$ignore_suffix=self::_readRegexFromFile('p2_anchor_ignore.txt');
+		$partsRegex['ignore_suffix']=count($ignore_suffix) ? "(?!".join("|",$ignore_suffix).")" : "";
+
+		$non_prefix_enable=false;	// プレフィックスなしのアンカーを許可するかどうか
+
+        // アンカーの構成要素（正規表現パーツの配列）
+		$parts=array(
+
+			// 数字
+			'a_digit'	=>	"(?:\d|０|１|２|３|４|５|６|７|８|９)",
+
+			// アンカー引用子 >>
+//			'prefix'	=>	"(((?P<prefix_double>%prefix_double%)|(?P<prefix_single>%prefix_single%))%prefix_option%%anchor_space%*)",
+			'prefix'	=>	"(?:(?:%prefix_double%|%prefix_single%)%prefix_option%%anchor_space%*)",
+			'prefix2'	=>	"(?:(?:%prefix_double%|%prefix_single%)%prefix_option%%anchor_space%*)",
+
+			// レス番号
+			'a_num'		=>	'(?:%a_digit%{1,4}|%a_digit%(?:%anchor_space%+%a_digit%){1,3})',
+//			'a_num'		=>	'(%a_digit%{1,4}+)',
+			'a_range'	=>	"(?P<a_range>(?P<num1>%a_num%)%a_num_suffix%(?:%range_delimiter%%prefix2%?(?P<num2>%a_num%)%a_num_suffix%)?+)",
+			'a_range2'	=>	"(?P<a_range2>%a_num%%a_num_suffix%(?:%range_delimiter%%prefix2%?%a_num%%a_num_suffix%)?+)",
+
+			// レス範囲の列挙
+			'ranges'	=>
+				"(?P<ranges>%a_range%(?:(?:%delimiter%%prefix2%?|%prefix2%)%a_range2%)*%ranges_suffix%(?!%a_digit%))",
+
+			// レス番号の列挙
+			'nums'	=>	"%a_num%%a_num_suffix%(%delimiter%%a_num%%a_num_suffix%)*%ranges_suffix%(?!%a_digit%)",
+
+			// サフィックス以降の正規表現には0x40-0x7fまでの文字は使えない（SJISの２バイト目と被るので誤動作する）
+			// プレフィックス付きレス番号に続くサフィックス
+			'line_prefix'	=>	"(?P<line_prefix>^%anchor_space%*)", 
+			'line_suffix'	=>	"(%prefix2%?%anchor_space%*$)", //(?=(\s|　)*)"
+
+			'full'	=>	
+				"(?P<ignore_prefix>前スレ)?".	// アンカー引用子や数字の前にある場合アンカーそのものを無視する
+				"(".
+					"(?P<prefix>%prefix%)".		// 通常プレフィックス
+					"|%line_prefix%".	//行頭プレフィックス
+					($non_prefix_enable ? "|(?P<non_prefix>[^\d\w\.\/\-;&])" : "").		// プレフィックスなし
+				")".
+				"%ranges%".		//レス範囲・単独レスの列挙
+				"(?P<anchor_option>".
+					"(?(prefix)%ignore_suffix%|".	// プレフィックス付き
+						"(?(line_prefix)%line_suffix%".	//行頭プレフィックスならばスペースだけ
+						($non_prefix_enable ? "|%no_prefix_suffix%" : "").	// プレフィックスなし
+						")". 
+				"))".
+
+				"",
+
+		);
+		$parts=array_merge($partsRegex,$parts);
+		foreach ($parts as $k=>$v) {
+			try{
+				$this->getAnchorRegex($v,$k);
+			} catch (Exception $e) {
+				$print_v=htmlspecialchars($v);
+				trigger_error(
+					"トークン %{$k}% に設定するパターン<pre><code>{$print_v}</code></pre>が正しくありません。<br>".$e->getMessage(),E_USER_WARNING
+				);
+			}
+		}
+	}
+
+    /**
+     * readRegexFromFile
+     */
+    static private function _readRegexFromFile($filename)
+    {
+        global $_conf;
+
+        $file = $_conf['pref_dir'] . '/' . $filename;
+		$array=array();
+
+        if ($lines = FileCtl::file_read_lines($file)) {
+			$lineno=0;
+            foreach ($lines as $l) {
+				$lineno++;
+                $lar = explode("\t", trim($l));
+                if (strlen($lar[0]) == 0) {
+                    continue;
+                }
+				try{
+					$array[]=self::getAnchorRegex($lar[0]);
+				} catch (Exception $e) {
+					$print_v=htmlspecialchars($lar[0]);
+					trigger_error(
+						"{$filename}の{$lineno}行目から読み込んだ正規表現<pre><code>{$lar[0]}</code></pre>が正しくありません。"
+//						." in <b>".__FILE__ ."</b> on line <b>".__LINE__."</b>"
+						."<br>".$e->getMessage(),E_USER_ERROR
+					);
+				}
+			}
+        }
+        return $array;
+    }
+
+    /**
+     * @access  private
+     * @return  string
+     */
+    function buildStrToLinkRegex()
+    {
+		try{
+			return $str_to_link_regex = $this->getAnchorRegex(
+				'{'
+	            . '(?P<link>(<[Aa] .+?>)(.*?)(</[Aa]>))' // リンク（PCREの特性上、必ずこのパターンを最初に試行する）
+	            . '|'
+	            .   '(?P<url>'
+	            .       '(ftp|h?ttps?|tps?)://([0-9A-Za-z][\\w!#%&+*,\\-./:;=?@\\[\\]^~]+)' // URL
+	            .   ')'
+	            . '|'
+	            .   '(?P<id>'.
+						'(?:ID: ?([0-9A-Za-z/.+]{8,11}))'. // ID（8,10桁 +PC/携帯識別フラグ）
+					'|'.
+						'(?:発信元:((?:[1-9]\d{0,2})(?:\.[1-9]\d{0,2}){3}))'.
+					')'
+	            . '|'
+	            .   '(?P<quote>' // 引用
+				.       "%full%"
+	            .   ')'
+	            . '}m'
+			)
+			;
+		} catch (Exception $e) {
+			trigger_error(
+				"$str_to_link_regexが正しくありません。<br>".$e->getMessage(),E_USER_ERROR
+			);
+		}
+    }
+
+// (?(11)yes-regexp|no-regexp) 
+// 11番目のキャプチャグループ(%prefix%)にマッチする場合はyes-regexpを、
+// そうでない場合はno-regexpを使う
+
 }
 
 // }}}

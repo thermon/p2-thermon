@@ -43,6 +43,10 @@ if (!$_conf['ktai']) {
     $class_ttitle = ' class="thre_title"';
     $target_read = ' target="read"';
     $sub_size_at = ' size="40"';
+} else {
+    $class_ttitle = '';
+    $target_read = '';
+    $sub_size_at = '';
 }
 
 // {{{ ƒXƒŒ—§‚Ä‚È‚ç
@@ -118,8 +122,7 @@ echo <<<EOP
 <body{$body_at}>\n
 EOP;
 
-echo $_info_msg_ht;
-$_info_msg_ht = '';
+P2Util::printInfoHtml();
 
 // $htm['post_form'] ‚ðŽæ“¾
 require_once P2_LIB_DIR . '/post_form.inc.php';

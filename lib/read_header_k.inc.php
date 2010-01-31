@@ -14,7 +14,7 @@ $shinchaku_st = '新着';
 $moto_thre_st = '元';
 $siml_thre_st = '似';
 $latest_st = '新';
-$dores_st = 'ﾚｽ';
+$dores_st = '書';
 $find_st = '索';
 
 $motothre_url = $aThread->getMotoThread(false, '1-10');
@@ -63,7 +63,7 @@ $pointer_header_at = ' id="header" name="header"';
 //----------------------------------------------
 // $htm['read_navi_range'] -- 1- 101- 201-
 
-$htm['read_navi_range'] = "<a{$pointer_header_at} href=\"{$_conf['read_php']}?{$host_bbs_key_q}&amp;ls=1-{$rnum_range}{$offline_range_q}{$_conf['k_at_a']}\"{$_conf['k_accesskey_at'][1]}>1-</a>\t";
+$htm['read_navi_range'] = "<a{$pointer_header_at} href=\"{$_conf['read_php']}?{$host_bbs_key_q}&amp;ls=1-{$rnum_range}{$offline_q}{$_conf['k_at_a']}\"{$_conf['k_accesskey_at'][1]}>1-</a>\t";
 
 
 //----------------------------------------------
@@ -239,8 +239,7 @@ echo <<<EOP
 <body{$_conf['k_colors']}>\n
 EOP;
 
-echo $_info_msg_ht;
-$_info_msg_ht = "";
+P2Util::printInfoHtml();
 
 // スレが板サーバになければ============================
 if ($aThread->diedat) {

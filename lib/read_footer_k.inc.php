@@ -28,16 +28,16 @@ $htm['goto'] = kspform($aThread, ($_conf['filtering'] ? $last_hit_resnum : $aThr
 //=====================================================================
 // ƒvƒŠƒ“ƒg
 //=====================================================================
-if (($aThread->rescount or $_GET['one'] && !$aThread->diedat)) { // and (!$_GET['renzokupop'])
+if ($aThread->rescount or (!empty($_GET['one']) && !$aThread->diedat)) { // and (!$_GET['renzokupop'])
 
     if (!$aThread->diedat) {
         if (!empty($_conf['disable_res'])) {
             $dores_ht = <<<EOP
- | <a href="{$motothre_url}"{$_conf['k_accesskey_at']['res']}{$holdhandlers_at}>{$_conf['k_accesskey_st']['res']}{$dores_st}</a>
+ | <a href="{$motothre_url}"{$_conf['k_accesskey_at']['res']}>{$_conf['k_accesskey_st']['res']}{$dores_st}</a>
 EOP;
         } else {
             $dores_ht = <<<EOP
-<a href="post_form.php?{$host_bbs_key_q}&amp;rescount={$aThread->rescount}{$ttitle_en_q}{$_conf['k_at_a']}"{$_conf['k_accesskey_at']['res']}{$holdhandlers_at}>{$_conf['k_accesskey_st']['res']}{$dores_st}</a>
+<a href="post_form.php?{$host_bbs_key_q}&amp;rescount={$aThread->rescount}{$ttitle_en_q}{$_conf['k_at_a']}"{$_conf['k_accesskey_at']['res']}>{$_conf['k_accesskey_st']['res']}{$dores_st}</a>
 EOP;
         }
     } else {

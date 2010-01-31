@@ -8,9 +8,6 @@ require_once 'Net/UserAgent/Mobile.php';
 
 // {{{ ユーザー設定 読込
 
-// ユーザー設定ファイル
-$_conf['conf_user_file'] = $_conf['pref_dir'] . '/conf_user.srd.cgi';
-
 // ユーザー設定があれば読み込む
 if (file_exists($_conf['conf_user_file'])) {
     if ($cont = file_get_contents($_conf['conf_user_file'])) {
@@ -21,8 +18,10 @@ if (file_exists($_conf['conf_user_file'])) {
 
     // 何らかの理由でユーザー設定ファイルが壊れていたら
     if (!is_array($conf_user)) {
-        if (unlink($_conf['conf_user_file'])) {
-            $_info_msg_ht .= '<p>ユーザー設定ファイルが壊れていたので削除しました。</p>';
+        if (defined('P2_CLI_RUN')) {
+            p2die("ユーザー設定ファイル {$dispname} が読み込めなかったか、壊れています。");
+        } elseif (unlink($_conf['conf_user_file'])) {
+            P2Util::pushInfoHtml('<p>ユーザー設定ファイルが壊れていたので削除しました。</p>');
             $conf_user = array();
         } else {
             $dispname = '$_conf[\'pref_dir\']/' . basename($_conf['conf_user_file']);
@@ -39,7 +38,7 @@ if (file_exists($_conf['conf_user_file'])) {
         $config_version = '000000.0000';
     }
 
-    if ($config_version !== $_conf['p2expack']) {
+    if ($config_version !== $_conf['p2expack'] && !defined('P2_CLI_RUN')) {
         // 設定の更新
         if ($migrators = p2_check_migration($config_version)) {
             $conf_user = p2_invoke_migrators($migrators, $conf_user);
@@ -48,26 +47,33 @@ if (file_exists($_conf['conf_user_file'])) {
         // デフォルト設定を読み込み、ユーザー設定とともにマージ
         include P2_CONF_DIR . '/conf_user_def.inc.php';
         $_conf = array_merge($_conf, $conf_user_def, $conf_user);
-        $creae_config_cache = true;
+        $save_conf_user = true;
     } else {
         // キャッシュされていたユーザー設定をマージ
         $_conf = array_merge($_conf, $conf_user);
-        $creae_config_cache = false;
+        $save_conf_user = false;
     }
 } else {
     // デフォルト設定を読み込み、マージ
     include P2_CONF_DIR . '/conf_user_def.inc.php';
     $_conf = array_merge($_conf, $conf_user_def);
-    $creae_config_cache = true;
+    $save_conf_user = true;
 }
 
-// 新しいユーザー設定をキャッシュ
-if ($creae_config_cache) {
-    $conf_user = array('.' => $_conf['p2expack']);
+// コマンドラインモードではここまで
+if (defined('P2_CLI_RUN')) {
+    return;
+}
+
+// 新しいユーザー設定をシリアライズして保存
+if ($save_conf_user) {
+    $conf_save = array('.' => $_conf['p2expack']);
     foreach ($conf_user_def as $k => $v) {
-        $conf_user[$k] = $_conf[$k];
+        $conf_save[$k] = $_conf[$k];
     }
-    $cont = serialize($conf_user);
+
+    $cont = serialize($conf_save);
+    FileCtl::make_datafile($_conf['conf_user_file'], $_conf['conf_user_perm']);
     if (FileCtl::file_write_contents($_conf['conf_user_file'], $cont) === false) {
         $dispname = '$_conf[\'pref_dir\']/' . basename($_conf['conf_user_file']);
         p2die("ユーザー設定ファイル {$dispname} に書き込めませんでした。");
@@ -463,57 +469,34 @@ EOS;
 }
 
 // 携帯用「トップに戻る」リンクとaccesskey
+
+// デフォルト値
+$accesskeys = array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#');
+$_conf['k_accesskey_at'] = array();
+foreach ($accesskeys as $key) {
+    $_conf['k_accesskey_at'][$key] = " accesskey=\"{$key}\"";
+}
+$_conf['k_accesskey_st'] = array_combine($accesskeys, array_fill(0, count($accesskeys), ''));
+
 if ($_conf['ktai']) {
     // iPhone
     if ($_conf['iphone']) {
-        $_conf['k_accesskey_at'] = array_fill(0, 10, '');
-        $_conf['k_accesskey_at']['*'] = '';
-        $_conf['k_accesskey_at']['#'] = '';
-        foreach ($_conf['k_accesskey'] as $name => $key) {
-            $_conf['k_accesskey_at'][$name] = '';
+        // 強制iPhoneビュー以外はaccesskeyを使わない
+        if ($_conf['client_type'] == 'i') {
+            $_conf['k_accesskey_at'] = $_conf['k_accesskey_st'];
         }
-
-        $_conf['k_accesskey_st'] = $_conf['k_accesskey_at'];
-
         $_conf['k_to_index_ht'] = <<<EOP
-<a href="index.php{$_conf['k_at_q']}" class="button">TOP</a>
+<a href="index.php{$_conf['k_at_q']}" class="button"{$_conf['k_accesskey_at'][0]}>TOP</a>
 EOP;
 
     // その他
     } else {
-        // SoftBank Mobile
+        // SoftBank Mobile 旧型端末
         if ($_conf['accesskey'] == 'DIRECTKEY') {
-            $_conf['k_accesskey_at'] = array(
-                '0' => ' directkey="0" nonumber',
-                '1' => ' directkey="1" nonumber',
-                '2' => ' directkey="2" nonumber',
-                '3' => ' directkey="3" nonumber',
-                '4' => ' directkey="4" nonumber',
-                '5' => ' directkey="5" nonumber',
-                '6' => ' directkey="6" nonumber',
-                '7' => ' directkey="7" nonumber',
-                '8' => ' directkey="8" nonumber',
-                '9' => ' directkey="9" nonumber',
-                '*' => ' directkey="*" nonumber',
-                '#' => ' directkey="#" nonumber',
-            );
-
-        // その他
-        } else {
-            $_conf['k_accesskey_at'] = array(
-                '0' => ' accesskey="0"',
-                '1' => ' accesskey="1"',
-                '2' => ' accesskey="2"',
-                '3' => ' accesskey="3"',
-                '4' => ' accesskey="4"',
-                '5' => ' accesskey="5"',
-                '6' => ' accesskey="6"',
-                '7' => ' accesskey="7"',
-                '8' => ' accesskey="8"',
-                '9' => ' accesskey="9"',
-                '*' => ' accesskey="*"',
-                '#' => ' accesskey="#"',
-            );
+            $_conf['k_accesskey_at'] = array();
+            foreach ($accesskeys as $key) {
+                $_conf['k_accesskey_at'][$key] = " directkey=\"{$key}\" nonumber";
+            }
         }
 
         switch ($_conf['mobile.display_accesskey']) {
@@ -523,43 +506,29 @@ EOP;
             }
             $emoji = p2_get_emoji($mobile);
             //$emoji = p2_get_emoji(Net_UserAgent_Mobile::factory('KDDI-SA31 UP.Browser/6.2.0.7.3.129 (GUI) MMP/2.0'));
-            $_conf['k_accesskey_st'] = array(
-                '0' => $emoji[0],
-                '1' => $emoji[1],
-                '2' => $emoji[2],
-                '3' => $emoji[3],
-                '4' => $emoji[4],
-                '5' => $emoji[5],
-                '6' => $emoji[6],
-                '7' => $emoji[7],
-                '8' => $emoji[8],
-                '9' => $emoji[9],
-                '*' => $emoji['*'],
-                '#' => $emoji['#'],
-            );
+            $_conf['k_accesskey_st'] = array();
+            foreach ($accesskeys as $key) {
+                $_conf['k_accesskey_st'][$key] = $emoji[$key];
+            }
             break;
         case 0:
-            $_conf['k_accesskey_st'] = array_fill(0, 10, '');
-            $_conf['k_accesskey_st']['*'] = '';
-            $_conf['k_accesskey_st']['#'] = '';
             break;
         case 1:
         default:
-            $_conf['k_accesskey_st'] = array(
-                0 => '0.', 1 => '1.', 2 => '2.', 3 => '3.', 4 => '4.',
-                5 => '5.', 6 => '6.', 7 => '7.', 8 => '8.', 9 => '9.',
-                '*' => '*.', '#' => '#.'
-            );
-        }
-
-        foreach ($_conf['k_accesskey'] as $name => $key) {
-            $_conf['k_accesskey_at'][$name] = $_conf['k_accesskey_at'][$key];
-            $_conf['k_accesskey_st'][$name] = $_conf['k_accesskey_st'][$key];
+            $_conf['k_accesskey_st'] = array();
+            foreach ($accesskeys as $key) {
+                $_conf['k_accesskey_st'][$key] = $key . '.';
+            }
         }
 
         $_conf['k_to_index_ht'] = <<<EOP
 <a href="index.php{$_conf['k_at_q']}"{$_conf['k_accesskey_at'][0]}>{$_conf['k_accesskey_st'][0]}TOP</a>
 EOP;
+    }
+
+    foreach ($_conf['k_accesskey'] as $name => $key) {
+        $_conf['k_accesskey_at'][$name] = $_conf['k_accesskey_at'][$key];
+        $_conf['k_accesskey_st'][$name] = $_conf['k_accesskey_st'][$key];
     }
 }
 
@@ -627,7 +596,7 @@ session_name('PS');
 
 if ($_conf['session_save'] == 'p2' and session_module_name() == 'files') {
     if (!is_dir($_conf['session_dir'])) {
-        FileCtl::mkdir_r($_conf['session_dir']);
+        FileCtl::mkdirRecursive($_conf['session_dir']);
     } elseif (!is_writable($_conf['session_dir'])) {
         p2die("セッションデータ保存ディレクトリ ({$_conf['session_dir']}) に書き込み権限がありません。");
     }
