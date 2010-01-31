@@ -339,9 +339,9 @@ if ($_conf['res_write_rec']) {
 
     // 書き込み処理
     if (FileCtl::file_write_contents($_conf['res_hist_dat'], $cont, FILE_APPEND) === false) {
-        trigger_error('p2 error: 書き込みログの保存に失敗しました', E_USER_WARNING);
+        trigger_error('rep2 error: 書き込みログの保存に失敗しました', E_USER_WARNING);
         // これは実際は表示されないけれども
-        //$_info_msg_ht .= "<p>p2 error: 書き込みログの保存に失敗しました</p>";
+        //P2Util::pushInfoHtml('<p>rep2 error: 書き込みログの保存に失敗しました</p>');
     }
 }
 
@@ -377,7 +377,7 @@ function postIt($host, $bbs, $key, $post)
         $send_path = $bbs_cgi_url;
     } else {
         $send_host = $URL['host'];
-        $send_port = $URL['port'];
+        $send_port = isset($URL['port']) ? $URL['port'] : 80;
         $send_path = $URL['path'] . $URL['query'];
     }
 
@@ -435,20 +435,25 @@ function postIt($host, $bbs, $key, $post)
     // }}}
 
     // WEBサーバへ接続
-    $fp = fsockopen($send_host, $send_port, $errno, $errstr, $_conf['fsockopen_time_limit']);
+    $fp = fsockopen($send_host, $send_port, $errno, $errstr, $_conf['http_conn_timeout']);
     if (!$fp) {
+        $errstr = htmlspecialchars($errstr, ENT_QUOTES);
         showPostMsg(false, "サーバ接続エラー: $errstr ($errno)<br>p2 Error: 板サーバへの接続に失敗しました", false);
         return false;
     }
+    stream_set_timeout($fp, $_conf['http_read_timeout'], 0);
 
     //echo '<h4>$request</h4><p>' . $request . "</p>"; //for debug
     fputs($fp, $request);
 
-    while (!feof($fp)) {
+    $start_here = false;
+    $post_seikou = false;
+
+    while (!p2_stream_eof($fp, $timed_out)) {
 
         if ($start_here) {
-
-            while (!feof($fp)) {
+            $wr = '';
+            while (!p2_stream_eof($fp, $timed_out)) {
                 $wr .= fread($fp, 164000);
             }
             $response = $wr;
@@ -457,7 +462,6 @@ function postIt($host, $bbs, $key, $post)
         } else {
             $l = fgets($fp, 164000);
             //echo $l .'<br>'; // for debug
-            $response_header_ht .= $l . '<br>';
             // クッキーキタ
             if (preg_match('/Set-Cookie: (.+?)\\r\\n/', $l, $matches)) {
                 //echo '<p>' . $matches[0] . '</p>'; //
@@ -476,7 +480,7 @@ function postIt($host, $bbs, $key, $post)
                     }
                 }
                 if ($p2cookies) {
-                    unset($cookies_to_send);
+                    $cookies_to_send = '';
                     foreach ($p2cookies as $cname => $cvalue) {
                         if ($cname != 'expires') {
                             $cookies_to_send .= " {$cname}={$cvalue};";
@@ -587,11 +591,12 @@ function showPostMsg($isDone, $result_msg, $reload)
 {
     global $_conf, $location_ht, $popup, $ttitle, $ptitle;
     global $STYLE, $skin_en;
-    global $_info_msg_ht;
 
     // プリント用変数 ===============
     if (!$_conf['ktai']) {
         $class_ttitle = ' class="thre_title"';
+    } else {
+        $class_ttitle = '';
     }
     $ttitle_ht = "<b{$class_ttitle}>{$ttitle}</b>";
     // 2005/03/01 aki: jigブラウザに対応するため、&amp; ではなく & で
@@ -609,6 +614,7 @@ function showPostMsg($isDone, $result_msg, $reload)
 EOJS;
 
     } else {
+        $popup_ht = '';
         $_conf['extra_headers_ht'] .= <<<EOP
 <meta http-equiv="refresh" content="1;URL={$location_noenc}">
 EOP;
@@ -650,6 +656,7 @@ EOSCRIPT;
         if ($reload) {
             echo $popup_ht;
         }
+        $kakunin_ht = '';
     } else {
         $kakunin_ht = <<<EOP
 <p><a href="{$location_ht}">確認</a></p>
@@ -659,8 +666,7 @@ EOP;
     echo "</head>\n";
     echo "<body{$_conf['k_colors']}>\n";
 
-    echo $_info_msg_ht;
-    $_info_msg_ht = "";
+    P2Util::printInfoHtml();
 
     echo <<<EOP
 <p>{$ttitle_ht}</p>

@@ -101,17 +101,17 @@ ob_start();
 // &amp;sb_view={$sb_view}
 if ($aThreadList->spmode) {
     $sb_ht = <<<EOP
-<a href="{$_conf['subject_php']}?host={$aThreadList->host}&amp;bbs={$aThreadList->bbs}&amp;spmode={$aThreadList->spmode}{$_conf['k_at_a']}" target="_blank">{$ptitle_hd}</a>
+<a href="{$_conf['subject_php']}?host={$aThreadList->host}&amp;bbs={$aThreadList->bbs}&amp;spmode={$aThreadList->spmode}{$_conf['k_at_a']}">{$ptitle_hd}</a>
 EOP;
     $sb_ht_btm = <<<EOP
-<a href="{$_conf['subject_php']}?host={$aThreadList->host}&amp;bbs={$aThreadList->bbs}&amp;spmode={$aThreadList->spmode}{$_conf['k_at_a']}"{$_conf['k_accesskey_at']['up']} target="_blank">{$_conf['k_accesskey_st']['up']}{$ptitle_hd}</a>
+<a href="{$_conf['subject_php']}?host={$aThreadList->host}&amp;bbs={$aThreadList->bbs}&amp;spmode={$aThreadList->spmode}{$_conf['k_at_a']}"{$_conf['k_accesskey_at']['up']}>{$_conf['k_accesskey_st']['up']}{$ptitle_hd}</a>
 EOP;
 } else {
     $sb_ht = <<<EOP
-<a href="{$_conf['subject_php']}?host={$aThreadList->host}&amp;bbs={$aThreadList->bbs}{$_conf['k_at_a']}" target="_blank">{$ptitle_hd}</a>
+<a href="{$_conf['subject_php']}?host={$aThreadList->host}&amp;bbs={$aThreadList->bbs}{$_conf['k_at_a']}">{$ptitle_hd}</a>
 EOP;
     $sb_ht_btm = <<<EOP
-<a href="{$_conf['subject_php']}?host={$aThreadList->host}&amp;bbs={$aThreadList->bbs}{$_conf['k_at_a']}"{$_conf['k_accesskey_at']['up']} target="_blank">{$_conf['k_accesskey_st']['up']}{$ptitle_hd}</a>
+<a href="{$_conf['subject_php']}?host={$aThreadList->host}&amp;bbs={$aThreadList->bbs}{$_conf['k_at_a']}"{$_conf['k_accesskey_at']['up']}>{$_conf['k_accesskey_st']['up']}{$ptitle_hd}</a>
 EOP;
 }
 
@@ -175,8 +175,7 @@ echo <<<EOP
 <a class="button" id="above" name="above" href="#bottom"{$_conf['k_accesskey_at']['bottom']}>{$_conf['k_accesskey_st']['bottom']}▼</a></div>\n
 EOP;
 
-echo $_info_msg_ht;
-$_info_msg_ht = "";
+P2Util::printInfoHtml();
 
 //==============================================================
 // それぞれの行解析
@@ -300,8 +299,7 @@ for ($x = 0; $x < $linesize; $x++) {
 
     if ($aThread->isonline) { $online_num++; } // 生存数set
 
-    echo $_info_msg_ht;
-    $_info_msg_ht = '';
+    P2Util::printInfoHtml();
 
     $matomeCache->concat(ob_get_flush());
     flush();
@@ -333,7 +331,7 @@ for ($x = 0; $x < $linesize; $x++) {
 function readNew($aThread)
 {
     global $_conf, $newthre_num, $STYLE;
-    global $_info_msg_ht, $spmode, $word;
+    global $spmode, $word;
 
     $newthre_num++;
 
@@ -344,7 +342,7 @@ function readNew($aThread)
     //hostを分解してidxファイルのパスを求める
     $aThread->setThreadPathInfo($aThread->host, $aThread->bbs, $aThread->key);
 
-    //FileCtl::mkdir_for($aThread->keyidx); // 板ディレクトリが無ければ作る //この操作はおそらく不要
+    //FileCtl::mkdirFor($aThread->keyidx); // 板ディレクトリが無ければ作る //この操作はおそらく不要
 
     $aThread->itaj = P2Util::getItaName($aThread->host, $aThread->bbs);
     if (!$aThread->itaj) { $aThread->itaj = $aThread->bbs; }
@@ -414,10 +412,11 @@ function readNew($aThread)
 
     if ($spmode) {
         $read_header_itaj_ht = " ({$itaj_hd})";
+    } else {
+        $read_header_itaj_ht = '';
     }
 
-    echo $_info_msg_ht;
-    $_info_msg_ht = "";
+    P2Util::printInfoHtml();
 
     $read_header_ht = <<<EOP
 <hr><div id="ntt{$newthre_num}" name="ntt{$newthre_num}"><font color="{$STYLE['mobile_read_ttitle_color']}"><b>{$aThread->ttitle_hd}</b></font>{$read_header_itaj_ht} {$next_thre_ht}</div>
@@ -481,7 +480,7 @@ EOP;
     // ツールバー部分HTML =======
     if ($spmode) {
         $toolbar_itaj_ht = <<<EOP
- (<a href="{$_conf['subject_php']}?{$host_bbs_key_q}{$_conf['k_at_a']}" target="_blank">{$itaj_hd}</a>)
+ (<a href="{$_conf['subject_php']}?{$host_bbs_key_q}{$_conf['k_at_a']}">{$itaj_hd}</a>)
 EOP;
     } else {
         $toolbar_itaj_ht = '';
@@ -498,10 +497,10 @@ EOTOOLBAR;
     $read_footer_ht = <<<EOP
 <div id="ntt_bt{$newthre_num}" name="ntt_bt{$newthre_num}" class="read_new_toolbar">
 {$read_range_ht}
-<a class="button" href="info.php?{$host_bbs_key_q}{$ttitle_en_q}{$_conf['k_at_a']}" target="_blank">{$info_st}</a>
-<a class="button" href="spm_k.php?{$host_bbs_key_q}&amp;ls={$aThread->ls}&amp;spm_default={$aThread->resrange['to']}&amp;from_read_new=1{$_conf['k_at_a']}" target="_blank">特</a>
+<a class="button" href="info.php?{$host_bbs_key_q}{$ttitle_en_q}{$_conf['k_at_a']}">{$info_st}</a>
+<a class="button" href="spm_k.php?{$host_bbs_key_q}&amp;ls={$aThread->ls}&amp;spm_default={$aThread->resrange['to']}&amp;from_read_new=1{$_conf['k_at_a']}">特</a>
 <br>
-<a href="{$_conf['read_php']}?{$host_bbs_key_q}&amp;offline=1&amp;rescount={$aThread->rescount}{$_conf['k_at_a']}#r{$aThread->rescount}" target="_blank">{$aThread->ttitle_hd}</a>{$toolbar_itaj_ht}
+<a href="{$_conf['read_php']}?{$host_bbs_key_q}&amp;offline=1&amp;rescount={$aThread->rescount}{$_conf['k_at_a']}#r{$aThread->rescount}">{$aThread->ttitle_hd}</a>{$toolbar_itaj_ht}
 <a class="button" href="#ntt{$newthre_num}">▲</a>
 </div>
 <hr>\n

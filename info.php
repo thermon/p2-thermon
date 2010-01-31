@@ -205,6 +205,7 @@ EOP;
 // {{{ palace チェック
 
 // 殿堂入りスレリスト 読込
+$isPalace = false;
 if ($pallines = FileCtl::file_read_lines($_conf['palace_idx'], FILE_IGNORE_NEW_LINES)) {
     foreach ($pallines as $l) {
         $palarray = explode('<>', $l);
@@ -266,6 +267,8 @@ EOP;
 // ログありなしフラグセット
 if (file_exists($aThread->keydat) or file_exists($aThread->keyidx)) {
     $existLog = true;
+} else {
+    $existLog = false;
 }
 
 //=================================================================
@@ -287,7 +290,7 @@ if (P2Util::isHost2chs($aThread->host)) {
 }
 
 
-if (!is_null($title_msg)) {
+if (isset($title_msg)) {
     $hc['title'] = $title_msg;
 } else {
     $hc['title'] = "info - {$hc['ttitle_name']}";
@@ -330,8 +333,7 @@ echo <<<EOP
 <body{$body_at}>
 EOP;
 
-echo $_info_msg_ht;
-$_info_msg_ht = "";
+P2Util::printInfoHtml();
 
 echo "<p>\n";
 echo "<b><a class=\"thre_title\" href=\"{$_conf['read_php']}?{$common_q}{$_conf['k_at_a']}\"{$target_read_at}>{$hd['ttitle_name']}</a></b>\n";
@@ -346,6 +348,8 @@ if ($_conf['ktai']) {
 
 if (checkRecent($aThread->host, $aThread->bbs, $aThread->key) or checkResHist($aThread->host, $aThread->bbs, $aThread->key)) {
     $offrec_ht = " / [<a href=\"info.php?{$common_q}&amp;offrec=true{$popup_q}{$ttitle_en_q}{$_conf['k_at_a']}\" title=\"このスレを「最近読んだスレ」と「書き込み履歴」から外します\">履歴から外す</a>]";
+} else {
+    $offrec_ht = '';
 }
 
 if (!$_conf['ktai']) {
@@ -400,7 +404,7 @@ if (!$_conf['ktai']) {
 
 if (!$_conf['ktai']) {
     if (!empty($info_msg)) {
-        echo "<span class=\"infomsg\">".$info_msg."</span>\n";
+        echo "<span class=\"info-msg\">{$info_msg}</span>\n";
     } else {
         echo "　\n";
     }

@@ -70,7 +70,7 @@ if (!isset($GLOBALS['word'])) {
         if ($res_filter) {
             $res_filter_cont = serialize($res_filter);
         }
-        if ($res_filter_cont && !$popup_filter) {
+        if ($res_filter_cont && empty($popup_filter)) {
             if (FileCtl::file_write_contents($cachefile, $res_filter_cont) === false) {
                 p2die('cannot write file.');
             }
@@ -107,7 +107,7 @@ if (!isset($aThread->keyidx)) {
 }
 
 // 板ディレクトリが無ければ作る
-// FileCtl::mkdir_for($aThread->keyidx);
+// FileCtl::mkdirFor($aThread->keyidx);
 
 $aThread->itaj = P2Util::getItaName($host, $bbs);
 if (!$aThread->itaj) { $aThread->itaj = $aThread->bbs; }

@@ -4,7 +4,7 @@
  * for read.php
  */
 
-if (!isset($STYLE['respop_bgcolor']))	{ $STYLE['respop_bgcolor'] = '#ffffcc'; }
+if (!isset($STYLE['respop_bgcolor']))    { $STYLE['respop_bgcolor'] = '#ffffcc'; }
 if (!isset($STYLE['respop_background'])) { $STYLE['respop_background'] = ''; }
 $respop_background = "background:{$STYLE['respop_bgcolor']} {$STYLE['respop_background']};";
 
@@ -13,15 +13,16 @@ if (!isset($STYLE['respop_b_width'])) { $STYLE['respop_b_width'] = '1px';   }
 if (!isset($STYLE['respop_b_color'])) { $STYLE['respop_b_color'] = 'black'; }
 $respop_border = "border:{$STYLE['respop_b_style']} {$STYLE['respop_b_width']} {$STYLE['respop_b_color']};";
 
-$respop_color = '';
 if (isset($STYLE['respop_color']) && strlen($STYLE['respop_color']) > 0) {
-	$respop_color = "color:{$STYLE['respop_color']};";
+    $respop_color = "color: {$STYLE['respop_color']};";
+} else {
+    $respop_color = '';
 }
 
-if ($STYLE['fontfamily_bold']) {
-	$fontstyle_bold = empty($STYLE['fontstyle_bold']) ? 'normal' : $STYLE['fontstyle_bold'];
-	$fontweight_bold = empty($STYLE['fontweight_bold']) ? 'normal' : $STYLE['fontweight_bold'];
-	echo <<<EOSTYLE
+if (!empty($STYLE['fontfamily_bold'])) {
+    $fontstyle_bold = empty($STYLE['fontstyle_bold']) ? 'normal' : $STYLE['fontstyle_bold'];
+    $fontweight_bold = empty($STYLE['fontweight_bold']) ? 'normal' : $STYLE['fontweight_bold'];
+    echo <<<EOSTYLE
 
 h3, h4 {
 	font-family:"{$STYLE['fontfamily_bold']}";
@@ -135,10 +136,6 @@ div.message a {
 	word-wrap: break-word;
 	word-break: break-all;
 }
-
-/* 新着レス番号（ここではカラーが新着確認の機能を持っているので特別にfontで
-カラー指定をしている。thread_class.inc - transRes を参照)	*/
-/* .newres{color:{$newres_color};} ← よって現在は無効の設定 */
 
 .onthefly{ /* on the fly */
 	color:#0a0;

@@ -129,7 +129,8 @@ class Login
 
         // {{{ 認証チェック
 
-        if (!$this->_authCheck()) {
+        $auth_result = $this->_authCheck();
+        if (!$auth_result) {
             // ログイン失敗
             if (!function_exists('printLoginFirst')) {
                 include P2_LIB_DIR . '/login_first.inc.php';
@@ -201,6 +202,12 @@ class Login
             session_write_close();
         }
 
+        // _authCheck() が文字列を返したときは、URLと見なしてリダイレクト
+        if (is_string($auth_result)) {
+            header('Location: ' . $auth_result);
+            exit;
+        }
+
         return true;
     }
 
@@ -234,7 +241,7 @@ class Login
      */
     private function _authCheck()
     {
-        global $_info_msg_ht, $_conf;
+        global $_conf;
         global $_login_failed_flag;
         global $_p2session;
 
@@ -246,7 +253,7 @@ class Login
 
             // ユーザ名が違ったら、認証失敗で抜ける
             if ($this->user_u != $rec_login_user_u) {
-                $_info_msg_ht .= '<p class="infomsg">p2 error: ログインエラー</p>';
+                P2Util::pushInfoHtml('<p>p2 error: ログインエラー</p>');
 
                 // ログイン失敗ログを記録する
                 if (!empty($_conf['login_log_rec'])) {
@@ -268,7 +275,7 @@ class Login
 
             // 新規登録でなければエラー表示
             if (empty($_POST['submit_new'])) {
-                $_info_msg_ht .= '<p class="infomsg">p2 error: ログインエラー</p>';
+                P2Util::pushInfoHtml('<p>p2 error: ログインエラー</p>');
             }
 
             return false;
@@ -296,7 +303,7 @@ class Login
             // セッションが利用されているなら、セッションの妥当性チェック
             if (isset($_p2session)) {
                 if ($msg = $_p2session->checkSessionError()) {
-                    $GLOBALS['_info_msg_ht'] .= '<p>p2 error: ' . htmlspecialchars($msg) . '</p>';
+                    P2Util::pushInfoHtml('<p>p2 error: ' . htmlspecialchars($msg) . '</p>');
                     //Session::unSession();
                     // ログイン失敗
                     return false;
@@ -413,11 +420,13 @@ class Login
                 // ログインログを記録する
                 $this->logLoginSuccess();
 
-                return true;
+                // リダイレクト
+                return $_SERVER['REQUEST_URI'];
+                //return true;
 
             // フォームログイン失敗なら
             } else {
-                $_info_msg_ht .= '<p class="infomsg">p2 info: ログインできませんでした。<br>ユーザ名かパスワードが違います。</p>';
+                P2Util::pushInfoHtml('<p>p2 info: ログインできませんでした。<br>ユーザ名かパスワードが違います。</p>');
                 $_login_failed_flag = true;
 
                 // ログイン失敗ログを記録する
@@ -505,7 +514,7 @@ class Login
      */
     public function registKtaiId()
     {
-        global $_conf, $_info_msg_ht;
+        global $_conf;
 
         $mobile = Net_UserAgent_Mobile::singleton();
 
@@ -523,7 +532,7 @@ class Login
                     if (($UID = $mobile->getUID()) !== null) {
                         $this->_registAuth('registed_imodeid', $UID, $_conf['auth_imodeid_file']);
                     } else {
-                        $_info_msg_ht .= '<p class="infomsg">×docomo iモードIDでの認証登録はできませんでした</p>'."\n";
+                        P2Util::pushInfoHtml('<p>×docomo iモードIDでの認証登録はできませんでした</p>');
                     }
                 } else {
                     $this->_registAuthOff($_conf['auth_imodeid_file']);
@@ -542,7 +551,7 @@ class Login
                     if (($SN = $mobile->getSerialNumber()) !== null) {
                         $this->_registAuth('registed_docomo', $SN, $_conf['auth_docomo_file']);
                     } else {
-                        $_info_msg_ht .= '<p class="infomsg">×docomo 端末製造番号での認証登録はできませんでした</p>'."\n";
+                        P2Util::pushInfoHtml('<p>×docomo 端末製造番号での認証登録はできませんでした</p>');
                     }
                 } else {
                     $this->_registAuthOff($_conf['auth_docomo_file']);
@@ -565,7 +574,7 @@ class Login
                 if (($UID = $mobile->getUID()) !== null) {
                     $this->_registAuth('registed_ez', $UID, $_conf['auth_ez_file']);
                 } else {
-                    $_info_msg_ht .= '<p class="infomsg">×EZweb サブスクライバIDでの認証登録はできませんでした</p>'."\n";
+                    P2Util::pushInfoHtml('<p>×EZweb サブスクライバIDでの認証登録はできませんでした</p>');
                 }
             } else {
                 $this->_registAuthOff($_conf['auth_ez_file']);
@@ -585,7 +594,7 @@ class Login
                 if (($SN = $mobile->getSerialNumber()) !== null) {
                     $this->_registAuth('registed_jp', $SN, $_conf['auth_jp_file']);
                 } else {
-                    $_info_msg_ht .= '<p class="infomsg">×SoftBank 端末シリアル番号での認証登録はできませんでした</p>'."\n";
+                    P2Util::pushInfoHtml('<p>×SoftBank 端末シリアル番号での認証登録はできませんでした</p>');
                 }
             } else {
                 $this->_registAuthOff($_conf['auth_jp_file']);
@@ -604,7 +613,7 @@ class Login
      */
     private function _registAuth($key, $sub_id, $auth_file)
     {
-        global $_conf, $_info_msg_ht;
+        global $_conf;
 
         $cont = <<<EOP
 <?php
@@ -614,7 +623,7 @@ EOP;
         FileCtl::make_datafile($auth_file, $_conf['pass_perm']);
         $fp = fopen($auth_file, 'wb');
         if (!$fp) {
-            $_info_msg_ht .= "<p>Error: データを保存できませんでした。認証登録失敗。</p>";
+            P2Util::pushInfoHtml('<p>Error: データを保存できませんでした。認証登録失敗。</p>');
             return false;
         }
         flock($fp, LOCK_EX);
@@ -761,7 +770,7 @@ EOP;
         $user_time  = $user_u . ':' . time() . ':';
         $md5_utpx = md5($user_time . $pass_x);
         $cid_src  = $user_time . $md5_utpx;
-        return $cid = MD5Crypt::encrypt($cid_src, self::getMd5CryptPassForCid());
+        return MD5Crypt::encrypt($cid_src, self::getMd5CryptPassForCid());
     }
 
     // }}}
@@ -778,8 +787,12 @@ EOP;
 
         $dec = MD5Crypt::decrypt($cid, self::getMd5CryptPassForCid());
 
-        $user = $time = $md5_utpx = null;
-        list($user, $time, $md5_utpx) = explode(':', $dec, 3);
+        $cid_info = explode(':', $dec);
+        if (count($cid_info) != 3) {
+            return false;
+        }
+
+        list($user, $time, $md5_utpx) = $cid_info;
         if (!strlen($user) || !$time || !$md5_utpx) {
             return false;
         }
@@ -788,7 +801,8 @@ EOP;
         if (time() > $time + (60*60*24 * $_conf['cid_expire_day'])) {
             return false; // 期限切れ
         }
-        return array($user, $time, $md5_utpx);
+
+        return $cid_info;
     }
 
     // }}}

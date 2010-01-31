@@ -4,9 +4,10 @@
  * 全般
  */
 
-$a_underline_none_css = '';
 if ($STYLE['a_underline_none'] == 1) {
-	$a_underline_none_css = "a{text-decoration:none;}";
+    $a_underline_none_css = "a{text-decoration:none;}";
+} else {
+    $a_underline_none_css = '';
 }
 
 // ブラウザが Camino なら
@@ -29,7 +30,7 @@ input,option,select,textarea{
 EOSTYLE;
 }
 
-if ($STYLE['fontfamily_bold']) {
+if (!empty($STYLE['fontfamily_bold'])) {
 	$fontstyle_bold = empty($STYLE['fontstyle_bold']) ? 'normal' : $STYLE['fontstyle_bold'];
 	$fontweight_bold = empty($STYLE['fontweight_bold']) ? 'normal' : $STYLE['fontweight_bold'];
 	echo <<<EOSTYLE

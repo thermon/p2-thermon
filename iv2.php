@@ -276,7 +276,7 @@ $_flexy_options = array(
 );
 
 if (!is_dir($_conf['compile_dir'])) {
-    FileCtl::mkdir_r($_conf['compile_dir']);
+    FileCtl::mkdirRecursive($_conf['compile_dir']);
 }
 
 $flexy = new HTML_Template_Flexy($_flexy_options);
@@ -384,7 +384,7 @@ if ($_conf['ktai']) {
 $removed_files = array();
 
 // 閾値でフィルタリング
-if (!($threshold == -1 && $compate == '>=')) {
+if (!($threshold == -1 && $compare == '>=')) {
     $icdb->whereAddQuoted('rank', $compare, $threshold);
 }
 
@@ -931,16 +931,6 @@ var ic2_lightbox_options = {
     no_loop: false,
     no_updown: false
 };
-p2BindReady(function(){
-    var toolbar = document.getElementById('toolbar');
-    var toolbarHeight = getCurrentStyle(toolbar).height;
-    if (toolbarHeight == 'auto') {
-        toolbarHeight = toolbar.clientHeight;
-    } else {
-        toolbarHeight = parsePixels(toolbarHeight);
-    }
-    document.getElementById('header').style.height = toolbarHeight + 'px';
-}, null);
 // ]]>
 </script>\n
 EOJS;

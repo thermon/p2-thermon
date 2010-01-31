@@ -7,7 +7,7 @@
 // バージョン情報
 $_conf = array(
     'p2version' => '1.7.29+1.8.x',  // rep2のバージョン
-    'p2expack'  => '100121.2030',   // 拡張パックのバージョン
+    'p2expack'  => '100131.1645',   // 拡張パックのバージョン
     'p2name'    => 'expack',        // rep2の名前
 );
 
@@ -29,7 +29,7 @@ if (!defined('P2_SESSION_CLOSE_AFTER_AUTHENTICATION')) {
 
 // {{{ グローバル変数を初期化
 
-$_info_msg_ht = ''; // ユーザ通知用 情報メッセージHTML
+$_info_msg_ht = null; // ユーザ通知用 情報メッセージHTML
 
 $MYSTYLE    = array();
 $STYLE      = array();
@@ -51,11 +51,6 @@ $conf_user_sel   = array();
 // 基本設定処理を実行
 p2_init();
 
-// クリーンアップ
-if (basename($_SERVER['SCRIPT_NAME']) != 'edit_conf_user.php') {
-    unset($conf_user_def, $conf_user_rules, $conf_user_rad, $conf_user_sel);
-}
-
 // E_NOTICE および暗黙の配列初期化除け
 $_conf['filtering'] = false;
 $hd = array('word' => null);
@@ -71,8 +66,7 @@ function p2_init()
 {
     global $MYSTYLE, $STYLE, $debug;
     global $skin, $skin_en, $skin_name, $skin_uniq;
-    global $_conf, $_info_msg_ht, $_login, $_p2session;
-    global $conf_user_def, $conf_user_rules, $conf_user_rad, $conf_user_sel;
+    global $_conf, $_login, $_p2session;
 
     // エラー出力設定
     if (defined('E_DEPRECATED')) {
@@ -269,6 +263,7 @@ function p2_init()
     // {{{ 変数設定
 
     $preferences = array(
+        'conf_user_file'    => 'conf_user.srd.cgi',     // ユーザー設定ファイル (シリアライズドデータ)
         'favita_brd'        => 'p2_favita.brd',         // お気に板 (brd)
         'favlist_idx'       => 'p2_favlist.idx',        // お気にスレ (idx)
         'recent_idx'        => 'p2_recent.idx',         // 最近読んだスレ (idx)
@@ -306,13 +301,9 @@ function p2_init()
         }
     }
 
-    // コマンドラインモードではここまで
-    if (defined('P2_CLI_RUN')) {
-        return;
-    }
-
     // }}}
 
+    include P2_CONF_DIR . '/empty_style.php';
     include P2_LIB_DIR . '/bootstrap.php';
 }
 

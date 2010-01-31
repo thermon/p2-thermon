@@ -4,7 +4,6 @@
  */
 
 require_once './conf/conf.inc.php';
-require_once P2_CONF_DIR . '/conf_user_def.inc.php';
 
 $_login->authorize(); // ユーザ認証
 
@@ -24,6 +23,8 @@ define('P2_EDIT_CONF_USER_SKIPPED',     8);
 define('P2_EDIT_CONF_USER_PASSWORD',   16);
 define('P2_EDIT_CONF_FILE_ADMIN',    1024);
 define('P2_EDIT_CONF_FILE_ADMIN_EX', 2048);
+
+include P2_CONF_DIR . '/conf_user_def.inc.php';
 
 //=====================================================================
 // 前処理
@@ -45,7 +46,7 @@ if (!empty($_POST['submit_save'])) {
     applyRules();
 
     // ポストされた値 > 現在の値 > デフォルト値 の順で新しい設定を作成する
-    $conf_save = array('.' => P2_VERSION_ID);
+    $conf_save = array('.' => $_conf['p2expack']);
     foreach ($conf_user_def as $k => $v) {
         if (array_key_exists($k, $_POST['conf_edit'])) {
             $conf_save[$k] = $_POST['conf_edit'][$k];
@@ -59,9 +60,9 @@ if (!empty($_POST['submit_save'])) {
     // シリアライズして保存
     FileCtl::make_datafile($_conf['conf_user_file'], $_conf['conf_user_perm']);
     if (FileCtl::file_write_contents($_conf['conf_user_file'], serialize($conf_save)) === false) {
-        $_info_msg_ht .= "<p>×設定を更新保存できませんでした</p>";
+        P2Util::pushInfoHtml('<p>×設定を更新保存できませんでした</p>');
     } else {
-        $_info_msg_ht .= "<p>○設定を更新保存しました</p>";
+        P2Util::pushInfoHtml('<p>○設定を更新保存しました</p>');
         // 変更があれば、内部データも更新しておく
         $_conf = array_merge($_conf, $conf_user_def, $conf_save);
     }
@@ -73,7 +74,7 @@ if (!empty($_POST['submit_save'])) {
 
 } elseif (!empty($_POST['submit_default'])) {
     if (file_exists($_conf['conf_user_file']) and unlink($_conf['conf_user_file'])) {
-        $_info_msg_ht .= "<p>○設定をデフォルトに戻しました</p>";
+        P2Util::pushInfoHtml('<p>○設定をデフォルトに戻しました</p>');
         // 変更があれば、内部データも更新しておく
         $_conf = array_merge($_conf, $conf_user_def);
         if (is_array($conf_save)) {
@@ -193,8 +194,7 @@ EOP;
 }
 
 // 情報メッセージ表示
-echo $_info_msg_ht;
-$_info_msg_ht = "";
+P2Util::printInfoHtml();
 
 echo <<<EOP
 <form id="edit_conf_user_form" method="POST" action="{$_SERVER['SCRIPT_NAME']}" target="_self" accept-charset="{$_conf['accept_charset']}">
