@@ -96,11 +96,11 @@
         for($key=0;$key<count($color_param);$key++) {
             $colorMode=$color_param[$key][3];
             if ($colorMode==2) {
-                array_push($rgb,LCh2RGB($color_param[$key]));
+                array_push($rgb,ColorLib::LCh2RGB($color_param[$key]));
             } else {
                 array_push($rgb,$colorMode 
-                    ? HLS2RGB($color_param[$key])
-                    : HSV2RGB($color_param[$key])
+                    ? ColorLib::HLS2RGB($color_param[$key])
+                    : ColorLib::HSV2RGB($color_param[$key])
                 );
                 //  unset($color_param[$key]);
             }
@@ -116,7 +116,7 @@
             if ($rgb['type']=='L*C*h') {
                 $LCh[$i]=$color_param[$i];
             } else {
-                $LCh[$i]=RGB2LCh($rgb[$i]);
+                $LCh[$i]=ColorLib::RGB2LCh($rgb[$i]);
                /*  if ($LCh[$i][0]<70 && $LCh[$i][0]>40) {
                   $LCh[$i][0]-=30;
                   $rgb[$i]=LCh2RGB($LCh[$i]);

@@ -52,7 +52,7 @@ if (!$_conf['ktai']) {
 //=====================================================
 // データファイルの読み書き
 //=====================================================
-if (preg_match('/^(aborn|ng)_/', $mode)) {
+if (preg_match('/^(aborn|ng|highlight)_/', $mode)) {
     $path = $_conf['pref_dir'] . '/p2_' . $mode . '.txt';
 }
 
@@ -215,6 +215,47 @@ switch ($mode) {
         }
         $edit_value = 'NGワード編集：ID';
         break;
+
+    case 'highlight_name':
+        $title_st = 'p2 - ハイライトワード登録：名前';
+        if ($popup == 2) {
+            $msg = 'ハイライトワード（名前）に <b>' . $aborn_str . '</b> を登録しました。';
+        } elseif ($resar[0] != "") {
+            $msg = 'ハイライトワード（名前）に <b>' . $resar[0] . '</b> を登録してよろしいですか？';
+            $aborn_str_en = UrlSafeBase64::encode($resar[0]);
+        }
+        $edit_value = 'ハイライトワード編集：名前';
+        break;
+    case 'highlight_mail':
+        $title_st = 'p2 - ハイライトワード登録：メール';
+        if ($popup == 2) {
+            $msg = 'ハイライトワード（メール）に <b>' . $aborn_str . '</b> を登録しました。';
+        } elseif ($resar[1] != "") {
+            $msg = 'ハイライトワード（メール）に <b>' . $resar[1] . '</b> を登録してよろしいですか？';
+            $aborn_str_en = UrlSafeBase64::encode($resar[1]);
+        }
+        $edit_value = 'ハイライトワード編集：メール';
+        break;
+    case 'highlight_msg':
+        $title_st = 'p2 - ハイライトワード登録：メッセージ';
+        if ($popup == 2) {
+            $msg = 'ハイライトワード（メッセージ）に <b>' . $aborn_str . '</b> を登録しました。';
+        } else {
+            $msg = 'ハイライトワード（メッセージ）<br><input type="text" name="aborn_str"' . $input_size_at . ' value="' . $aborn_str . '">';
+        }
+        $edit_value = 'ハイライトワード編集：メッセージ';
+        break;
+    case 'highlight_id':
+        $title_st = 'p2 - ハイライトワード登録：ID';
+        if ($popup == 2) {
+            $msg = 'ハイライトワード（ID）に <b>' . $aborn_str . '</b> を登録しました。';
+        } elseif ($aborn_id != "") {
+            $msg = 'ハイライトワード（ID）に <b>' . $aborn_id . '</b> を登録してよろしいですか？';
+            $aborn_str_en = UrlSafeBase64::encode($aborn_id);
+        }
+        $edit_value = 'ハイライトワード編集：ID';
+        break;
+
     default:
         /*放置*/
 }
@@ -341,7 +382,7 @@ if (isset($edit_value)) {
     echo <<<EOFORM
 <form action="{$edit_php}" method="get"{$target_edit_at}>
     {$_conf['k_input_ht']}
-    <input type="hidden" name="path" value="{$path}">
+    <input type="hidden" name="file" value="p2_{$mode}.txt"> 
     <input type="hidden" name="encode" value="Shift_JIS">
     <input type="hidden" name="rows" value="{$rows}">
     <input type="hidden" name="cols" value="{$cols}">

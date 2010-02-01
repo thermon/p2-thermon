@@ -71,6 +71,7 @@ $_conf['expack.ic2.viewer.title'] = "ImageCache2::Viewer";
 // Lightbox Plus で画像を表示 (off:0;on:1)
 // @link http://serennz.sakura.ne.jp/toybox/lightbox/?ja
 $_conf['expack.ic2.viewer.lightbox'] = 0;
+$_conf['expack.ic2.viewer.lightbox'] = 1; //customized
 
 // オリジナル画像が見つからないレコードを自動で消去する (off:0;on:1)
 $_conf['expack.ic2.viewer.delete_src_not_exists'] = 0;

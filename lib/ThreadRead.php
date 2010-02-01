@@ -986,7 +986,8 @@ class ThreadRead extends Thread
             $body .= "<div><span class=\"onthefly\">on the fly</span></div>\n";
         }
         $body .= "<div class=\"thread\">\n";
-        $body .= $aShowThread->transRes($first_line, 1); // 1‚ð•\Ž¦
+        $res=$aShowThread->transRes($first_line, 1); // 1‚ð•\Ž¦
+        $body .= $res['body'];
         $body .= "</div>\n";
 
         return $body;

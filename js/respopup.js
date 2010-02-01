@@ -360,7 +360,7 @@ function _findAnchorComment(res) {
  *
  * 引用レス番に onMouseover で呼び出される
  */
-function showResPopUp(divID, ev,res) {
+function showResPopUp(divID, ev) {
 	if (divID.indexOf("-") != -1) { return; } // 連番 (>>1-100) は非対応なので抜ける
 
 	var aResPopUp = gResPopCtl.getResPopUp(divID);
@@ -373,9 +373,8 @@ function showResPopUp(divID, ev,res) {
 		y = getPageY(ev);
 
 		aShowTimer = new Object();
-		var anchorClass= res.className ? res.className : '';
 
-		aShowTimer.timerID = setTimeout("doShowResPopUp('" + divID +"','" + anchorClass +  "')", delayShowSec); // 一定時間したら表示する
+		aShowTimer.timerID = setTimeout("doShowResPopUp('" + divID + "')", delayShowSec); // 一定時間したら表示する
 
 		aShowTimer.x = x;
 		aShowTimer.y = y;
@@ -389,7 +388,7 @@ function showResPopUp(divID, ev,res) {
 /**
  * レスポップアップを表示する
  */
-function doShowResPopUp(divID,resClass) {
+function doShowResPopUp(divID) {
 	x = gShowTimerIds[divID].x;
 	y = gShowTimerIds[divID].y;
 	var aResPopUp = gResPopCtl.getResPopUp(divID);
@@ -430,7 +429,7 @@ function doShowResPopUp(divID,resClass) {
  *
  * 引用レス番から onMouseout で呼び出される
  */
-function hideResPopUp(divID,res) {
+function hideResPopUp(divID) {
 	if (divID.indexOf("-") != -1) { return; } // 連番 (>>1-100) は非対応なので抜ける
 
 	// 表示タイマーを解除
