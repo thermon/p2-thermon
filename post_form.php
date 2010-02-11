@@ -131,7 +131,40 @@ echo $htm['orig_msg'];
 echo $htm['dpreview'];
 echo $htm['post_form'];
 echo $htm['dpreview2'];
+echo <<<EOP
+<div id="post_footer">
+<script type="text/javascript"> 
+function ShowSize() 
+{
+     var ua = navigator.userAgent;       // ユーザーエージェント
+     var nWidth, nHeight;                   // サイズ
+     var nHit = ua.indexOf("MSIE");     // 合致した部分の先頭文字の添え字
+     var bIE = (nHit >=  0);                 // IE かどうか
+     var bVer6 = (bIE && ua.substr(nHit+5, 1) == "6");  // バージョンが 6 かどうか
+     var bStd = (document.compatMode && document.compatMode=="CSS1Compat");
+                                                                           // 標準モードかどうか
+     if (bIE) {
+          if (bVer6 && bStd) {
+               nWidth = document.documentElement.clientWidth;
+               nHeight = document.documentElement.clientHeight;
+          } else {
+               nWidth = document.body.clientWidth;
+               nHeight = document.body.clientHeight;
+          }
+     } else {
+          nWidth = window.innerWidth;
+          nHeight = window.innerHeight;
+     }
 
+//     alert("サイズ　：　幅 " + nWidth + " / 高さ " + nHeight);
+	return nWidth;
+}
+width=ShowSize();
+var element = document.getElementById("post_footer");
+window.resizeTo(width,element.offsetTop+120); 
+</script>
+</div>
+EOP;
 echo '</body></html>';
 
 /*

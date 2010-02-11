@@ -1625,7 +1625,8 @@ EOP;
      * @param   string $str
      * @return  string|false
      */
-    public function plugin_imageCache2($url, $purl, $str)
+    public function plugin_imageCache2($url, $purl, $str,
+		$force = false, $referer = null)
     {
         global $_conf;
         global $pre_thumb_unlimited, $pre_thumb_ignore_limit, $pre_thumb_limit;
@@ -1634,15 +1635,15 @@ EOP;
         if (P2Util::isUrlWikipediaJa($url)) {
             return false;
         }
-
-        if (preg_match('{^https?://.+?\\.(jpe?g|gif|png)$}i', $purl[0]) && empty($purl['query'])) {
+        if ((preg_match('{^https?://.+?\\.(jpe?g|gif|png)$}i', $purl[0]) && empty($purl['query'])) || $force) {
             // €”õ
             $serial++;
             $thumb_id = 'thumbs' . $serial . $this->thumb_id_suffix;
             $tmp_thumb = './img/ic_load.png';
             $url_ht = $url;
             $url = $purl[0];
-            $url_en = rawurlencode($url);
+            $url_en = rawurlencode($url) .
+                ($referer ? '&amp;ref=' . rawurlencode($referer) : '');
             $img_id = null;
 
             $icdb = new IC2_DataObject_Images;
@@ -1968,6 +1969,7 @@ EOP;
      */
     public function plugin_imepita_to_imageCache2($url, $purl, $str)
     {
+
         if (preg_match('{^https?://imepita\.jp/(?:image/)?(\d{8}/\d{6})}i',
                 $purl[0], $m) && empty($purl['query'])) {
             $_url = 'http://imepita.jp/image/' . $m[1];

@@ -83,7 +83,8 @@ function toggleResBlk(evt, res, mark) {
 			evt.type != 'dblclick') {
 		if (mark) resetReaded(res, anchors);
 		removeRes(res, button);
-		changeFontOfLink(appendAnchorClassCascade(evt, res.className, anchors,false),false);
+		var anchor_read=appendAnchorClassCascade(evt, res.className, anchors,false);
+		changeFontOfLink(anchor_read,false);
 //		var children=anchors.split("/");
 	} else {
 		changeFontOfLink(appendAnchorClassCascade(evt, res.className, anchors,true),true);
