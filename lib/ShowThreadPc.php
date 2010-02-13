@@ -1048,7 +1048,7 @@ EOP;
 
 		return implode(':',
 			array_map(
-				'self::_makeColoredSpan',
+				'ShowThreadPc::_makeColoredSpan',
 				explode(':', $idstr),$colored
 			)
 		);
