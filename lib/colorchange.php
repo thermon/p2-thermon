@@ -160,7 +160,7 @@ class ColorLib{
 	        $fy=($Lab[0]+16)/116;
 	        $fx=$fy+$Lab[1]/500;
 	        $fz=$fy-$Lab[2]/200;
-		    $xyz=array_map(function ($x) {return pow($x,3);},array($fx,$fy,$fz));
+		    $xyz=array_map(create_function('$x','return pow($x,3);'),array($fx,$fy,$fz));
 	    }
 
 	    // D65ŒõŒ¹•â³
@@ -173,7 +173,7 @@ class ColorLib{
 	    return $xyz;
 	}  
 	function XYZ2RGB ($xyz) {
-	    list($x,$y,$z)=array_map(function ($x) {return $x=max(0,min(1,$x));},$xyz);
+	    list($x,$y,$z)=array_map(create_function('$x','return $x=max(0,min(1,$x));'),$xyz);
 
 	    if ($y>=1) {$r=$g=$b=1;}
 	    else {

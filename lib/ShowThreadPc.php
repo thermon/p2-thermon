@@ -1048,7 +1048,7 @@ EOP;
 
 		return implode(':',
 			array_map(
-				function ($str,$color) {return "<span style=\"{$color}\">{$str}</span>";},
+				'self::_makeColoredSpan',
 				explode(':', $idstr),$colored
 			)
 		);
@@ -1072,13 +1072,16 @@ EOP;
 
 		return $ret.':'.implode('',
 			array_map(
-				function ($str,$color) {return "<span style=\"{$color}\">{$str}</span>";},
+				'ShowThreadPc::_makeColoredSpan',
 				$idstr2,$colored
 			)
 		);
     }
 
     // }}}
+	static function _makeColoredSpan($str,$color) {
+		return "<span style=\"{$color}\">{$str}</span>";
+	}
     // {{{ cssClassedId()
 
     /**
@@ -2009,7 +2012,7 @@ EOP;
         $backlinks = $this->get_quotebacks_json();
         $colors = array();
         $backlink_colors = join(',',
-            array_map(function($x){return "'{$x}'";},
+            array_map('ShowThreadPc::_strQuoting',
                 explode(',', $_conf['backlink_coloring_track_colors']))
         );
         $prefix = $this->get_res_id();
@@ -2071,7 +2074,7 @@ EOJS;
         }
         $hissiCount = $_conf['coloredid.rate.hissi.times'];
         $mark_colors = join(',',
-            array_map(function($x){return "'{$x}'";},
+            array_map('ShowThreadPc::_strQuoting',
                 explode(',', $_conf['coloredid.marking.colors']))
         );
         $fontstyle_bold = empty($STYLE['fontstyle_bold']) ? 'normal' : $STYLE['fontstyle_bold'];
@@ -2096,40 +2099,36 @@ idCol.setupSPM('{$this->spmObjName}');
 EOJS;
     }
 
+	static function _strQuoting($x){
+		return "'{$x}'";
+	}
+
     public function getIdCountAverage() {
         if ($this->_idcount_average !== null) return $this->_idcount_average;
-        $sum = 0; $param = 0;
 
-		$tmp=array_filter($this->thread->idcount,function($count) {return ($count>1);});
-		$param=count($tmp);
-		$sum=array_reduce($tmp,function($v,$w) {return $v+=$w;});
-/*
-        foreach ($this->thread->idcount as $count) {
-            if ($count > 1) {
-                $sum += $count;
-                $param++;
-            }
+		$ranking=array_filter($this->thread->idcount,'ShowThreadPc::_filterCount');
+		$param=count($ranking);
+
+        $sum = 0;
+        foreach ($ranking as $count) {
+            $sum += $count;
         }
-*/
         return $this->_idcount_average = $param < 1 ? 0 : ceil($sum / $param);
     }
 
     public function getIdCountRank($rank) {
         if ($this->_idcount_tops !== null) return $this->_idcount_tops;
-        $ranking = array_filter(
-			$this->thread->idcount,
-			function($count){return ($count > 1);}
-		);
-//        foreach ($this->thread->idcount as $count) {
-//            if ($count > 1) $ranking[] = $count;
-//        }
+        $ranking = array_filter($this->thread->idcount,'ShowThreadPc::_filterCount');
         if (count($ranking) == 0) return 0;
         rsort($ranking);
         $result = count($ranking) >= $rank ? $ranking[$rank - 1] : $ranking[count($ranking) - 1];
         return $this->_idcount_tops = $result;
     }
-}
 
+	static function _filterCount($count) {
+		return ($count>1);
+	}
+}
 // }}}
 
 /*

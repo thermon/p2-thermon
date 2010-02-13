@@ -4,25 +4,6 @@
  * フレーム分割画面、右下部分
  */
 
-require_once '/opt/lampp/htdocs/pqp/classes/PhpQuickProfiler.php';
-class ExampleLandingPage {
-
-    private $profiler;
-    private $db;
-
-    public function __construct() {
-        $this->profiler = new PhpQuickProfiler(PhpQuickProfiler::getMicroTime());
-    }
-
-    public function __destruct() {
-		global $debugMode;
-
-        if($debugMode == true) $this->profiler->display($this->db);
-    }
-
-}
-$db=new ExampleLandingPage;
-//$debugMode=true;
 require_once './conf/conf.inc.php';
 
 $_login->authorize(); // ユーザ認証

@@ -3,7 +3,6 @@
  * rep2 - ÉXÉ^ÉCÉãê›íË
  * for read.php
  */
-
 if (!isset($STYLE['respop_bgcolor']))    { $STYLE['respop_bgcolor'] = '#ffffcc'; }
 if (!isset($STYLE['respop_background'])) { $STYLE['respop_background'] = ''; }
 $respop_background = "background:{$STYLE['respop_bgcolor']} {$STYLE['respop_background']};";

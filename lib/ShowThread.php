@@ -1150,10 +1150,7 @@ EOP;
 
 		try{
 	        if (preg_match_all($this->getAnchorRegex('/(?:^|%prefix%|%delimiter%)(?P<num>%a_num%)/'), $name, $matches)) {
-				$quote_res_nums=array_map(
-					function($a_quote_res_num){return (int) preg_replace("/\s/","",mb_convert_kana($a_quote_res_num, "ns"));},
-					$matches['num']
-				);
+				$quote_res_nums=array_map('ShowThread::_str2num',$matches['num']);
 //	            foreach ($matches['num'] as $a_quote_res_num) {
 //	                $quote_res_nums[] = (int) preg_replace("/\s/",'',mb_convert_kana($a_quote_res_num, 'ns'));
 //	            }
@@ -1232,8 +1229,8 @@ EOP;
             foreach ($ranges as $a_range) {
 				try{
 		            if (preg_match($this->getAnchorRegex('/(%a_num%)%range_delimiter%(?:%prefix%)?(%a_num%)/'), $a_range, $matches)) {
-		                $from = intval(preg_replace("/\s/",'',mb_convert_kana($matches[1], 'ns')));
-		                $to = intval(preg_replace("/\s/",'',mb_convert_kana($matches[2], 'ns')));
+		                $from = self::_str2num($matches[1]);
+		                $to   = self::_str2num($matches[2]);
 		                if ($from < 1 || $to < 1 || $from > $to
 		                    || ($to - $from + 1) > sizeof($this->thread->datlines))
 		                        {continue;}
@@ -1246,7 +1243,7 @@ EOP;
 		                    $this->_addQuoteNum($num,$i);
 		                }
 		            } else if (preg_match($this->getAnchorRegex('/(%a_num%)/'), $a_range, $matches)) {
-		                $this->_addQuoteNum($num,preg_replace("/\s/",'',intval(mb_convert_kana($matches[1], 'ns'))));
+		                $this->_addQuoteNum($num,self::_str2num($matches[1]));
 		            }
 				} catch (Exception $e) {
 					trigger_error("正規表現が不正です。<br>".$e->getMessage(),E_USER_ERROR);
@@ -1780,7 +1777,9 @@ return $this->thread->res_matched[$i]=false;
 // (?(11)yes-regexp|no-regexp) 
 // 11番目のキャプチャグループ(%prefix%)にマッチする場合はyes-regexpを、
 // そうでない場合はno-regexpを使う
-
+	static function _str2num($str){
+		return intval(preg_replace("/\s/","",mb_convert_kana($str, "ns")));
+	}
 }
 
 // }}}
