@@ -1048,7 +1048,7 @@ EOP;
 
 		return implode(':',
 			array_map(
-				'ShowThreadPc::_makeColoredSpan',
+				array('ShowThreadPc','_makeColoredSpan'),
 				explode(':', $idstr),$colored
 			)
 		);
@@ -1072,7 +1072,7 @@ EOP;
 
 		return $ret.':'.implode('',
 			array_map(
-				'ShowThreadPc::_makeColoredSpan',
+				array('ShowThreadPc','_makeColoredSpan'),
 				$idstr2,$colored
 			)
 		);
@@ -2012,7 +2012,7 @@ EOP;
         $backlinks = $this->get_quotebacks_json();
         $colors = array();
         $backlink_colors = join(',',
-            array_map('ShowThreadPc::_strQuoting',
+            array_map(array('ShowThreadPc','_strQuoting'),
                 explode(',', $_conf['backlink_coloring_track_colors']))
         );
         $prefix = $this->get_res_id();
@@ -2074,7 +2074,7 @@ EOJS;
         }
         $hissiCount = $_conf['coloredid.rate.hissi.times'];
         $mark_colors = join(',',
-            array_map('ShowThreadPc::_strQuoting',
+            array_map(array('ShowThreadPc','_strQuoting'),
                 explode(',', $_conf['coloredid.marking.colors']))
         );
         $fontstyle_bold = empty($STYLE['fontstyle_bold']) ? 'normal' : $STYLE['fontstyle_bold'];
@@ -2106,7 +2106,7 @@ EOJS;
     public function getIdCountAverage() {
         if ($this->_idcount_average !== null) return $this->_idcount_average;
 
-		$ranking=array_filter($this->thread->idcount,'ShowThreadPc::_filterCount');
+		$ranking=array_filter($this->thread->idcount,array('ShowThreadPc','_filterCount'));
 		$param=count($ranking);
 
         $sum = 0;
@@ -2118,7 +2118,7 @@ EOJS;
 
     public function getIdCountRank($rank) {
         if ($this->_idcount_tops !== null) return $this->_idcount_tops;
-        $ranking = array_filter($this->thread->idcount,'ShowThreadPc::_filterCount');
+        $ranking = array_filter($this->thread->idcount,array('ShowThreadPc','_filterCount'));
         if (count($ranking) == 0) return 0;
         rsort($ranking);
         $result = count($ranking) >= $rank ? $ranking[$rank - 1] : $ranking[count($ranking) - 1];

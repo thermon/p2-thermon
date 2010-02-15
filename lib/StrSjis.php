@@ -139,7 +139,7 @@ class StrSjis
 	/* SJISコードを含む正規表現で誤動作を起こす部分を16進表記に変換 */
 	static public function fixSjisRegex ($str) {
 //		return preg_replace_callback("/".self::getSjisRegex()."|\C/",'StrSjis::fixSjisRegexChar',$str);
-		return preg_replace_callback("/[\x81-\x9f\xe0-\xef][\x40-\x7e\x80-\xfc]/",'StrSjis::fixSjisRegexChar',$str);
+		return preg_replace_callback("/[\x81-\x9f\xe0-\xef][\x40-\x7e\x80-\xfc]/",array('StrSjis','fixSjisRegexChar'),$str);
 	}
 
 	static public function fixSjisRegexChar ($chr) {

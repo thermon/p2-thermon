@@ -1150,7 +1150,7 @@ EOP;
 
 		try{
 	        if (preg_match_all($this->getAnchorRegex('/(?:^|%prefix%|%delimiter%)(?P<num>%a_num%)/'), $name, $matches)) {
-				$quote_res_nums=array_map('ShowThread::_str2num',$matches['num']);
+				$quote_res_nums=array_map(array('ShowThread','_str2num'),$matches['num']);
 //	            foreach ($matches['num'] as $a_quote_res_num) {
 //	                $quote_res_nums[] = (int) preg_replace("/\s/",'',mb_convert_kana($a_quote_res_num, 'ns'));
 //	            }
@@ -1546,7 +1546,8 @@ return $this->thread->res_matched[$i]=false;
         if (!array_key_exists($pattern, $caches_) || $name) {
             $caches_ex[$pattern] = StrSjis::fixSjisRegex($pattern);
 			foreach (self::$_parts as $token=>$regex) {
-				$caches_ex[$pattern]=preg_replace_callback("/([ ]*)({$token})/",'ShowThread::replaceAnchorRegex',$caches_ex[$pattern]);
+				$caches_ex[$pattern]=preg_replace_callback("/([ ]*)({$token})/",array('ShowThread','replaceAnchorRegex'),
+$caches_ex[$pattern]);
 			}
 
             $caches_[$pattern] = preg_replace("/[ ]*\n[ ]*/",'',$caches_ex[$pattern]);
@@ -1572,10 +1573,10 @@ return $this->thread->res_matched[$i]=false;
 				$p=htmlspecialchars($pattern);
 				$v=htmlspecialchars($caches_[$pattern]);
 
-//				$v=preg_replace("{&lt;(/?)b&gt;}","<$1b>",$v);
+				$v=preg_replace("{&lt;(/?)b&gt;}","<$1b>",$v);
 				throw new Exception(
 					$errobj['message']
-//					."<br>展開前正規表現：<code>".$p."</code>"
+//					."<br>展開前正規表現：<pre>".$p."</pre>"
 					."<br>展開後正規表現：<pre>".$v."</pre>"
 				);
 			}
@@ -1591,7 +1592,7 @@ return $this->thread->res_matched[$i]=false;
         return $caches_[$pattern];
     }
 
-	function replaceAnchorRegex($m) {
+	static function replaceAnchorRegex(array $m) {
 		$regex=self::$_parts[$m[2]];
 //		var_export(array($m[2],$regex));echo "<br>";
 		$regex=preg_replace("/^/m",$m[1],$regex);
