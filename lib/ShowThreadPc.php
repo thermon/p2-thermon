@@ -1022,7 +1022,7 @@ EOP;
         $ret = array();
         foreach ($arr = explode(':', $idstr) as $i => $str) {
             if ($i == 0 || $i == 1) {
-                $ret[] = '<span class="' . ShowThreadPc::cssClassedId($id)
+                $ret[] = '<span class="' . self::cssClassedId($id)
                     . ($i == 0 ? '-l' : '-b') . '">' . $str . '</span>';
             } else {
                 $ret[] = $str;

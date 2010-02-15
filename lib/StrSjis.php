@@ -147,7 +147,7 @@ class StrSjis
 			strpos('[{|',substr($chr[0],-1)) !== false	// [{|
 		) {	
 		$ary=unpack('C2',$chr[0]);
-		$hex=sprintf("\x%x\x%x",$ary[0],$ary[1]);
+		$hex=sprintf("\x%x\x%x",$ary[1],$ary[2]);
 //		trigger_error("正規表現中の「{$chr[0]}」を「{$hex}」に置き換えました。",E_USER_NOTICE);
 		return $hex;
 		} else {

@@ -1536,13 +1536,22 @@ return $this->thread->res_matched[$i]=false;
      * @param   string  $pattern  ex)'/%full%/'
      * @return  string
      */
+	static $_parts= array(); //ShowThread::getAnchorRegexParts()
     function getAnchorRegex($pattern,$name="")
     {
         static $caches_ = array();
-		static $parts= array(); //ShowThread::getAnchorRegexParts()
+		static $caches_ex=array();
 
+		$pattern.="";
         if (!array_key_exists($pattern, $caches_) || $name) {
-            $caches_[$pattern] = StrSjis::fixSjisRegex(strtr($pattern, $parts));
+            $caches_ex[$pattern] = StrSjis::fixSjisRegex($pattern);
+			foreach (self::$_parts as $token=>$regex) {
+				$caches_ex[$pattern]=preg_replace_callback("/([ ]*)({$token})/",'ShowThread::replaceAnchorRegex',$caches_ex[$pattern]);
+			}
+
+            $caches_[$pattern] = preg_replace("/[ ]*\n[ ]*/",'',$caches_ex[$pattern]);
+//			echo "<pre>".htmlspecialchars($caches_ex[$pattern])."</pre><br>";
+;
             // 大差はないが compileMobile2chUriCallBack() のように preg_relplace_callback()してもいいかも。
 			if (preg_match("/%(\w+)%/",$caches_[$pattern],$out) ) {
 				trigger_error("{$out[1]}の正規表現が未設定です。",E_USER_WARNING);
@@ -1563,23 +1572,30 @@ return $this->thread->res_matched[$i]=false;
 				$p=htmlspecialchars($pattern);
 				$v=htmlspecialchars($caches_[$pattern]);
 
-				$v=preg_replace("{&lt;(/?)b&gt;}","<$1b>",$v);
+//				$v=preg_replace("{&lt;(/?)b&gt;}","<$1b>",$v);
 				throw new Exception(
 					$errobj['message']
-					."<br>展開前正規表現：<pre><code>".$p."</code><pre>"
-					."<br>展開後正規表現：<pre><code>".$v."</code><pre>"
+//					."<br>展開前正規表現：<code>".$p."</code>"
+					."<br>展開後正規表現：<pre>".$v."</pre>"
 				);
 			}
 
-			if ($name && !array_key_exists($name, $parts)) {
+			if ($name && !array_key_exists($name, self::$_parts)) {
 				if (preg_match("/\W/",$name)) {
 					throw new Exception("不正なトークン名です：{$name}");
 				}
-				$parts['%'.$name.'%']=$caches_[$pattern];
+				self::$_parts['%'.$name.'%']=$caches_ex[$pattern];
 			}
 //			trigger_error(htmlspecialchars("{$pattern} changed {$caches_[$pattern]}"));
         }
         return $caches_[$pattern];
+    }
+
+	function replaceAnchorRegex($m) {
+		$regex=self::$_parts[$m[2]];
+//		var_export(array($m[2],$regex));echo "<br>";
+		$regex=preg_replace("/^/m",$m[1],$regex);
+		return $regex;
     }
 
     /**
@@ -1597,7 +1613,7 @@ return $this->thread->res_matched[$i]=false;
 		array_unshift($prefix_double,"&gt;");	// デフォルト引用子
 
 		$partsRegex['prefix_double']="(?:".join("|",$prefix_double).")";
-		$partsRegex['prefix_double'].="%anchor_space%*".$partsRegex['prefix_double'];
+		$partsRegex['prefix_double'].="\n%anchor_space%*\n".$partsRegex['prefix_double'];
 
 		// アンカー引用子（シングル）
 		$prefix_single=self::_readRegexFromFile('p2_anchor_prefix_single.txt');
@@ -1655,43 +1671,133 @@ return $this->thread->res_matched[$i]=false;
 
 			// アンカー引用子 >>
 //			'prefix'	=>	"(((?P<prefix_double>%prefix_double%)|(?P<prefix_single>%prefix_single%))%prefix_option%%anchor_space%*)",
-			'prefix'	=>	"(?:(?:%prefix_double%|%prefix_single%)%prefix_option%%anchor_space%*)",
-			'prefix2'	=>	"(?:(?:%prefix_double%|%prefix_single%)%prefix_option%%anchor_space%*)",
+			'prefix'	=>
+"(?:
+  (?:
+    %prefix_double%
+  |
+    %prefix_single%
+  )
+  %prefix_option%
+  %anchor_space%*
+)",
+			'prefix2'	=>	
+"(?:
+  (?:
+    %prefix_double%
+  |
+    %prefix_single%
+  )
+  %prefix_option%
+  %anchor_space%*
+)",
 
 			// レス番号
-			'a_num'		=>	'(?:%a_digit%{1,4}|%a_digit%(?:%anchor_space%+%a_digit%){1,3})',
+			'a_num'		=>	
+'(?:
+  %a_digit%{1,4}
+|
+  %a_digit%
+  (?:
+    %anchor_space%+
+    %a_digit%
+  ){1,3}
+)',
 //			'a_num'		=>	'(%a_digit%{1,4}+)',
-			'a_range'	=>	"(?P<a_range>(?P<num1>%a_num%)%a_num_suffix%(?:%range_delimiter%%prefix2%?(?P<num2>%a_num%)%a_num_suffix%)?+)",
-			'a_range2'	=>	"(?P<a_range2>%a_num%%a_num_suffix%(?:%range_delimiter%%prefix2%?%a_num%%a_num_suffix%)?+)",
+			'a_range'	=>	
+"(?P<a_range>
+  (?P<num1>
+    %a_num%
+  )
+  %a_num_suffix%
+  (?:
+    %range_delimiter%
+    %prefix2%?
+    (?P<num2>
+      %a_num%
+    )
+    %a_num_suffix%
+  )?+
+)",
+			'a_range2'	=>	
+"(?P<a_range2>
+  %a_num%
+  %a_num_suffix%
+  (?:
+    %range_delimiter%
+    %prefix2%?
+    %a_num%
+    %a_num_suffix%
+  )?+
+)",
 
 			// レス範囲の列挙
 			'ranges'	=>
-				"(?P<ranges>%a_range%(?:(?:%delimiter%%prefix2%?|%prefix2%)%a_range2%)*%ranges_suffix%(?!%a_digit%))",
+"(?P<ranges>
+  %a_range%
+  (?:
+    (?:
+      %delimiter%
+      %prefix2%?
+    |
+      %prefix2%
+    )
+    %a_range2%
+  )*
+  %ranges_suffix%
+  (?!
+    %a_digit%
+  )
+)",
 
 			// レス番号の列挙
-			'nums'	=>	"%a_num%%a_num_suffix%(%delimiter%%a_num%%a_num_suffix%)*%ranges_suffix%(?!%a_digit%)",
+			'nums'	=>	
+"%a_num%
+%a_num_suffix%
+(
+  %delimiter%
+  %a_num%%a_num_suffix%
+)*
+%ranges_suffix%
+(?!
+  %a_digit%
+)",
 
 			// サフィックス以降の正規表現には0x40-0x7fまでの文字は使えない（SJISの２バイト目と被るので誤動作する）
 			// プレフィックス付きレス番号に続くサフィックス
-			'line_prefix'	=>	"(?P<line_prefix>^%anchor_space%*)", 
-			'line_suffix'	=>	"(%prefix2%?%anchor_space%*$)", //(?=(\s|　)*)"
+			'line_prefix'	=>	
+"(?P<line_prefix>
+  ^%anchor_space%*
+)",
+ 
+			'line_suffix'	=>	
+"(
+  %prefix2%?
+  %anchor_space%*
+  $
+)", //(?=(\s|　)*)"
 
-			'full'	=>	
-				"(?P<ignore_prefix>前スレ)?".	// アンカー引用子や数字の前にある場合アンカーそのものを無視する
-				"(".
-					"(?P<prefix>%prefix%)".		// 通常プレフィックス
-					"|%line_prefix%".	//行頭プレフィックス
-					($non_prefix_enable ? "|(?P<non_prefix>[^\d\w\.\/\-;&])" : "").		// プレフィックスなし
-				")".
-				"%ranges%".		//レス範囲・単独レスの列挙
-				"(?P<anchor_option>".
-					"(?(prefix)%ignore_suffix%|".	// プレフィックス付き
-						"(?(line_prefix)%line_suffix%".	//行頭プレフィックスならばスペースだけ
-						($non_prefix_enable ? "|%no_prefix_suffix%" : "").	// プレフィックスなし
-						")". 
-				"))".
-
-				"",
+			'full'	=>
+"(?P<ignore_prefix>
+  前スレ
+)?
+(
+  (?P<prefix>
+     %prefix%
+  )
+|
+  %line_prefix%
+)
+%ranges%
+(?P<anchor_option>
+  (?(prefix)
+    %ignore_suffix%
+  |
+    (?(line_prefix)
+      %line_suffix%
+    )
+  )
+)",
 
 		);
 		$parts=array_merge($partsRegex,$parts);
@@ -1749,14 +1855,14 @@ return $this->thread->res_matched[$i]=false;
 		try{
 			return $str_to_link_regex = $this->getAnchorRegex(
 				'{'
-	            . '(?P<link>(<[Aa] .+?>)(.*?)(</[Aa]>))' // リンク（PCREの特性上、必ずこのパターンを最初に試行する）
+	            . '(?P<link>(<[Aa][ ].+?>)(.*?)(</[Aa]>))' // リンク（PCREの特性上、必ずこのパターンを最初に試行する）
 	            . '|'
 	            .   '(?P<url>'
 	            .       '(ftp|h?ttps?|tps?)://([0-9A-Za-z][\\w!#%&+*,\\-./:;=?@\\[\\]^~]+)' // URL
 	            .   ')'
 	            . '|'
 	            .   '(?P<id>'.
-						'(?:ID: ?([0-9A-Za-z/.+]{8,11}))'. // ID（8,10桁 +PC/携帯識別フラグ）
+						'(?:ID:[ ]?([0-9A-Za-z/.+]{8,11}))'. // ID（8,10桁 +PC/携帯識別フラグ）
 					'|'.
 						'(?:発信元:((?:[1-9]\d{0,2})(?:\.[1-9]\d{0,2}){3}))'.
 					')'
