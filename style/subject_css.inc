@@ -14,6 +14,10 @@ EOSTYLE;
     $thre_title_underline_css = '';
 }
 
+if (!$STYLE['sb_newres_bgcolor']) {
+    $STYLE['sb_newres_bgcolor']=$STYLE['sb_th_bgcolor'];
+}
+
 echo <<<EOSTYLE
 
 body{
@@ -217,7 +221,7 @@ a.te:hover   { color: {$STYLE['sb_tacolor_h']}; }
 	background: {$STYLE['sb_tbgcolor_nosubject']} {$STYLE['sb_tbackground']};
 }
 .threadlist tr.r_new {
-	background: {$STYLE['sb_th_bgcolor']} {$STYLE['sb_tbackground']};
+	background: {$STYLE['sb_newres_bgcolor']} {$STYLE['sb_tbackground']};
 }
 
 /* t スレッドリスト テーブル欄 基本 */

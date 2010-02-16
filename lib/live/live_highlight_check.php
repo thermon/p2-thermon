@@ -2,21 +2,9 @@
 /*
 	+live - ハイライトワードのチェック ../ShowThread.php より読み込まれる
 */
-
 // 連鎖ハイライト
 if ($_conf['live.highlight_chain'] && $highlight_matches=$this->_getAnchorsFromMsg($msg)) {
-	$this->_highlight_chain_nums = array_unique(
-//		preg_split(]
-//			'/[-,]+/',
-//			trim(
-//				implode(',', 
-					$highlight_matches
-//				), '-,'
-//			),
-//			-1,
-//			PREG_SPLIT_NO_EMPTY
-//		)
-	);
+	$this->_highlight_chain_nums = array_unique($highlight_matches);
 
 	if (array_intersect($this->_highlight_chain_nums, $this->_highlight_nums)) {
 		$ngaborns_hits['highlight_chain']++;

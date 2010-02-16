@@ -12,14 +12,22 @@ if ($ng_type & self::HIGHLIGHT_CHAIN) {
 
 // ハイライトメッセージ変換
 if ($ng_type & self::HIGHLIGHT_MSG) {
-	$highlight_msgs = quotemeta(implode('|', $this->_highlight_msgs));
-	$highlight_msgs = "(" . $highlight_msgs . ")(?![^<]*>)"; // HTMLタグ内にマッチさせない
-	if (preg_match("(<(regex:i|i)>)", $highlight_msgs)) {
-		$highlight_msgs = preg_replace("(<(regex|regex:i|i)>)", "", $highlight_msgs);
-		$msg = mb_eregi_replace("($highlight_msgs)", "<span class=\"live_highlight\">\\1</span>", $msg);
-	} else {
-		$highlight_msgs = preg_replace("(<(regex|regex:i|i)>)", "", $highlight_msgs);
-		$msg = mb_ereg_replace("($highlight_msgs)", "<span class=\"live_highlight\">\\1</span>", $msg);
+	foreach ($this->_highlight_msgs as $highlight_word) {
+		if (!preg_match("(<regex(?:i)?>)",$highlight_word)) {
+			$highlight_word=quotemeta($highlight_word);
+		}
+		$highlight_word = "((" . $highlight_word . ")(?![^<]*>))"; // HTMLタグ内にマッチさせない
+		if (P2_MBREGEX_AVAILABLE) {
+			$replace_method = preg_match("(<(regex:i|i)>)", $highlight_word) ? 'mb_eregi_replace' : 'mb_ereg_replace';
+		} else {
+			$replace_method = 'preg_replace';
+			if (preg_match("(<(regex:i|i)>)", $highlight_word)) {
+				$highlight_word .='i';
+			}
+		}
+
+		$highlight_word=preg_replace("(<(regex(:i)?|i)>)",'',$highlight_word);
+		$msg = $replace_method($highlight_word, "<span class=\"live_highlight\">\\1</span>", $msg);
 	}
 }
 

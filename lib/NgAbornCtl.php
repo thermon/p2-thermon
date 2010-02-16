@@ -20,6 +20,12 @@ $GLOBALS['ngaborns_hits'] = array(
     'ng_mail'       => 0,
     'ng_msg'        => 0,
     'ng_name'       => 0,
+    'highlight_chain'      => 0,
+    'highlight_freq'       => 0,
+    'highlight_id'         => 0,
+    'highlight_mail'       => 0,
+    'highlight_msg'        => 0,
+    'highlight_name'       => 0,
 );
 
 // }}}
@@ -169,6 +175,10 @@ class NgAbornCtl
         $ngaborns['ng_mail'] = self::_readNgAbornFromFile('p2_ng_mail.txt');
         $ngaborns['ng_msg'] = self::_readNgAbornFromFile('p2_ng_msg.txt');
         $ngaborns['ng_id'] = self::_readNgAbornFromFile('p2_ng_id.txt');
+        $ngaborns['highlight_name'] = self::_readNgAbornFromFile('p2_highlight_name.txt');
+        $ngaborns['highlight_mail'] = self::_readNgAbornFromFile('p2_highlight_mail.txt');
+        $ngaborns['highlight_msg'] = self::_readNgAbornFromFile('p2_highlight_msg.txt');
+        $ngaborns['highlight_id'] = self::_readNgAbornFromFile('p2_highlight_id.txt');
 
         return $ngaborns;
     }
@@ -242,7 +252,7 @@ class NgAbornCtl
                             $ar['word'] = $matches[3];
                         } else {
                             $ar['regex'] = 'preg_match';
-                            $ar['word'] = '/' . str_replace('/', '\\/', $matches[3]) . '/';
+                            $ar['word'] = '/' . str_replace('/', '\\/', StrSjis::fixSjisRegex($matches[3])) . '/';
                         }
                     } else {
                         $ar['regex'] = $matches[1];
@@ -274,7 +284,6 @@ class NgAbornCtl
                 $data[] = $ar;
             }
         }
-
         return array('file' => $file, 'data' => $data);
     }
 

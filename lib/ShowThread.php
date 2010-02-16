@@ -630,7 +630,6 @@ abstract class ShowThread
         global $ngaborns;
 
         //$GLOBALS['debug'] && $GLOBALS['profiler']->enterSection('ngAbornCheck()');
-
         if (isset($ngaborns[$code]['data']) && is_array($ngaborns[$code]['data'])) {
             // +Wiki:BEあぼーん
             /* preg_replace がエラーになるのでこのへんコメントアウト
@@ -649,6 +648,7 @@ abstract class ShowThread
             $title = $this->thread->ttitle_hc;
 
             foreach ($ngaborns[$code]['data'] as $k => $v) {
+
                 // 板チェック
                 if (isset($v['bbs']) && in_array($bbs, $v['bbs']) == false) {
                     continue;
