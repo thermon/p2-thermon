@@ -12,22 +12,38 @@ if ($ng_type & self::HIGHLIGHT_CHAIN) {
 
 // ハイライトメッセージ変換
 if ($ng_type & self::HIGHLIGHT_MSG) {
+	$highlight_pattern = array();
+	$highlight_pattern_i = array();
 	foreach ($this->_highlight_msgs as $highlight_word) {
-		if (!preg_match("(<regex(?:i)?>)",$highlight_word)) {
-			$highlight_word=quotemeta($highlight_word);
-		}
-		$highlight_word = "((" . $highlight_word . ")(?![^<]*>))"; // HTMLタグ内にマッチさせない
-		if (P2_MBREGEX_AVAILABLE) {
-			$replace_method = preg_match("(<(regex:i|i)>)", $highlight_word) ? 'mb_eregi_replace' : 'mb_ereg_replace';
-		} else {
-			$replace_method = 'preg_replace';
-			if (preg_match("(<(regex:i|i)>)", $highlight_word)) {
-				$highlight_word .='i';
-			}
-		}
+		preg_match("(^(?:<(?:(regex)(:i)?|(i))>)?(.*))", $highlight_word,$match_word);
+		$match_word[4] = StrSjis::fixSjisRegex($match_word[4],!$match_word[1]);
+//		var_export($match_word);echo "<br>";
 
-		$highlight_word=preg_replace("(<(regex(:i)?|i)>)",'',$highlight_word);
-		$msg = $replace_method($highlight_word, "<span class=\"live_highlight\">\\1</span>", $msg);
+		if ($match_word[2] || $match_word[3]) {
+			$highlight_pattern_i[] = $match_word[4];
+		} else {
+			$highlight_pattern[] = $match_word[4];
+		}
+	}
+	if (count($highlight_pattern)) {
+		$highlight_word = "((" . implode('|',$highlight_pattern) . ")(?![^<]*>))"; // HTMLタグ内にマッチさせない
+		if (P2_MBREGEX_AVAILABLE) {
+			$match_method = 'mb_ereg_replace';
+		} else {
+			$match_method = 'preg_replace';
+
+		}
+		$msg = $match_method($highlight_word, "<span class=\"live_highlight\">\\1</span>", $msg);
+	}
+	if (count($highlight_pattern_i)) {
+		$highlight_word_i = "((" . implode('|',$highlight_pattern_i) . ")(?![^<]*>))"; // HTMLタグ内にマッチさせない
+
+		if (P2_MBREGEX_AVAILABLE) {
+			$match_method = 'mb_eregi_replace';
+		} else {
+			$match_method = 'preg_replace';
+		}
+		$msg = $match_method($highlight_word_i, "<span class=\"live_highlight\">\\1</span>", $msg);
 	}
 }
 

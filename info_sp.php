@@ -48,11 +48,11 @@ if (!$_conf['ktai']) {
     $target_sb_at = '';
 }
 
-
+$mode_type_regex='/^(aborn|ng|highlight)_/';
 //=====================================================
 // データファイルの読み書き
 //=====================================================
-if (preg_match('/^(aborn|ng|highlight)_/', $mode)) {
+if (preg_match($mode_type_regex, $mode)) {
     $path = $_conf['pref_dir'] . '/p2_' . $mode . '.txt';
 }
 
@@ -90,7 +90,7 @@ if ($popup == 1 || $_conf['expack.spm.ngaborn_confirm'] == 0) {
 
 if ($popup == 2) {
     // あぼーん・NGワード登録
-    if (preg_match('/^(aborn|ng)_/', $mode) && ($aborn_str = trim($aborn_str)) !== '') {
+    if (preg_match($mode_type_regex, $mode) && ($aborn_str = trim($aborn_str)) !== '') {
         if (file_exists($path) && ($data = FileCtl::file_read_lines($path))) {
             $data = array_map('trim', $data);
             $data = array_filter($data, create_function('$v', 'return ($v !== "");'));

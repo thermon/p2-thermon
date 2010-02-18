@@ -247,7 +247,7 @@ class NgAbornCtl
                 if (preg_match('/^<(mb_ereg|preg_match|regex)(:[imsxeADSUXu]+)?>(.+)$/', $ar['word'], $matches)) {
                     // マッチング関数とパターンを設定
                     if ($matches[1] == 'regex') {
-                        if (P2_MBREGEX_AVAILABLE) {
+                        if (0 && P2_MBREGEX_AVAILABLE) {
                             $ar['regex'] = 'mb_ereg';
                             $ar['word'] = $matches[3];
                         } else {

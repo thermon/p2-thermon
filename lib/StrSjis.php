@@ -137,21 +137,27 @@ class StrSjis
     }
 
 	/* SJISコードを含む正規表現で誤動作を起こす部分を16進表記に変換 */
-	static public function fixSjisRegex ($str) {
+	static public function fixSjisRegex ($str,$quotemeta=false) {
 //		return preg_replace_callback("/".self::getSjisRegex()."|\C/",'StrSjis::fixSjisRegexChar',$str);
-		return preg_replace_callback("/[\x81-\x9f\xe0-\xef][\x40-\x7e\x80-\xfc]/",array('StrSjis','fixSjisRegexChar'),$str);
+		$regex="[\x81-\x9f\xe0-\xef][\x40-\x7e\x80-\xfc]";
+		if ($quotemeta) {
+			$regex.="|[.\\+*?\[^\]($)]";
+		}
+		return preg_replace_callback("/{$regex}/",array('StrSjis','fixSjisRegexChar'),$str);
 	}
 
 	static public function fixSjisRegexChar ($chr) {
-		if (//strlen($chr[0]) > 1 && 
-			strpos('[{|',substr($chr[0],-1)) !== false	// [{|
-		) {	
-		$ary=unpack('C2',$chr[0]);
-		$hex=sprintf("\x%x\x%x",$ary[1],$ary[2]);
-//		trigger_error("正規表現中の「{$chr[0]}」を「{$hex}」に置き換えました。",E_USER_NOTICE);
-		return $hex;
+		if (strlen($chr[0]) > 1) {
+			if (strpos('[{|',substr($chr[0],-1)) !== false) {	
+				$ary=unpack('C2',$chr[0]);
+				$hex=sprintf("\x%x\x%x",$ary[1],$ary[2]);
+				//	trigger_error("正規表現中の「{$chr[0]}」を「{$hex}」に置き換えました。",E_USER_NOTICE);
+				return $hex;
+			} else {
+				return $chr[0];
+			}
 		} else {
-			return $chr[0];
+			return '\\'.$chr[0];
 		}
 	}
     // {{{ getUnicodePattern()

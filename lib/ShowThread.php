@@ -75,6 +75,7 @@ abstract class ShowThread
 
 	static protected $_highlight_head_hits = 0; // 本文以外がハイライトにヒットした総数
 	static protected $_highlight_body_hits = 0; // 本文がハイライトにヒットした総数
+
     /**
      * getAnchorRegex() のキャッシュ
      *
@@ -218,6 +219,7 @@ abstract class ShowThread
         $this->_ng_nums = array();
 
 		$this->_highlight_nums = array();
+		$this->_highlight_chain_nums = array(); // 連鎖ハイライトのレス番号
 		$this->_highlight_msgs = array();
 
         if (P2Util::isHostBbsPink($this->thread->host)) {
@@ -646,8 +648,10 @@ abstract class ShowThread
              */
             $bbs = $this->thread->bbs;
             $title = $this->thread->ttitle_hc;
-
+//if (preg_match("/highlight/",$code)) {var_export($ngaborns[$code]['data']);echo "<br>";}
+			$matched_word=array();
             foreach ($ngaborns[$code]['data'] as $k => $v) {
+
 
                 // 板チェック
                 if (isset($v['bbs']) && in_array($bbs, $v['bbs']) == false) {
@@ -671,7 +675,7 @@ abstract class ShowThread
                      if ($re_method($v['word'], $resfield)) {
                         $this->ngAbornUpdate($code, $k);
                         //$GLOBALS['debug'] && $GLOBALS['profiler']->leaveSection('ngAbornCheck()');
-                        return $v['cond'];
+                        $matched_word[] = $v['cond'];
                     }
                 // +Wiki:BEあぼーん(完全一致)
                 } else if ($code == 'aborn_be' || $code == 'ng_be') {
@@ -679,29 +683,32 @@ abstract class ShowThread
                     if ($resfield == $v['word']) {
                         $this->ngAbornUpdate($code, $k);
                         //$GLOBALS['debug'] && $GLOBALS['profiler']->leaveSection('ngAbornCheck()');
-                        return $v['cond'];
+                        $matched_word[] = $v['cond'];
                     }
                // 大文字小文字を無視
                 } elseif ($ic || !empty($v['ignorecase'])) {
                     if (stripos($resfield, $v['word']) !== false) {
                         $this->ngAbornUpdate($code, $k);
                         //$GLOBALS['debug'] && $GLOBALS['profiler']->leaveSection('ngAbornCheck()');
-                        return $v['cond'];
+                        $matched_word[] = $v['cond'];
                     }
                 // 単純に文字列が含まれるかどうかをチェック
                 } else {
-
                     if (strpos($resfield, $v['word']) !== false) {
                         $this->ngAbornUpdate($code, $k);
                         //$GLOBALS['debug'] && $GLOBALS['profiler']->leaveSection('ngAbornCheck()');
-                        return $v['cond'];
+                        $matched_word[] = $v['cond'];
                     }
                 }
+				if ($code != 'highlight_msg' && count($matched_word)) {	// ハイライトメッセージ処理以外の場合は、ヒットすればすぐに戻る
+					return $matched_word[0];
+				}
             }
         }
 
         //$GLOBALS['debug'] && $GLOBALS['profiler']->leaveSection('ngAbornCheck()');
-        return false;
+	// ハイライトメッセージ処理の場合は、ヒットした条件の配列を返す
+        return count($matched_word) ? $matched_word : false;
     }
 
     // }}}
