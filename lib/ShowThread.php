@@ -3,7 +3,7 @@
  * rep2- スレッドを表示する クラス
  */
 require_once P2_LIB_DIR . '/thermon/ErrorHandler.php';
-require_once P2_LIB_DIR . '/thermon/br2nl.php';
+//require_once P2_LIB_DIR . '/thermon/br2nl.php';
 // {{{ ShowThread
 
 abstract class ShowThread
@@ -908,7 +908,7 @@ EOP;
      */
     public function transLink($str)
     {
-        return nl2br(preg_replace_callback($this->str_to_link_regex, array($this, 'transLinkDo'), br2nl($str)));
+        return preg_replace_callback($this->str_to_link_regex, array($this, 'transLinkDo'), $str);
     }
 
     // }}}
@@ -984,7 +984,7 @@ EOP;
         } elseif ($s['quote'] && !$s['ignore_prefix']) {
 			$s2=array_slice($s,$quote_index+3);
 //			if (!$s2['prefix']) {
-//				echo nl2br(htmlspecialchars(var_export($s2,true)))."<br>";
+//				echo htmlspecialchars(var_export($s2,true))."<br>";
 //			}
 			$ret=$this->quoteResCallback($s2);
 			return $ret;
@@ -1277,12 +1277,12 @@ EOP;
         // >>1のリンクをいったん外す
         // <a href="../test/read.cgi/accuse/1001506967/1" target="_blank">&gt;&gt;1</a>
         $msg = preg_replace('{<[Aa] .+?>(&gt;&gt;[1-9][\\d\\-]*)</[Aa]>}', '$1', $msg);
-		$msg=br2nl($msg);
+//		$msg=br2nl($msg);
 
 		try{
 			preg_match_all(
 						$this->getAnchorRegex(
-							"/%full%/m"
+							"/%full%/"
 						) , $msg, $out, PREG_SET_ORDER);
 		} catch (Exception $e) {
 			trigger_error("正規表現が不正です。<br>".$e->getMessage(),E_USER_ERROR);
@@ -1593,15 +1593,16 @@ $caches_ex[$pattern]);
 					throw new Exception("不正なトークン名です：{$name}");
 				}
 				self::$_parts['%'.$name.'%']=$caches_ex[$pattern];
+//				echo nl2br(htmlspecialchars('%'.$name.'%'." set {$caches_ex[$pattern]}"))."<br><br>";
 			}
-//			trigger_error(htmlspecialchars("{$pattern} changed {$caches_[$pattern]}"));
+//			echo nl2br(htmlspecialchars("{$pattern} changed {$caches_ex[$pattern]}"))."<br><br>";
         }
         return $caches_[$pattern];
     }
 
 	static function replaceAnchorRegex(array $m) {
 		$regex=self::$_parts[$m[2]];
-//		var_export(array($m[2],$regex));echo "<br>";
+//		var_export(array($m[2],$regex));echo "<br><br>";
 		$regex=preg_replace("/^/m",$m[1],$regex);
 		return $regex;
     }
@@ -1614,7 +1615,7 @@ $caches_ex[$pattern]);
     function _getAnchorRegexParts()
     {
 
-		$partsRegex['anchor_space']="(?:[ ]|　)";	// 空白文字
+		$partsRegex['anchor_space']="(?: |　)";	// 空白文字
 
 		// アンカー引用子（ダブル、シングル）
 		$prefix_double=self::_readRegexFromFile('p2_anchor_prefix_double.txt');
@@ -1650,7 +1651,7 @@ $caches_ex[$pattern]);
 
 		// レス番号に付随する単語
 		$a_num_suffix=self::_readRegexFromFile('p2_anchor_num_option.txt');
-		$partsRegex['a_num_suffix']=count($num_suffix) ? "(?:".join("|",$a_num_suffix).")?" : "";
+		$partsRegex['a_num_suffix']=count($a_num_suffix) ? "(?:".join("|",$a_num_suffix).")?" : "";
 
 		// 範囲指定群に付随する単語
 		$ranges_suffix=	self::_readRegexFromFile('p2_anchor_ranges_option.txt');
@@ -1775,15 +1776,11 @@ $caches_ex[$pattern]);
 			// プレフィックス付きレス番号に続くサフィックス
 			'line_prefix'	=>	
 "(?P<line_prefix>
-  ^%anchor_space%*
+  (?:^|<br>)%anchor_space%*
 )",
  
 			'line_suffix'	=>	
-"(
-  %prefix2%?
-  %anchor_space%*
-  $
-)", //(?=(\s|　)*)"
+"(?:%anchor_space%*(?:$|<br>))", //(?=(\s|　)*)"
 
 			'full'	=>
 "(?P<ignore_prefix>
@@ -1878,7 +1875,7 @@ $caches_ex[$pattern]);
 	            .   '(?P<quote>' // 引用
 				.       "%full%"
 	            .   ')'
-	            . '}m'
+	            . '}'
 			)
 			;
 		} catch (Exception $e) {
