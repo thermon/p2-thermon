@@ -173,6 +173,11 @@ a.thre_title:link    { color: {$STYLE['thre_title_color']}; }
 a.thre_title:visited { color: {$STYLE['thre_title_color_v']}; }
 a.thre_title:hover   { color: {$STYLE['thre_title_color_h']}; }
 
+/* スレタイトル閲覧済み */
+a.thre_title.v:link    { color: {$STYLE['thre_title_color_v']}; }
+a.thre_title.v:visited { color: {$STYLE['thre_title_color_v']}; }
+a.thre_title.v:hover   { color: {$STYLE['thre_title_color_h']}; }
+
 /* スレタイトル 新規 */
 a.thre_title_new:link    { color: {$STYLE['sb_thre_title_new_color']}; }
 a.thre_title_new:visited { color: {$STYLE['thre_title_color_v']}; }

@@ -254,11 +254,11 @@ echo <<<EOP
         var toid = "to"+idnum;
         var ttid_obj = document.getElementById(ttid);
         if (ttid_obj) {
-            ttid_obj.style.color="{$STYLE['thre_title_color_v']}";
+            ttid_obj.className+=" v";
         }
         var toid_obj = document.getElementById(toid);
         if (toid_obj) {
-            toid_obj.style.color="{$STYLE['thre_title_color_v']}";
+            toid_obj.className+=" v";
         }
     }
     function wrapDeleLog(qeury, from){
