@@ -142,6 +142,7 @@ function appendAnchorClassCascade(evt,res,anchors,sw) {
 }
 
 function insertRes(evt, res, anchors, mark) {
+
 	var resblock = _findChildByClassName(res, 'resblock');
 	if (!resblock) return;
 	var button = resblock.firstChild;
@@ -183,6 +184,9 @@ function insertRes(evt, res, anchors, mark) {
 		container.className='folding_container '+importId.replace(/qr/,"r");
 
 		// オリジナルのレスがあれば見た目変更
+		var resClass=res.className.match(/(^| )(r\d+)/);
+		resOrig=(res.id) ? '' : resClass[2];
+
 		if (mark) (function(origId) {
 				for (var oidx=0;oidx<origId.length;oidx++) {
 					var orig = (document.all) ?  document.all[origId[oidx]]
@@ -193,10 +197,9 @@ function insertRes(evt, res, anchors, mark) {
 					}
 				}
 			   })(new Array(
-			   				importId.replace(/qr/,'r'),
-			   				// importId.replace(/qr/,'m'),
-			   				importId.replace(/qr/,'qm'),
-			   				res.id.replace(/r/,'qm')
+							importId.replace(/qr/,'qm')	// 展開されたレスのポップアップを既読処理
+							, resClass[2].replace(/r/,'qm')	// 展開元レスのポップアップを既読処理
+							, resOrig	// 展開元レスの本体を既読処理
 			   			));	
 		
 		var anchor = _findAnchorComment(importElement);
