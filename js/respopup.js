@@ -185,7 +185,12 @@ function insertRes(evt, res, anchors, mark) {
 
 		// オリジナルのレスがあれば見た目変更
 		var resClass=res.className.match(/(^| )(r\d+)/);
-		resOrig=(res.id) ? '' : resClass[2];
+		var markRead=new Array();
+		if (!res.id) {markRead.push(resClass[2]);}// （カスケード展開された）展開元レスの本体を既読処理
+		markRead.push(
+			importId.replace(/qr/,'qm')	// 展開されたレスのポップアップを既読処理
+			, resClass[2].replace(/r/,'qm')	// 展開元レスのポップアップを既読処理
+					 );
 
 		if (mark) (function(origId) {
 				for (var oidx=0;oidx<origId.length;oidx++) {
@@ -196,11 +201,7 @@ function insertRes(evt, res, anchors, mark) {
 						orig.className+=' readmessage';
 					}
 				}
-			   })(new Array(
-							importId.replace(/qr/,'qm')	// 展開されたレスのポップアップを既読処理
-							, resClass[2].replace(/r/,'qm')	// 展開元レスのポップアップを既読処理
-							, resOrig	// 展開元レスの本体を既読処理
-			   			));	
+			   })(markRead);	
 		
 		var anchor = _findAnchorComment(importElement);
 		if (anchor) {
@@ -288,28 +289,21 @@ function resetReaded(res, anchors,flag) {
 					 );
 	}
 	if (flag) return children;
-	
 
-	var origId=new Array();
+	// オリジナルのレスがあれば見た目変更
+	var resClass=res.className.match(/(^| )(r\d+)/);
+	var markRead=new Array();
+	if (!res.id) {markRead.push(resClass[2]);}// （カスケード展開された）展開元レスの本体を既読処理
+	markRead.push(resClass[2].replace(/r/,'qm'));	// 展開元レスのポップアップを既読処理
 	for (var i=0;i<children.length;i++) {
-		// オリジナルのレスがあれば見た目変更
-
 		if (children[i]) {
-			origId.push(
-						children[i].replace(/qr/,'r'),
-//						children[i].replace(/qr/,'m'),
-						children[i].replace(/qr/,'qm')
-					);
+			markRead.push(children[i].replace(/qr/,'qm'));	// 展開されたレスのポップアップを既読処理
 		}
 	}
-	if(res.id) {
-		origId.push(res.id.replace(/r/,'qm') );
-	}
 
-	
 	// クラス名で要素を探す
 	var el=document.getElementsByTagName('div');
-	var re=new RegExp('\\b('+origId.join('|')+')\\b');
+	var re=new RegExp('\\b('+markRead.join('|')+')\\b');
 	for (i=0;i<el.length;i++){
 		if(el[i].className.match(re)){
 			var orig=el[i];
