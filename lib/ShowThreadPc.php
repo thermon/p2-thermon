@@ -289,7 +289,7 @@ EOP;
         } elseif ($i > $this->thread->readnum) {
             $GLOBALS['newres_to_show_flag'] = true;
             // 番号（新着レス時）
-            $tores .= "<span style=\"color:{$STYLE['read_newres_color']}\" class=\"spmSW\"{$spmeh}>{$i}</span> : ";
+            $tores .= "<span class=\"spmSW newres\"{$spmeh}>{$i}</span> : ";
         } elseif ($_conf['expack.spm.enabled']) {
             // 番号（SPM）
             $tores .= "<span class=\"spmSW\"{$spmeh}>{$i}</span> : ";

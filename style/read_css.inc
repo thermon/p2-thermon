@@ -228,6 +228,11 @@ a.newres:link, a.newres:visited, a.newres:hover, a.newres:active{ /* 新着レス */
 	text-decoration: none;
 }
 
+.newres{ /* 新着レス */
+	color: {$STYLE['read_newres_color']};
+}
+
+
 /* {{{ アクティブモナー */
 
 .aMonaSW {

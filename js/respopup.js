@@ -175,8 +175,8 @@ function insertRes(evt, res, anchors, mark) {
 	// オリジナルのレスがあれば見た目変更
 	var resClass=res.className.match(/(^| )(r\d+)/);
 	var markRead=new Array();
-	if (!res.id) {markRead.push(resClass[2]);}// （カスケード展開された）展開元レスの本体を既読処理
-	markRead.push(resClass[2].replace(/r/,'qm'));	// 展開元レスのポップアップを既読処理
+	if (!res.id) {markRead.push(resClass[2]);}// 親レスの本体を既読処理
+	markRead.push(resClass[2].replace(/r/,'qm'));	// 親レスのポップアップを既読処理
 
 	for (var i=children.length-1;i>=0;i--) {
 		var importId=children[i];
@@ -190,8 +190,12 @@ function insertRes(evt, res, anchors, mark) {
 //		container.innerHTML=container.innerHTML.replace(/(class="[^"]*\sreadmessage)"/,"$1 more\"");
 		container.className='folding_container '+importId.replace(/qr/,"r");
 
-		markRead.push(importId.replace(/qr/,'qm'));	// 展開されたレスのポップアップを既読処理
-			console.log(markRead);
+		markRead.push(importId.replace(/qr/,'qm'));	// 子レスのポップアップを既読処理
+		var anchor = _findAnchorComment(importElement);
+		if (!anchor) {
+			markRead.push(importId.replace(/qr/,'r'));	// 孫がいないときは子レスの本体を既読処理
+		}
+//		console.log('markRead='+markRead);
 
 		if (blockOpenedRes[importId]) {continue;}
 		var anchor = _findAnchorComment(importElement);
@@ -281,35 +285,38 @@ function resetReaded(res, anchors,flag) {
 	if (resblock_inner == null) return;
 
 	var children=anchors.split("/");
+	var children2=new Array();
+	console.log("children="+children);
 	for (var i=0;i<children.length;i++) {
 		if (children[i]) {
-			children[i]=children[i].replace(/qr/,'qm');	// 展開されたレスのポップアップを既読処理
+			children2.push(children[i].replace(/qr/,'qm'));	// 子レスのポップアップを既読解除
+			var child=_findChildByClassName(resblock_inner, children[i].replace(/qr/,'r'));
+			if (!_findChildByClassName(child, 'resblock')) {
+				children2.push( children[i].replace(/qr/,'r'));	// 孫がいなければ子レスの本体を既読解除
+			}
 		}
 	}
 	for (var i=0;i<resblock_inner.childNodes.length;i++) {
-//		children=children.concat(
-					resetReaded(
-								resblock_inner.childNodes[i],
-								_findAnchorComment(resblock_inner.childNodes[i]),
-								true
+		resetReaded(
+					resblock_inner.childNodes[i],
+					_findAnchorComment(resblock_inner.childNodes[i]),
+					true
 				   );
-//					 );
 	}
 
 	// オリジナルのレスがあれば見た目変更
 	var resClass=res.className.match(/(^| )(r\d+)/);
-	children.unshift(resClass[2].replace(/r/,'qm'));	// 展開元レスのポップアップを既読処理
-	if (!res.id) {children.unshift(resClass[2]);}// （カスケード展開された）展開元レスの本体を既読処理
-//	if (flag) return children;
-	console.log(children);
+	if (!res.id) {children2.unshift(resClass[2]);}// 親レスの本体を既読解除
+	children2.unshift(resClass[2].replace(/r/,'qm'));	// 親レスのポップアップを既読解除
+
+//	console.log("children2="+children2);
 	
 	// クラス名で要素を探す
 	var el=document.getElementsByTagName('div');
-	var re=new RegExp('\\b('+children.join('|')+')\\b');
+	var re=new RegExp('\\b('+children2.join('|')+')\\b');
 	for (i=0;i<el.length;i++){
 		if(el[i].className.match(re)){
 			var orig=el[i];
-
 				if (orig) {
 					orig.className=orig.className.split(' ').remove('readmessage').join(' ');
 				}
@@ -326,29 +333,34 @@ function getElementForCopy(qresID) {
 		aResPopUp = document.getElementById(qresID);
 	}
 
-	if (aResPopUp) {
+	return aResPopUp ? aResPopUp : null;
+/*	if (aResPopUp) {
 		return aResPopUp;
 	} else {
 		return null;
-	}
+	}*/
 }
 
 function _findChildByClassName(p, kls) {
-	for (var i=0;i<p.childNodes.length;i++) {
-		if (!p.childNodes[i].className) {continue;}
-		if (p.childNodes[i].className.split(' ').find(kls)) {
-			return p.childNodes[i];
+	if (p != null) {
+		for (var i=0;i<p.childNodes.length;i++) {
+			if (!p.childNodes[i].className) {continue;}
+			if (p.childNodes[i].className.split(' ').find(kls)) {
+				return p.childNodes[i];
+			}
 		}
 	}
 	return null;
 }
 
 function _findAnchorComment(res) {
-	for (var i=0;i<res.childNodes.length;i++) {
-		if (res.childNodes[i].nodeName.toLowerCase().indexOf('comment') != -1) {
-			var nv = res.childNodes[i].nodeValue.replace(/^\s+|\s+$/g, '');
-			if (nv.indexOf('backlinks:') == 0) {
-				return nv.substr('backlinks:'.length);
+	if (res != null) {
+		for (var i=0;i<res.childNodes.length;i++) {
+			if (res.childNodes[i].nodeName.toLowerCase().indexOf('comment') != -1) {
+				var nv = res.childNodes[i].nodeValue.replace(/^\s+|\s+$/g, '');
+				if (nv.indexOf('backlinks:') == 0) {
+					return nv.substr('backlinks:'.length);
+				}
 			}
 		}
 	}
@@ -626,17 +638,14 @@ Array.prototype.find= function(el){
 };
 
 Array.prototype.unique = function(){
-   var i = this.length;
+	var i = this.length;
 	var hashary=new Object();
 	var newarray=new Array();
-   while(i){
-//   		console.log(i);
-   		if (!hashary[this[--i]]) {
-   			hashary[this[i]]=0;
-//			console.log("unshift "+this[i]);
+	while(i){
+		if (!hashary[this[--i]]) {
+			hashary[this[i]]=1;
 			newarray.unshift(this[i]);
 		}
-		hashary[this[i]]++;
    }
    return newarray;
 };
