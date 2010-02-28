@@ -286,7 +286,7 @@ function resetReaded(res, anchors,flag) {
 
 	var children=anchors.split("/");
 	var children2=new Array();
-	console.log("children="+children);
+//	console.log("children="+children);
 	for (var i=0;i<children.length;i++) {
 		if (children[i]) {
 			children2.push(children[i].replace(/qr/,'qm'));	// 子レスのポップアップを既読解除
