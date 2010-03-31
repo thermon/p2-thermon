@@ -167,7 +167,7 @@ SPM.show = function (aThread, resnum, resid, event) {
  */
 SPM.hide = function (aThread, event) {
 	event = event || window.event;
-	hideResPopUp(aThread.objName + '_spm','this');
+	hideResPopUp(aThread.objName + '_spm');
 	return false;
 };
 
@@ -209,14 +209,14 @@ SPM.setOnPopUp = function (obj, targetId, isSubMenu) {
 	obj.onmouseover = function (event) {
 		event = event || window.event;
 		if (event) {
-			showResPopUp(targetId, event,'this');
+			showResPopUp(targetId, event);
 		}
 	};
 	// ロールアウト
 	obj.onmouseout = function (event) {
 		event = event || window.event;
 		if (event) {
-			hideResPopUp(targetId,'this');
+			hideResPopUp(targetId);
 		}
 	}
 };

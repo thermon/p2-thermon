@@ -19,7 +19,7 @@ $GLOBALS['_HOSTCHKCONF']['host_type'] = array(
     // NTT docomo iƒ‚[ƒh
     'docomo'    => 0,
     // au EZweb
-    'au'        => 1,
+    'au'        => 0,
     // SoftBank Mobile
     'softbank'  => 0,
     // WILLCOM AIR-EDGE

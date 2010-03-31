@@ -273,13 +273,41 @@ EOP;
             $spmeh = '';
         }
 
-		$tores .="<a name=\"{$res_id}\"></a>";
         if ($_conf['backlink_block'] > 0) {
             // 被参照ブロック表示用にonclickを設定
             $tores .= "<div id=\"{$res_id}\" class=\"res {$res_id}\" onclick=\"toggleResBlk(event, this, " . $_conf['backlink_block_readmark'] . ")\">\n";
         } else {
             $tores .= "<div id=\"{$res_id}\" class=\"res {$res_id}\">\n";
         }
+		$tores .="<a name=\"{$res_id}\"></a>";
+
+		// 被参照ブロック表示で本体レスが非表示になった時に自分をポップアップ表示
+        if ($_conf['quote_res_view'] && ($_conf['quote_res_view_ng'] != 0 ||
+                !in_array($qnum, $this->_ng_nums))) {
+
+            if ($this->_matome) {
+                $qres_id = "t{$this->_matome}qr{$i}";
+            } else {
+                $qres_id = "qr{$i}";
+            }
+            $attributes = " onmouseover=\"showResPopUp('{$qres_id}',event,this)\"";
+            $attributes .= " onmouseout=\"hideResPopUp('{$qres_id}',this)\"";
+        }
+		// 自己ポップアップ用にレス番号を変換
+		$num = (string) $i;
+		if ($_conf['iframe_popup'] == 3) {
+			$num_ht = ' <img src="img/ida.png" width="2" height="12" alt="">';
+			$num_ht .= preg_replace('/\\d/', '<img src="img/id\\0.png" height="12" alt="">', $num);
+			$num_ht .= '<img src="img/idz.png" width="2" height="12" alt=""> ';
+		} else {
+			$num_ht = '('.$num.')';
+		}
+
+		$selfPopupUrl=$this->quoteRes(array('num1'=>$i),true);
+		$selfPopup=$this->iframePopup($selfPopupUrl, $num_ht, $attributes,1);
+        $tores .= "<div class=\"popupself\">{$selfPopup}</div>";
+		// 自己ポップアップ処理終了
+
         $tores .= "<div class=\"res-header\">";
 
         if ($this->thread->onthefly) {
@@ -297,6 +325,8 @@ EOP;
             // 番号
             $tores .= "{$i} : ";
         }
+
+
         // 名前
         $tores .= preg_replace('{<b>[ ]*</b>}i', '', "<span class=\"name\"><b>{$name}</b></span> : ");
 
@@ -748,12 +778,11 @@ EOP;
      * @param   string  $appointed_num    1-100
      * @return  string
      */
-
-    public function quoteRes(array $s)
+    public function quoteRes(array $s,$urlOnly=false)
     {
         global $_conf;
 //		echo "quoteRes<br>";
-//		echo nl2br(htmlspecialchars(var_export($s,true)))."<br>";
+//				echo nl2br(htmlspecialchars(var_export($s,true)))."<br>";
 		$full=$s[0];
 		$qsign=$s['prefix'];
 		$qnum=intval(
@@ -761,6 +790,7 @@ EOP;
 				mb_convert_kana($s['num1'], 'ns')
 			)
 		);	// 全角の数字とスペースを半角に変換しつつスペース削除
+
 
         if ($s['num2']) {
 			$to=intval(
@@ -805,9 +835,14 @@ EOP;
             $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$qnum}";		// 参照先だけのページを開くURL
 //        $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls=all&amp;field=res&amp;word=^{$appointed_num}$&amp;method=regex&amp;match=on&amp;idpopup=0";		// レス番号を検索するURL
         }
+
         $attributes = $_conf['bbs_win_target_at'];
-        if ($_conf['quote_res_view'] && ($_conf['quote_res_view_ng'] != 0 ||
-                !in_array($qnum, $this->_ng_nums))) {
+        if ($_conf['quote_res_view'] && 
+			(
+				$_conf['quote_res_view_ng'] != 0 
+				|| !in_array($qnum, $this->_ng_nums)
+			)
+		) {
 
             if ($this->_matome) {
                 $qres_id = "t{$this->_matome}qr{$qnum}";
@@ -818,10 +853,14 @@ EOP;
             $attributes .= " onmouseout=\"hideResPopUp('{$qres_id}',this)\"";
         }
 		$attributes .= " class=\"{$fromnum}\"";
-        return "<a href=\"{$read_url}\"{$attributes}"
-            . (in_array($qnum, $this->_aborn_nums) ? ' class="abornanchor"' :
-                (in_array($qnum, $this->_ng_nums) ? ' class="nganchor"' : ''))
-            . ">{$full}</a>";
+		if ($urlOnly) {
+	        return $read_url;
+		} else {
+	        return "<a href=\"{$read_url}\"{$attributes}"
+	            . (in_array($qnum, $this->_aborn_nums) ? ' class="abornanchor"' :
+	                (in_array($qnum, $this->_ng_nums) ? ' class="nganchor"' : 'class="anchor"'))
+	            . ">{$full}</a>";
+		}
     }
 
     // }}}
@@ -849,7 +888,7 @@ EOP;
         }
 
         // 普通にリンク
-        return "<a href=\"{$read_url}\"{$_conf['bbs_win_target_at']}>{$full}</a>";
+        return "<a class=\"anchor\" href=\"{$read_url}\"{$_conf['bbs_win_target_at']}>{$full}</a>";
 
         // 1つ目を引用レスポップアップ
         /*
@@ -940,16 +979,16 @@ EOP;
         switch ($mode) {
         // マーク無し
         case 1:
-            return "<a href=\"{$link_url}\"{$pop_attr}>{$link_str}</a>";
+            return "<a class=\"anchor\" href=\"{$link_url}\"{$pop_attr}>{$link_str}</a>";
         // (p)マーク
         case 2:
-            return "(<a href=\"{$link_url}\"{$pop_attr}>p</a>)<a href=\"{$link_url}\"{$attr}>{$link_str}</a>";
+            return "(<a class=\"anchor\" href=\"{$link_url}\"{$pop_attr}>p</a>)<a href=\"{$link_url}\"{$attr}>{$link_str}</a>";
         // [p]画像、サムネイルなど
         case 3:
-            return "<a href=\"{$link_url}\"{$pop_attr}>{$pop_str}</a><a href=\"{$link_url}\"{$attr}>{$link_str}</a>";
+            return "<a class=\"anchor\" href=\"{$link_url}\"{$pop_attr}>{$pop_str}</a><a href=\"{$link_url}\"{$attr}>{$link_str}</a>";
         // ポップアップしない
         default:
-            return "<a href=\"{$link_url}\"{$attr}>{$link_str}</a>";
+            return "<a class=\"anchor\" href=\"{$link_url}\"{$attr}>{$link_str}</a>";
         }
     }
 

@@ -465,7 +465,7 @@ abstract class ShowThread
             $matches=$this->_getAnchorsFromMsg($msg)
         ) {
             $references = array_unique(preg_split('/[-,]+/',
-                                                  trim(implode(',', $matches[1]), '-,'),
+                                                  trim(implode(',', $matches), '-,'),
                                                   -1,
                                                   PREG_SPLIT_NO_EMPTY));
             $intersections = array_intersect($references, $this->_aborn_nums);
@@ -724,6 +724,7 @@ abstract class ShowThread
         $target = $this->thread->host . '/' . $this->thread->bbs . '/' . $this->thread->key . '/' . $resnum;
 
         if (isset($ngaborns['aborn_res']['data']) && is_array($ngaborns['aborn_res']['data'])) {
+			// var_export($ngaborns['aborn_res']['data']);echo "<br>";
             foreach ($ngaborns['aborn_res']['data'] as $k => $v) {
                 if ($ngaborns['aborn_res']['data'][$k]['word'] == $target) {
                     $this->ngAbornUpdate('aborn_res', $k);
@@ -1110,6 +1111,8 @@ EOP;
      */
     final public function quoteResCallback(array $s)
     {
+//	preg_match($this->getAnchorRegex('/(?P<prefix>%prefix%|%delimiter%%prefix2%?)?%a_range%/'),$s['quote'],$out);
+//				echo "out:".htmlspecialchars(var_export($out,true))."<br>";
 		if (!$s['ignore_prefix']) {
 			try{
 				$var=preg_replace_callback(
@@ -1704,13 +1707,15 @@ $caches_ex[$pattern]);
 			// レス番号
 			'a_num'		=>	
 '(?:
-  %a_digit%{1,4}
-|
   %a_digit%
   (?:
-    %anchor_space%+
-    %a_digit%
-  ){1,3}
+    %a_digit%{0,3}
+  |
+    (?:
+      %anchor_space%++
+      %a_digit%
+    ){0,3}
+  )
 )',
 //			'a_num'		=>	'(%a_digit%{1,4}+)',
 			'a_range'	=>	
@@ -1776,7 +1781,7 @@ $caches_ex[$pattern]);
 			// プレフィックス付きレス番号に続くサフィックス
 			'line_prefix'	=>	
 "(?P<line_prefix>
-  (?:^|<br>)%anchor_space%*
+  (?:^|<br>)%anchor_space%?
 )",
  
 			'line_suffix'	=>	

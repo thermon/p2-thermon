@@ -30,7 +30,7 @@ blockOpenedRes=new Array();
 
 // レスポップアップや被参照レスのブロック表示内の、それを呼び出したレスに対するアンカーを修飾する
 resCallerDecorate=true;
-anchorSwitch=new Object();
+importedClass="imported";
 
 function getElement(id) {
 //	// alert(id);
@@ -45,7 +45,8 @@ function getElement(id) {
 	}
 }
 
-function toggleResBlk(evt, res, mark) {
+function toggleResBlk(evt, res) {
+	if (!getElement('ic2-info')) return null;	// htmlソースがすべて読み込まれていない場合は作動させない
 	var evt = (evt) ? evt : ((window.event) ? window.event : null);
 	var target = evt.target ? evt.target :
 		(evt.srcElement ? evt.srcElement : null);
@@ -81,102 +82,132 @@ function toggleResBlk(evt, res, mark) {
 
 	if (_findChildByClassName(resblock, 'resblock_inner') !== null &&
 			evt.type != 'dblclick') {
-		if (mark) resetReaded(res, anchors);
-		removeRes(res, button);
-		var anchor_read=appendAnchorClassCascade(evt, res.className, anchors,false);
-		changeFontOfLink(anchor_read,false);
-//		var children=anchors.split("/");
+		if (result_pair=removeRes(res, button)) {
+		
+			var div_class=result_pair[0].unique();
+			if (div_class) {
+				// クラス名で要素を探す
+				var el=document.getElementsByTagName('div');
+				var re=new RegExp('\\b('+div_class.join('|')+')\\b');
+				
+				i=el.length;
+				while(i--) {
+					if(el[i].className.match(re)){
+						el[i].className=el[i].className.remove(importedClass,' ');
+					}
+				}
+			}
+		
+			result1=result_paire[1].unique();
+//			console.log("close result1="+result1);
+
+			var a_class=new Array();
+			var idx=result1.length;
+			while(idx--) {
+				if (blockOpenedRes[result1[idx]]==0) {a_class.push("T"+result1[idx]);}
+			}
+//			console.log("close result2="+a_class);
+			if (a_class.length) {
+				// クラス名で要素を探す
+				var el=document.getElementsByTagName('a');
+				var re=new RegExp('\\b('+a_class.join('|')+')\\b');
+			
+				// 検索条件にマッチしたら、クラス追加／削除
+				i=el.length;
+				while(i--) {
+					if(el[i].className.match(re)){
+						el[i].className=el[i].className.remove(importedClass,' ');
+					}
+				}
+			}
+		}
 	} else {
-		changeFontOfLink(appendAnchorClassCascade(evt, res.className, anchors,true),true);
-		insertRes(evt, res, anchors, mark);
-		blockOpenedRes=new Array();
-	}
-}
-function changeFontOfLink(anchors,sw) {
-	anchors=anchors.unique();
-	if(anchors.length) {
-		var append='anchorToCaller';
-		// クラス名で要素を探す
-		var el=document.getElementsByTagName('a');
-		var re=new RegExp('\\b('+anchors.join('|')+')\\b');
+		if (result_pair=insertRes(evt, res, anchors)) {
+			(function(origId) 
+			{
+				var oidx=origId.length;
+				while(oidx--) {
+//				for (var oidx=0;oidx<origId.length;oidx++) {
+					var orig = (document.all) ?  document.all[origId[oidx]]
+					: ((document.getElementById) ? document.getElementById(origId[oidx])
+					   : null);
+					if (orig) {
+						orig.className+=' '+importedClass;
+					}
+				}
+			}
+		 	)(result_pair[0].unique());
+		
+			result1=result_pair[1].unique();
+//			console.log("open result1="+result1);
+
+			var a_class=new Array();
+			var idx=result1.length;
+			while(idx--) {
+				if (blockOpenedRes[result1[idx]]==1) {a_class.push("T"+result1[idx]);}
+			}
+//			console.log("open result2="+a_class);
+			if (a_class.length) {
+				// クラス名で要素を探す
+				var el=document.getElementsByTagName('a');
+				var re=new RegExp('\\b('+a_class.join('|')+')\\b');
 			
-		// 検索条件にマッチしたら、クラス追加／削除
-		for (i=0;i<el.length;i++){
-			if(el[i].className.match(re)){
-				if (sw) {
-					el[i].className+=' '+append;
-				} else {
-					el[i].className=el[i].className.split(' ').remove(append).join(' ');
+				// 検索条件にマッチしたら、クラス追加／削除
+				i=el.length;
+				while(i--) {
+					if(el[i].className.match(re)){
+						el[i].className+=' '+importedClass;
+					}
 				}
 			}
 		}
 	}
 }
-function appendAnchorClassCascade(evt,res,anchors,sw) {
-	// 開いたレスを指すアンカーを既読にする
-	var toAnchor=new Array();
-	if (resCallerDecorate) {
-		if (anchors) {
-			var children=anchors.split("/");
 
-			for (var i=0;i<children.length;i++) {
-				toAnchor.push('T'+children[i]);
-				anchorSwitch[children[i]] = sw
-
-				var importElement=getElementForCopy(""+children[i]);
-				var anchor = _findAnchorComment(importElement);
-			
-				if (sw == false || evt.type == 'dblclick') {
-					toAnchor=toAnchor.concat(appendAnchorClassCascade(evt,children[i],anchor,sw));
-				}
-			}
-		}
-		var resnum=res.match(/(?:t\d+)?r\d+/);
-		resnum=resnum[0].replace(/r/,"qr");
-		if (anchorSwitch[resnum] != sw) {
-			toAnchor.push('T'+resnum);
-			anchorSwitch[resnum] = sw;
-		}
-	}
-	return toAnchor;
-}
-
-function insertRes(evt, res, anchors, mark) {
-//	console.log(res);
-//		console.log(anchors);
+function insertRes(evt, res, anchors) {
+	//	console.log(res);
+	//		console.log(anchors);
+	var markRead=new Array();		// インポートされたレスの番号を格納
+	var openedAnchors=new Array();	// 開くことができたレスのアンカーを格納
 	var resblock = _findChildByClassName(res, 'resblock');
-	if (!resblock) return;
+	if (!resblock) return new Array();
 	var button = resblock.firstChild;
 	var resblock_inner = _findChildByClassName(resblock, 'resblock_inner');
+	/*
 	// 既に開いていた場合
 	if (resblock_inner) {
-		if (evt.type != 'dblclick') return;
+		if (evt.type != 'dblclick') return new Array();
 		// ダブルクリックならカスケード
-		(function (nodes) {
+		var r=(function (nodes) {
+			var result=new Array();
 			for  (var i=0;i<nodes.length;i++) {
 				if (nodes[i].className != 'folding_container') continue;
 				var anchor = _findAnchorComment(nodes[i]);
-				if (anchor != null)
-					insertRes(evt, nodes[i],
-						_findAnchorComment(nodes[i]), mark);
+				if (anchor != null) {
+					result_pair=insertRes(evt, nodes[i], _findAnchorComment(nodes[i]));
+					if (result_pair.length) {
+						markRead=markRead.concat(result_pair[0]);
+						openedAnchors=openedAnchors.concat(result_pair[1]);
+					}
+				}
+				
 			}
-		 })(resblock_inner.childNodes);
-		 return;
-	 }
+			console.log("result="+result);
+			return result;
+		   })(resblock_inner.childNodes);
+		console.log("r="+r);
+		return;
+	}
+	*/
 
 	// reslistがあれば非表示に
 	var reslistP = _findChildByClassName(res, 'reslist');
-//	if (reslistP) reslistP.style.display = 'none';
+	//	if (reslistP) reslistP.style.display = 'none';
 	
 	var children=anchors.split("/");
 	var resblock_inner = document.createElement('div');
 	var count=0;
 
-	// オリジナルのレスがあれば見た目変更
-	var resClass=res.className.match(/(^| )(r\d+)/);
-	var markRead=new Array();
-	if (!res.id) {markRead.push(resClass[2]);}// 親レスの本体を既読処理
-	markRead.push(resClass[2].replace(/r/,'qm'));	// 親レスのポップアップを既読処理
 
 	for (var i=children.length-1;i>=0;i--) {
 		var importId=children[i];
@@ -187,21 +218,13 @@ function insertRes(evt, res, anchors, mark) {
 		//参照先レス情報をコピー
 		var container=document.createElement('blockquote');
 		container.innerHTML=importElement.innerHTML.replace(/id=\"[^\"]+\"/g,"");
-//		container.innerHTML=container.innerHTML.replace(/(class="[^"]*\sreadmessage)"/,"$1 more\"");
 		container.className='folding_container '+importId.replace(/qr/,"r");
-
-		markRead.push(importId.replace(/qr/,'qm'));	// 子レスのポップアップを既読処理
-		var anchor = _findAnchorComment(importElement);
-		if (!anchor) {
-			markRead.push(importId.replace(/qr/,'r'));	// 孫がいないときは子レスの本体を既読処理
-		}
-//		console.log('markRead='+markRead);
 
 		if (blockOpenedRes[importId]) {continue;}
 		var anchor = _findAnchorComment(importElement);
 		if (anchor) {
 			container.onclick = function (evt) {
-				toggleResBlk(evt, this, mark);
+				toggleResBlk(evt, this);
 			};
 			var c_resblock=document.createElement('div');
 			c_resblock.className = 'resblock';
@@ -209,15 +232,15 @@ function insertRes(evt, res, anchors, mark) {
 				c_resblock.appendChild(button.cloneNode(false));
 
 			var reslistC = _findChildByClassName(container, 'reslist');
-//			if (reslistC) {
-				container.insertBefore(c_resblock, reslistC);
-//			} else {
-//				container.appendChild(c_resblock);
-//			}
+			container.insertBefore(c_resblock, reslistC);
 
 			// ダブルクリックならカスケード
 			if (evt.type == 'dblclick') {
-				insertRes(evt, container, anchor, mark);
+				result_pair=insertRes(evt, container, anchor);
+				if (result_pair.length) {
+					markRead=markRead.concat(result_pair[0]);
+					openedAnchors=openedAnchors.concat(result_pair[1]);
+				}
 			}
 		}
 		appendChildBackword(resblock_inner,container);
@@ -225,31 +248,42 @@ function insertRes(evt, res, anchors, mark) {
 		if (reslistP) {
 			var linkstr=_findChildByClassName(reslistP, importId);
 			if (linkstr) {
-			linkstr.innerHTML=linkstr.innerHTML.replace(/(【.+】)/,"<!--$1-->");
-			linkstr.style.display = 'none';
+				linkstr.innerHTML=linkstr.innerHTML.replace(/(【.+】)/,"<!--$1-->");
+				linkstr.style.display = 'none';
 			}
 		}
-		
-		blockOpenedRes[importId]=true;
+		if (!blockOpenedRes[importId]) {
+			blockOpenedRes[importId]=1;
+			openedAnchors.push(importId);
+			markRead.push(importId.replace(/qr/,'qm'));	// 子レスのポップアップを既読処理
+			var anchor = _findAnchorComment(importElement);
+			//		if (!anchor) {
+			markRead.push(importId.replace(/qr/,'r'));	// 孫がいないときは子レスの本体を既読処理
+			//		}
+			//		console.log('markRead='+markRead);
+		}
+
+		//		console.log("open "+importId+":"+blockOpenedRes[importId]);
 		count++;
 	}
 
-		if (mark) (function(origId) {
-				for (var oidx=0;oidx<origId.length;oidx++) {
-					var orig = (document.all) ?  document.all[origId[oidx]]
-					: ((document.getElementById) ? document.getElementById(origId[oidx])
-					   : null);
-					if (orig) {
-						orig.className+=' readmessage';
-					}
-				}
-			   })(markRead);
 	if (count) {
 		resblock_inner.className='resblock_inner';
 		resblock.appendChild(resblock_inner);
+		
+		importId=res.id.replace(/r/,"qr");
+		if (!blockOpenedRes[importId]) {
+			blockOpenedRes[importId]=1;
+			openedAnchors.push(importId);
+			// オリジナルのレスがあれば見た目変更
+			var resClass=res.className.match(/(^| )(r\d+)/);
+			if (!res.id) {markRead.push(resClass[2]);}// 親レスの本体を既読処理
+			markRead.push(resClass[2].replace(/r/,'qm'));	// 親レスのポップアップを既読処理
+		}
 	}
 
-	if (button) button.src=button.src.replace(/plus/,'minus');
+	if (button && count) button.src=button.src.replace(/plus/,'minus');
+	return new Array(markRead,openedAnchors);
 }
 
 function appendChildBackword(parent,child) {
@@ -262,11 +296,36 @@ function appendChildBackword(parent,child) {
 
 function removeRes(res, button) {
 
-	button.src=button.src.replace(/minus/,'plus');
-	var resblock_inner = _findChildByClassName(
-			button.parentNode, 'resblock_inner');
-	if (resblock_inner) button.parentNode.removeChild(resblock_inner);
-
+	if (button) button.src=button.src.replace(/minus/,'plus');
+	var closedAnchors=new Array();
+	var markRead=new Array();		// インポートされたレスの番号を格納
+	var children2=new Array();
+	var resblock = _findChildByClassName(res, 'resblock');
+	if (resblock) {
+		var resblock_inner = _findChildByClassName(resblock, 'resblock_inner');
+		if (resblock_inner) 
+		{
+			for (var c=0;c<resblock_inner.childNodes.length;c++) {
+				result=removeRes(resblock_inner.childNodes[c]);
+				closedAnchors=closedAnchors.concat(result[1]);
+				markRead=markRead.concat(result[0]);
+				var id=resblock_inner.childNodes[c].className.match(/(t\d+)?r\d+/);
+				id=id[0].replace(/r/,"qr");
+				if (--blockOpenedRes[id]<=0) {
+					blockOpenedRes[id]=0;
+					closedAnchors.push(id);
+					markRead.push(id.replace(/qr/,'qm'));	// 子レスのポップアップを既読解除
+					var child=_findChildByClassName(resblock_inner, id.replace(/qr/,'r'));
+					//			if (!_findChildByClassName(child, 'resblock')) {
+					markRead.push(id.replace(/qr/,'r'));	// 孫がいなければ子レスの本体を既読解除
+						//			}
+				}
+				//				console.log("close "+id+":"+blockOpenedRes[id]);
+			}
+			resblock.removeChild(resblock_inner);
+		}
+	}
+	
 	// reslistがあれば表示
 	var reslistP = _findChildByClassName(res, 'reslist');
 //	if (reslistP) reslistP.style.display = 'block';
@@ -274,54 +333,20 @@ function removeRes(res, button) {
 		for (var i=0;i<reslistP.childNodes.length;i++) {
 			reslistP.childNodes[i].innerHTML=reslistP.childNodes[i].innerHTML.replace(/<!\-\-(.+)\-\->/,"$1");
 			reslistP.childNodes[i].style.display = 'block';
+
 		}
 	}
-}
-
-function resetReaded(res, anchors,flag) {
-	var resblock = _findChildByClassName(res, 'resblock');
-	if (resblock == null) return;
-	var resblock_inner = _findChildByClassName(resblock, 'resblock_inner');
-	if (resblock_inner == null) return;
-
-	var children=anchors.split("/");
-	var children2=new Array();
-//	console.log("children="+children);
-	for (var i=0;i<children.length;i++) {
-		if (children[i]) {
-			children2.push(children[i].replace(/qr/,'qm'));	// 子レスのポップアップを既読解除
-			var child=_findChildByClassName(resblock_inner, children[i].replace(/qr/,'r'));
-			if (!_findChildByClassName(child, 'resblock')) {
-				children2.push( children[i].replace(/qr/,'r'));	// 孫がいなければ子レスの本体を既読解除
-			}
-		}
-	}
-	for (var i=0;i<resblock_inner.childNodes.length;i++) {
-		resetReaded(
-					resblock_inner.childNodes[i],
-					_findAnchorComment(resblock_inner.childNodes[i]),
-					true
-				   );
+	id=res.id.replace(/q?r/,"qr");
+	if (--blockOpenedRes[id]<=0) {
+		blockOpenedRes[id]=0;
+		closedAnchors.push(id);
+		// オリジナルのレスがあれば見た目変更
+		var resClass=res.className.match(/(^| )(r\d+)/);
+		if (!res.id) {markRead.unshift(resClass[2]);}// 親レスの本体を既読解除
+		markRead.unshift(resClass[2].replace(/r/,'qm'));	// 親レスのポップアップを既読解除
 	}
 
-	// オリジナルのレスがあれば見た目変更
-	var resClass=res.className.match(/(^| )(r\d+)/);
-	if (!res.id) {children2.unshift(resClass[2]);}// 親レスの本体を既読解除
-	children2.unshift(resClass[2].replace(/r/,'qm'));	// 親レスのポップアップを既読解除
-
-//	console.log("children2="+children2);
-	
-	// クラス名で要素を探す
-	var el=document.getElementsByTagName('div');
-	var re=new RegExp('\\b('+children2.join('|')+')\\b');
-	for (i=0;i<el.length;i++){
-		if(el[i].className.match(re)){
-			var orig=el[i];
-				if (orig) {
-					orig.className=orig.className.split(' ').remove('readmessage').join(' ');
-				}
-		}
-	}
+	return new Array(markRead,closedAnchors);
 }
 
 function getElementForCopy(qresID) {
@@ -334,11 +359,6 @@ function getElementForCopy(qresID) {
 	}
 
 	return aResPopUp ? aResPopUp : null;
-/*	if (aResPopUp) {
-		return aResPopUp;
-	} else {
-		return null;
-	}*/
 }
 
 function _findChildByClassName(p, kls) {
@@ -355,7 +375,9 @@ function _findChildByClassName(p, kls) {
 
 function _findAnchorComment(res) {
 	if (res != null) {
-		for (var i=0;i<res.childNodes.length;i++) {
+		var i=res.childNodes.length;
+		while(i--) {
+//		for (var i=0;i<res.childNodes.length;i++) {
 			if (res.childNodes[i].nodeName.toLowerCase().indexOf('comment') != -1) {
 				var nv = res.childNodes[i].nodeValue.replace(/^\s+|\s+$/g, '');
 				if (nv.indexOf('backlinks:') == 0) {
@@ -372,7 +394,8 @@ function _findAnchorComment(res) {
  *
  * 引用レス番に onMouseover で呼び出される
  */
-function showResPopUp(divID, ev) {
+function showResPopUp(divID, ev,anchor) {
+	if (!getElement('ic2-info')) return null;	// htmlソースがすべて読み込まれていない場合は作動させない
 	if (divID.indexOf("-") != -1) { return; } // 連番 (>>1-100) は非対応なので抜ける
 
 	var aResPopUp = gResPopCtl.getResPopUp(divID);
@@ -384,9 +407,13 @@ function showResPopUp(divID, ev) {
 		x = getPageX(ev);
 		y = getPageY(ev);
 
+		var from='';
+		if (anchor) {
+			var matched=anchor.className.match(/F((t\d+)?q?r\d+)/);
+			if (matched) {from=matched[1].replace(/q?r/,'qr');}
+		}
 		aShowTimer = new Object();
-
-		aShowTimer.timerID = setTimeout("doShowResPopUp('" + divID + "')", delayShowSec); // 一定時間したら表示する
+		aShowTimer.timerID = setTimeout("doShowResPopUp('" + divID + "','"+from+"')", delayShowSec); // 一定時間したら表示する
 
 		aShowTimer.x = x;
 		aShowTimer.y = y;
@@ -400,7 +427,7 @@ function showResPopUp(divID, ev) {
 /**
  * レスポップアップを表示する
  */
-function doShowResPopUp(divID) {
+function doShowResPopUp(divID,from) {
 	x = gShowTimerIds[divID].x;
 	y = gShowTimerIds[divID].y;
 	var aResPopUp = gResPopCtl.getResPopUp(divID);
@@ -418,22 +445,24 @@ function doShowResPopUp(divID) {
 
 	} else {
 		zNum++;
-		aResPopUp = gResPopCtl.addResPopUp(divID); // 新しいポップアップを追加
+		aResPopUp = gResPopCtl.addResPopUp(divID,from); // 新しいポップアップを追加
 	}
 
 	aResPopUp.showResPopUp(x, y);
 
 	(function (divID) {	// ポップアップの元があればハイライト
+		var orig;
 		if (document.all) { // IE用
-			var orig = document.all[divID.replace(/qr/,'r')];
+			orig = document.all[divID.replace(/qr/,'r')];
 		} else if (document.getElementById) { // DOM対応用（Mozilla）
-			var orig = document.getElementById(divID.replace(/qr/,'r'));
+			orig = document.getElementById(divID.replace(/qr/,'r'));
 		}
 
 		 if (orig) {
 		 	orig.className+=' highlight';
 		}
 	})(divID);
+	
 }
 
 /**
@@ -441,7 +470,7 @@ function doShowResPopUp(divID) {
  *
  * 引用レス番から onMouseout で呼び出される
  */
-function hideResPopUp(divID) {
+function hideResPopUp(divID,anchor) {
 	if (divID.indexOf("-") != -1) { return; } // 連番 (>>1-100) は非対応なので抜ける
 
 	// 表示タイマーを解除
@@ -451,19 +480,24 @@ function hideResPopUp(divID) {
 
 	var aResPopUp = gResPopCtl.getResPopUp(divID);
 	if (aResPopUp) {
-		aResPopUp.hideResPopUp();
+				var from='';
+		if (anchor && anchor.className) {
+			var matched=anchor.className.match(/F((t\d+)?q?r\d+)/);
+			if (matched) {from=matched[1].replace(/q?r/,'qr');}
+		}
+		aResPopUp.hideResPopUp(from);
 	}
 }
 
 /**
  * レスポップアップを非表示にする
  */
-function doHideResPopUp(divID) {
+function doHideResPopUp(divID,from) {
 	var aResPopUp = gResPopCtl.getResPopUp(divID);
 	if (aResPopUp) {
 		aResPopUp.doHideResPopUp();
 	}
-
+	
 	(function (divID) {	// ポップアップ元のハイライトを戻し
 		if (document.all) { // IE用
 			 var orig = document.all[divID.replace(/qr/,'r')];
@@ -471,7 +505,7 @@ function doHideResPopUp(divID) {
 			 var orig = document.getElementById(divID.replace(/qr/,'r'));
 		}
 		 if (orig) {
-		 	orig.className=orig.className.split(' ').remove('highlight').join(' ');
+		 	orig.className=orig.className.remove('highlight',' ');
 		}
 	})(divID);
 }
@@ -485,9 +519,19 @@ function ResPopCtl() {
 	/**
 		* 配列 gPOPS に新規 ResPopUp オブジェクト を追加する
 		*/
-	ResPopCtl.prototype.addResPopUp = function (divID) {
+	ResPopCtl.prototype.addResPopUp = function (divID,from) {
 		var aResPopUp = new ResPopUp(divID);
 		// gPOPS.push(aResPopUp); Array.push はIE5.5未満未対応なので代替処理
+		aResPopUp.from.push(from);
+		if (from) {
+		var msgblock = _findChildByClassName(aResPopUp.popOBJ, 'message');
+		if (msgblock) {
+			var anchor=_findChildByClassName(msgblock,'T'+from);
+			if (anchor) {
+				anchor.className+= " popedFrom";
+			}
+		}
+	}
 		return gPOPS[gPOPS.length] = aResPopUp;
 	}
 
@@ -546,6 +590,7 @@ function ResPopUp(divID) {
 	this.zNum = zNum;
 	this.hideTimerID = 0;
 	this.linkclass=new Array();
+	this.from=new Array();
 
 	if (document.all) { // IE用
 		this.popOBJ = document.all[this.divID];
@@ -603,7 +648,7 @@ function ResPopUp(divID) {
 
 			if (this.zNum < gPOPS[i].zNum) {
 				//clearTimeout(this.hideTimerID); // タイマーを解除
-				this.hideTimerID = setTimeout("hideResPopUp('" + this.divID + "')", delaySec); // 一定時間表示したら消す
+				this.hideTimerID = setTimeout("hideResPopUp('" + this.divID + "','"+ from +"')", delaySec); // 一定時間表示したら消す
 				return;
 			}
 		}
@@ -612,6 +657,20 @@ function ResPopUp(divID) {
 		// clearTimeout(this.hideTimerID); // タイマーを解除
 		gResPopCtl.rmResPopUp(this.divID);
 
+		var from=this.from.pop();
+		
+//		console.log("doHideResPopUp "+from+"=>"+this.divID);
+		if (from) {
+			var msgblock = _findChildByClassName(this.popOBJ, 'message');
+			if (msgblock) {
+				var anchor=_findChildByClassName(msgblock,'T'+from);
+
+				if (anchor) {
+					anchor.className=anchor.className.remove('popedFrom',' ');
+				}
+			}
+		}
+
 	}
 
 	return this;
@@ -619,7 +678,9 @@ function ResPopUp(divID) {
 
 // Arrayクラスにメソッド追加
 Array.prototype.remove= function(el){
-	for (var j=this.length-1;j>=0;j--) {
+	var j=this.length;
+	while(j--) {	
+//	for (var j=this.length-1;j>=0;j--) {
 		if (this[j] == el) {
 			this.splice(j, 1);
 			break;
@@ -629,7 +690,8 @@ Array.prototype.remove= function(el){
 };
 
 Array.prototype.find= function(el){
-	for (var j=0;j<this.length;j++) {
+	var j=this.length;
+	while(j--) {
 		if (this[j] == el) {
 			return true;
 		}
@@ -641,11 +703,16 @@ Array.prototype.unique = function(){
 	var i = this.length;
 	var hashary=new Object();
 	var newarray=new Array();
-	while(i){
-		if (!hashary[this[--i]]) {
+	while(i--){
+		if (!hashary[this[i]] && this[i]!='') {
 			hashary[this[i]]=1;
 			newarray.unshift(this[i]);
 		}
    }
    return newarray;
+};
+
+// Stringクラスにメソッド追加
+String.prototype.remove= function(str,delimiter){
+	return this.split(delimiter).remove(str).join(delimiter);
 };

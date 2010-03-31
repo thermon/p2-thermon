@@ -59,6 +59,7 @@ function detectAA(blockId)
 function activeMona(blockId)
 {
 //	var amTargetObj = document.getElementById(blockId);	
+	blockId+="|"+blockId.replace(/q?m/,'qm');
 	var amTargetObj = getElementsByClass('div',blockId);
 
 	if (!amTargetObj) {

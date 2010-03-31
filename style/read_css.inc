@@ -123,11 +123,11 @@ div.respopup {
 }
 
 div.res.aborned {
+	display: none;
 	margin: 0;
 	padding: 4px 0 0 0;
 	font-size: xx-small;
 	line-height: 100%;
-	display: block;
 }
 
 
@@ -147,6 +147,16 @@ div.res div.message {
 div.respopup div.message {
 	margin: 0 0 0 2.5em;
 	padding: 2px 0 0 0;
+}
+
+div.respopup div.message a.popedFrom{
+	text-decoration:blink;
+	font-style:oblique;
+}
+
+div.respopup div.message a.popedFrom.noFrom{
+	text-decoration:normal;
+	font-style:normal;
 }
 
 /* レスボディ内リンクの折り返し */
@@ -397,7 +407,7 @@ blockquote.folding_container:after {
 }
 
 .resblock .resblock_inner {
-	margin: 0 0 0 2em;
+	margin: 0 0 0 20px;
 	line-height: 120%;
 	{$respop_background}
 	{$respop_border}
@@ -408,17 +418,44 @@ blockquote.folding_container:after {
 	box-shadow: 2px 2px 2px #999;
 }
 
-.res .readmessage, 
-.folding_container .readmessage,
-.respopup .readmessage,
-.res.readmessage *
+/*被参照展開時、既展開レスのフォントカラー変更*/
+.folding_container .message.imported,	/*ブロック表示*/
+.res.imported,	/*本体*/
+.respopup .message.imported	/*ポップアップ*/
 {
 	color: {$STYLE['read_ngword']};
-	font-style: italic;
 }
-.res .anchorToCaller,
-.folding_container .anchorToCaller,
-.reslist_inner .anchorToCaller
+
+.res.imported
+{
+	margin: 0;
+	padding: 0;
+}
+.popupself{
+	mergin-under: 0.4em;
+	display:none;
+}
+
+/*被参照展開時、自分自身のポップアップリンク表示*/
+.res.imported .popupself
+{
+	display:block;
+}
+
+/*被参照展開時本体レス非表示*/
+.res.imported .res-header,
+.res.imported .message,
+.res.imported .resblock,
+.res.imported .reslist,
+.res.imported p
+{	
+	display:none;
+	visibility:hidden;
+}
+
+.res a.imported,
+.folding_container a.imported,
+.reslist_inner a.imported
 {
 	font-weight:bold;
 } /* ポップアップ元のレスを指すアンカーを強調 */
