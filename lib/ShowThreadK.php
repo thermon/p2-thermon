@@ -529,22 +529,24 @@ EOP;
 
         // 大きさ制限
         if (empty($_GET['k_continue']) && strlen($msg) > $_conf['mobile.res_size']) {
-            // <br>以外のタグを除去し、長さを切り詰める
-            $msg = strip_tags($msg, '<br>');
-            $msg = mb_strcut($msg, 0, $_conf['mobile.ryaku_size']);
-            $msg = preg_replace('/ *<[^>]*$/', '', $msg);
-
             // >>1, >1, ＞1, ＞＞1を引用レスポップアップリンク化
-			try{
+/*			try{
 	            $msg = preg_replace_callback(
-	                $this->getAnchorRegex('/%full%/m'),
+	                $this->getAnchorRegex("/%full%/"),
 	                array($this, 'quoteResCallback'), $msg
 	            );
 			} catch (Exception $e) {
 				trigger_error(
 					"正規表現が不正です。<br>".$e->getMessage(),E_USER_ERROR
 				);
-			}
+			}*/
+
+            // <br>以外のタグを除去し、長さを切り詰める
+            $msg = strip_tags($msg, '<br>');
+            $msg = mb_strcut($msg, 0, $_conf['mobile.ryaku_size']);
+            $msg = preg_replace('/ *<[^>]*$/', '', $msg);
+
+
             $msg .= "<a href=\"{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;ls={$mynum}&amp;k_continue=1&amp;offline=1{$_conf['k_at_a']}\"{$this->respopup_at}{$this->target_at}>略</a>";
             return $msg;
         }
@@ -779,7 +781,7 @@ EOP;
 
 		} elseif ($_conf['mobile.anchor_link_page']==1) {	// ページ単位でジャンプ先を表示する
 			if ($qnum<$start) {		// 前のページにジャンプ
-				$new_start=$end+1 -ceil(($end -$qnum)/$range)*$range;
+				$new_start=$end -ceil(($end -$qnum)/$range)*$range;
 				if ($new_start<=0) {$new_start=1;}
 			} else	{	// 後ろのページにジャンプ
 				$new_start=$start +floor(($qnum-$start)/$range)*$range;	// ls=allの場合、$startは1のはず

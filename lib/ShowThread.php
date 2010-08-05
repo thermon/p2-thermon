@@ -1378,7 +1378,7 @@ EOP;
 
         $ret="";
         $ret.= '<div class="reslist">';
-        $count=0;
+//        $count=0;
 
 		if ($_conf['ktai'] && count($anchors)>1) {
 			$word="^(".join("|",$anchors).")$";
@@ -1396,9 +1396,10 @@ EOP;
             $ret.="<div class=\"reslist_inner ${qres_id}\" >";
             $ret.=sprintf('【参照レス：%s】',$anchor_link);
             $ret.='</div>';
-            $count++;
+//            $count++;
         }
         $ret.='</div>';
+
         return $ret;
     }
     protected function _quoteback_res_data($anchors)
@@ -1707,15 +1708,7 @@ $caches_ex[$pattern]);
 			// レス番号
 			'a_num'		=>	
 '(?:
-  %a_digit%
-  (?:
-    %a_digit%{0,3}
-  |
-    (?:
-      %anchor_space%++
-      %a_digit%
-    ){0,3}
-  )
+  %a_digit%{1,4}
 )',
 //			'a_num'		=>	'(%a_digit%{1,4}+)',
 			'a_range'	=>	
@@ -1868,7 +1861,7 @@ $caches_ex[$pattern]);
 	            . '(?P<link>(<[Aa][ ].+?>)(.*?)(</[Aa]>))' // リンク（PCREの特性上、必ずこのパターンを最初に試行する）
 	            . '|'
 	            .   '(?P<url>'
-	            .       '(ftp|h?ttps?|tps?)://([0-9A-Za-z][\\w!#%&+*,\\-./:;=?@\\[\\]^~]+)' // URL
+	            .       '(ftp|h?ttps?|tps?)://([0-9A-Za-z][\\w!#%&+*,\\-./:;=?@\\[\\]\\|^~]+)' // URL
 	            .   ')'
 	            . '|'
 	            .   '(?P<id>'.

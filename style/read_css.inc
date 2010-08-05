@@ -119,11 +119,11 @@ div.respopup {
 
 /* あぼーんレス */
 .aborned {
-	display: none;
+/*	display: none;*/
 }
 
 div.res.aborned {
-	display: none;
+/*	display: none;*/
 	margin: 0;
 	padding: 4px 0 0 0;
 	font-size: xx-small;
@@ -254,6 +254,13 @@ a.newres:link, a.newres:visited, a.newres:hover, a.newres:active{ /* 新着レス */
 	line-height: 100%;
 	font-family: "{$_conf['expack.am.fontfamily']}";
 	font-size: {$_conf['expack.am.fontsize']};
+}
+
+/* レスポップアップ時はpreにする */
+.respopup .ActiveMona {
+	font-family: "{$_exconf['aMona']['aafont']}";
+	line-height: 100%;
+	white-space:pre;
 }
 
 .NoMona {
@@ -391,7 +398,7 @@ a.newres:link, a.newres:visited, a.newres:hover, a.newres:active{ /* 新着レス */
 
 blockquote.folding_container{
 	margin:0;
-	padding: 3px;
+//	padding-right: 1px;
 }
 
 blockquote.folding_container:after {
@@ -407,15 +414,17 @@ blockquote.folding_container:after {
 }
 
 .resblock .resblock_inner {
-	margin: 0 0 0 20px;
+	margin: 1px -1px 3px 16px;
 	line-height: 120%;
 	{$respop_background}
-	{$respop_border}
+	border-color:{$STYLE['respop_b_color']};
+	border-style:dotted dotted dotted solid;
+	border-width:1px 1px 1px 2px;
 	{$respop_color}
 	font-size:{$STYLE['respop_fontsize']};
-	-moz-box-shadow: 2px 2px 2px #999;
+/*	-moz-box-shadow: 2px 2px 2px #999;
 	-webkit-box-shadow: 2px 2px 2px #999;
-	box-shadow: 2px 2px 2px #999;
+	box-shadow: 2px 2px 2px #999;*/
 }
 
 /*被参照展開時、既展開レスのフォントカラー変更*/
@@ -447,6 +456,7 @@ blockquote.folding_container:after {
 .res.imported .message,
 .res.imported .resblock,
 .res.imported .reslist,
+.res.imported .buttonblock,
 .res.imported p
 {	
 	display:none;

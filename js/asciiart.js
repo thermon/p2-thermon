@@ -58,8 +58,7 @@ function detectAA(blockId)
 // activeMona -- モナーフォントに切り替え、行の高さも縮める
 function activeMona(blockId)
 {
-//	var amTargetObj = document.getElementById(blockId);	
-	blockId+="|"+blockId.replace(/q?m/,'qm');
+//	blockId+="|"+blockId.replace(/q?m/,'qm');
 	var amTargetObj = getElementsByClass('div',blockId);
 
 	if (!amTargetObj) {
@@ -71,11 +70,12 @@ function activeMona(blockId)
 	
 	for (i=0;i<amTargetObj.length;i++){
 		amTargetObj[i].className = amTargetObj[i].className.replace(/ ?(ActiveMona|pre)/, '');
-		if (aa) {	// aaモードからpreモードへ
-			amTargetObj[i].className += ' pre';
-		} else if (!pre) {	// aaモードでもpreモードでもなければaaモードへ
+		if (!aa && !pre) {	// aaモードでもpreモードでもなければaaモードへ
 			amTargetObj[i].className += ' ActiveMona';
 		}
+/*		else if (aa) {	// aaモードからpreモードへ
+			amTargetObj[i].className += ' pre';
+		}*/
 	}
 }
 

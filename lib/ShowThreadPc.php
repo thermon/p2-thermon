@@ -359,23 +359,22 @@ EOP;
 
         $tores .= "<div id=\"{$msg_id}\" class=\"{$msg_class}\">{$msg}</div>\n"; // 内容
 
+		$tores2="";
+        // 被レスリスト(横形式)
+        if ($_conf['backlink_list'] == 2 || $_conf['backlink_list'] > 2) {
+            $tores2 .= $this->quoteback_list_html($i, 2,false);
+        }
+
         // 被レス展開用ブロック
         if ($_conf['backlink_block'] > 0) {
             $backlinks = $this->backlink_comment($i);
+            $tores2 .= $backlinks;
             if (strlen($backlinks)) {
-                $tores .= '<div class="resblock"><img src="img/btn_plus.gif" width="15" height="15" align="left"></div>';
+                $tores .= '<div class="buttonblock"><img src="img/btn_plus.gif" width="15" height="15" align="left"></div>';
+				$tores .= $tores2;
+                $tores .= '<div class="resblock"></div>';
             }
         }
-        // 被レスリスト(横形式)
-        if ($_conf['backlink_list'] == 2 || $_conf['backlink_list'] > 2) {
-            $tores .= $this->quoteback_list_html($i, 2,false);
-        }
-
-        // 被レス展開用ブロック
-        if ($_conf['backlink_block'] > 0) {
-            $tores .= $backlinks;
-        }
-
         $tores .= "<p></div>\n";
 //		$tores=preg_replace('/(class="F(?:t\d+)?)qr/',"$1r",$tores);
 
@@ -502,6 +501,7 @@ EOJS;
         // AA 判定
         if ($this->am_autodetect && $this->activeMona->detectAA($resar[3])) {
             $msg_class .= ' ActiveMona';
+//            $msg_class .= ' pre';
         }
 
         // SPM
@@ -533,7 +533,7 @@ EOJS;
         }
         $tores .= $date_id; // 日付とID
         if ($this->am_side_of_id) {
-            $tores .= ' ' . $this->activeMona->getMona($msg_id);
+            $tores .= ' ' . $this->activeMona->getMona($qmsg_id);
         }
         $tores .= "</div>\n";
 
@@ -691,12 +691,13 @@ EOJS;
     protected function _abornedRes($res_id)
     {
         global $_conf;
-        if ($_conf['ngaborn_purge_aborn']) return '';
+        if ($_conf['ngaborn_purge_aborn']) return "<a name=\"{$res_id}\"></a>";
         return <<<EOP
+<a name="{$res_id}">
 <div id="{$res_id}" class="res aborned">
 <div class="res-header aborned">&nbsp;</div>
 <div class="message aborned">&nbsp;</div>
-</div>\n
+</div></a>\n
 EOP;
     }
 
