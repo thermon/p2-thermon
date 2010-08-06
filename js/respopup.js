@@ -47,7 +47,7 @@ function getElement(id) {
 }
 
 function toggleResBlk(evt, res) {
-	if (!getElement('ic2-info')) return null;	// htmlソースがすべて読み込まれていない場合は作動させない
+	if (!getElement('footer')) return null;	// htmlソースがすべて読み込まれていない場合は作動させない
 	var evt = (evt) ? evt : ((window.event) ? window.event : null);
 	var target = evt.target ? evt.target :
 		(evt.srcElement ? evt.srcElement : null);
@@ -446,7 +446,7 @@ function _findAnchorComment(res) {
  * 引用レス番に onMouseover で呼び出される
  */
 function showResPopUp(divID, ev,anchor) {
-	if (!getElement('ic2-info')) return null;	// htmlソースがすべて読み込まれていない場合は作動させない
+	if (!getElement('footer')) return null;	// htmlソースがすべて読み込まれていない場合は作動させない
 	if (divID.indexOf("-") != -1) { return; } // 連番 (>>1-100) は非対応なので抜ける
 
 	var aResPopUp = gResPopCtl.getResPopUp(divID);
