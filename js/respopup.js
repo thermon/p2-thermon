@@ -29,6 +29,8 @@ isIE = /*@cc_on!@*/false;
 importedRes=new Array();	// レスが展開されたフラグの配列
 resPosition=new Array();	// 展開されたレスの親レスとそこからの相対y座標の配列
 
+HTMLAnchorList='';
+
 // レスポップアップや被参照レスのブロック表示内の、それを呼び出したレスに対するアンカーを修飾する
 resCallerDecorate=true;
 importedClass="imported";
@@ -48,6 +50,7 @@ function getElement(id) {
 
 function toggleResBlk(evt, res) {
 	if (!getElement('footer')) return null;	// htmlソースがすべて読み込まれていない場合は作動させない
+//	HTMLAnchorList=document.getElementsByName('linkfrom');
 	var evt = (evt) ? evt : ((window.event) ? window.event : null);
 	var target = evt.target ? evt.target :
 		(evt.srcElement ? evt.srcElement : null);
@@ -245,38 +248,23 @@ function insertRes(evt, res, anchors) {
 			importedRes[allAnchors[i]]=1;
 		}
 	}
-	var HTMLAnchorList=document.getElementsByName('linkfrom');
 
-	for (i=0;i<children.length;i++) {
-		var importId=children[i];
-		//	console.log(importId);
-
-		/*ハイパーリンクのURLを被参照ブロック内に変更する*/
-		var id_r=importId.replace(/qr/,'r');
-		var id_rx=importId.replace(/qr/,'rx');
-		var HTMLAnchorTo=document.getElementsByName(id_rx);
-
-		if (!HTMLAnchorTo.length){
-			var href=location.href.replace(/#.*$/,"#"+id_r);
-			for (ix=0;ix<HTMLAnchorList.length;ix++) {
-				if (HTMLAnchorList.item(ix).href == href) {
-					HTMLAnchorList.item(ix).href="#"+id_rx;
-				}
-			}
-		}
-	}
-	
 	for (i=0;i<children.length;i++) {
 		var importId=children[i];
 
 //		var importElement=getElementForCopy(""+importId);
-		var importElement2=getElement(importId);
-		
 
 		//参照先レス情報をコピー
 		var container=document.createElement('blockquote');
-		var importedAnchor=createNamedElement('a',importId.replace(/qr/,'rx'));
-		container.appendChild(importedAnchor);
+		var id_rx=importId.replace(/qr/,'rx');
+		var HTMLAnchorTo=document.getElementsByName(id_rx);
+
+		if (!HTMLAnchorTo.length){
+			var importedAnchor=createNamedElement('a',id_rx);
+			container.appendChild(importedAnchor);
+		}
+
+		var importElement2=getElement(importId);
 		for (var c=0;c<importElement2.childNodes.length;c++) {
 			container.appendChild(importElement2.childNodes[c].cloneNode(true));
 		}
@@ -317,7 +305,7 @@ function insertRes(evt, res, anchors) {
 			}
 		}
 		resblock_inner.appendChild(container);	// 展開処理
-		
+	
 		if (reslistP) {
 			var linkstr=_findChildByClassName(reslistP, importId);
 			if (linkstr) {
@@ -348,6 +336,7 @@ function insertRes(evt, res, anchors) {
 		console.log("child y="+y1);
 		resPosition[importId]=new Array(parent,y1-y0);
 		*/
+
 	}
 
 	if (count) {
@@ -367,6 +356,22 @@ function insertRes(evt, res, anchors) {
 	}
 
 	if (button && count) button.src=button.src.replace(/plus/,'minus');
+		for (i=0;i<children.length;i++) {
+		var importId=children[i];
+		var id_r=importId.replace(/qr/,'r');
+		var id_rx=importId.replace(/qr/,'rx');
+		
+		var HTMLAnchorList=document.getElementsByName('linkfrom');
+		var href=location.href.replace(/#.*$/,"#"+id_r);
+		for (ix=0;ix<HTMLAnchorList.length;ix++) {
+			if (HTMLAnchorList.item(ix).href == href || 
+				HTMLAnchorList.item(ix).href == "#"+id_r) {
+				HTMLAnchorList.item(ix).href="#"+id_rx;
+//				console.log('link change:'+id_rx);
+			}
+		}
+	}
+	
 	return new Array(markRead,openedAnchors);
 }
 
