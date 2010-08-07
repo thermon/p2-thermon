@@ -29,7 +29,7 @@ isIE = /*@cc_on!@*/false;
 importedRes=new Array();	// レスが展開されたフラグの配列
 resPosition=new Array();	// 展開されたレスの親レスとそこからの相対y座標の配列
 
-HTMLAnchorList='';
+timerId=new Array();;
 
 // レスポップアップや被参照レスのブロック表示内の、それを呼び出したレスに対するアンカーを修飾する
 resCallerDecorate=true;
@@ -356,25 +356,34 @@ function insertRes(evt, res, anchors) {
 	}
 
 	if (button && count) button.src=button.src.replace(/plus/,'minus');
-		for (i=0;i<children.length;i++) {
-		var importId=children[i];
-		var id_r=importId.replace(/qr/,'r');
-		var id_rx=importId.replace(/qr/,'rx');
-		
-		var HTMLAnchorList=document.getElementsByName('linkfrom');
-		var href=location.href.replace(/#.*$/,"#"+id_r);
-		for (ix=0;ix<HTMLAnchorList.length;ix++) {
-			if (HTMLAnchorList.item(ix).href == href || 
-				HTMLAnchorList.item(ix).href == "#"+id_r) {
-				HTMLAnchorList.item(ix).href="#"+id_rx;
-//				console.log('link change:'+id_rx);
-			}
-		}
-	}
-	
+	setTimeout("linkchange('"+children+"')", 100);
+//	console.log(children);
+//	linkchange(children);
 	return new Array(markRead,openedAnchors);
 }
 
+function linkchange(children) {
+	children=children.split(',');
+//	console.log(children);
+			var HTMLAnchorList=document.getElementsByName('linkfrom');
+	for (i=0;i<children.length;i++) {
+			var importId=children[i];
+			var id_r=importId.replace(/qr/,'r');
+			var id_rx=importId.replace(/qr/,'rx');
+		
+
+			var href=location.href.replace(/#.*$/,"#"+id_r);
+//		console.log(href);
+			for (ix=0;ix<HTMLAnchorList.length;ix++) {
+//				console.log(HTMLAnchorList.item(ix).href);
+				if (HTMLAnchorList.item(ix).href == href || 
+					HTMLAnchorList.item(ix).href == "#"+id_r) {
+					HTMLAnchorList.item(ix).href="#"+id_rx;
+//				console.log(id_rx);
+				}
+			}
+		}
+}
 function appendChildBackword(parent,child) {
 		if (parent.childNodes.length) {
 			parent.insertBefore(child,parent.firstChild);
