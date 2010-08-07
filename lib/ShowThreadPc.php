@@ -159,7 +159,7 @@ class ShowThreadPc extends ShowThread
         // NGあぼーんチェック
         $ng_type = $this->_ngAbornCheck($i, strip_tags($name), $mail, $date_id, $id, $msg, false, $ng_info);
         if ($ng_type == self::ABORN) {
-            return $this->_abornedRes($res_id);
+            return "<a name=\"{$res_id}\"></a>" . $this->_abornedRes($res_id);
         }
         if ($ng_type != self::NG_NONE) {
             $ngaborns_head_hits = self::$_ngaborns_head_hits;
@@ -370,7 +370,7 @@ EOP;
             $backlinks = $this->backlink_comment($i);
             $tores2 .= $backlinks;
             if (strlen($backlinks)) {
-                $tores .= '<div class="buttonblock"><img src="img/btn_plus.gif" width="15" height="15" align="left"></div>';
+                $tores .= '<img class="buttonblock" src="img/btn_plus.gif" width="15" height="15" align="left">';
 				$tores .= $tores2;
                 $tores .= '<div class="resblock"></div>';
             }
@@ -520,13 +520,14 @@ EOJS;
 			)
  		) {
             $read_url = '#' . $res_id;
+			$tagname='name="linkfrom"';
         } else {
             $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$i}";
 		}
 
         // $toresにまとめて出力
         $tores .= '<div class="res-header">';
-        $tores .= "<span class=\"spmSW\"{$spmeh}><a href=\"{$read_url}\">{$i}</a></span> : "; // 番号
+        $tores .= "<span class=\"spmSW\"{$spmeh}><a href=\"{$read_url}\" {$tagname}>{$i}</a></span> : "; // 番号
         $tores .= preg_replace('{<b>[ ]*</b>}i', '', "<b>{$name}</b> : ");
         if ($mail) {
             $tores .= $mail . ' : '; // メール
@@ -691,13 +692,12 @@ EOJS;
     protected function _abornedRes($res_id)
     {
         global $_conf;
-        if ($_conf['ngaborn_purge_aborn']) return "<a name=\"{$res_id}\"></a>";
+        if ($_conf['ngaborn_purge_aborn']) return '';
         return <<<EOP
-<a name="{$res_id}">
 <div id="{$res_id}" class="res aborned">
 <div class="res-header aborned">&nbsp;</div>
 <div class="message aborned">&nbsp;</div>
-</div></a>\n
+</div>\n
 EOP;
     }
 
@@ -832,6 +832,8 @@ EOP;
 			)
  		) {
             $read_url = '#' . $resnum;
+			$tagname='name="linkfrom"';
+
         } else {
             $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls={$qnum}";		// 参照先だけのページを開くURL
 //        $read_url = "{$_conf['read_php']}?host={$this->thread->host}&amp;bbs={$this->thread->bbs}&amp;key={$this->thread->key}&amp;offline=1&amp;ls=all&amp;field=res&amp;word=^{$appointed_num}$&amp;method=regex&amp;match=on&amp;idpopup=0";		// レス番号を検索するURL
@@ -853,7 +855,7 @@ EOP;
             $attributes .= " onmouseover=\"showResPopUp('{$qres_id}',event,this)\"";
             $attributes .= " onmouseout=\"hideResPopUp('{$qres_id}',this)\"";
         }
-		$attributes .= " class=\"{$fromnum}\"";
+		$attributes .= " class=\"{$fromnum}\" {$tagname}";
 		if ($urlOnly) {
 	        return $read_url;
 		} else {

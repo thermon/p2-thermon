@@ -59,10 +59,9 @@ function toggleResBlk(evt, res) {
 	var resblock = _findChildByClassName(res, 'resblock');
 	if (evt == null || res == null || target == null || resblock == null)
 		return;
-	var buttonblock = _findChildByClassName(res, 'buttonblock');
-	var button = buttonblock.firstChild;
+	var button = _findChildByClassName(res, 'buttonblock');
 	if (!button) return;
-	if (target != res && target != resblock && target != button && target != buttonblock) {
+	if (target != res && target != resblock && target != button) {
 /*
 		// レスリストのクリックかどうか
 		var isdescend = function (check) {
@@ -181,8 +180,7 @@ function insertRes(evt, res, anchors) {
 	var openedAnchors=new Array();	// 開くことができたレスのアンカーを格納
 	var resblock = _findChildByClassName(res, 'resblock');
 	if (!resblock) return new Array();
-	var buttonblock = _findChildByClassName(res, 'buttonblock');
-	var button = buttonblock.firstChild;
+	var button = _findChildByClassName(res, 'buttonblock');
 	var resblock_inner = _findChildByClassName(resblock, 'resblock_inner');
 	/*
 	// 既に開いていた場合
@@ -247,29 +245,64 @@ function insertRes(evt, res, anchors) {
 			importedRes[allAnchors[i]]=1;
 		}
 	}
+	var HTMLAnchorList=document.getElementsByName('linkfrom');
+
 	for (i=0;i<children.length;i++) {
 		var importId=children[i];
-//		console.log(importId);
+		//	console.log(importId);
 
-		var importElement=getElementForCopy(""+importId);
+		/*ハイパーリンクのURLを被参照ブロック内に変更する*/
+		var id_r=importId.replace(/qr/,'r');
+		var id_rx=importId.replace(/qr/,'rx');
+		var HTMLAnchorTo=document.getElementsByName(id_rx);
+
+		if (!HTMLAnchorTo.length){
+			var href=location.href.replace(/#.*$/,"#"+id_r);
+			for (ix=0;ix<HTMLAnchorList.length;ix++) {
+				if (HTMLAnchorList.item(ix).href == href) {
+					HTMLAnchorList.item(ix).href="#"+id_rx;
+				}
+			}
+		}
+	}
+	
+	for (i=0;i<children.length;i++) {
+		var importId=children[i];
+
+//		var importElement=getElementForCopy(""+importId);
+		var importElement2=getElement(importId);
+		
 
 		//参照先レス情報をコピー
 		var container=document.createElement('blockquote');
-		container.innerHTML=importElement.innerHTML.replace(/id=\"[^\"]+\"/g,"");
-		container.className='folding_container '+importId.replace(/qr/,"r");
+		var importedAnchor=createNamedElement('a',importId.replace(/qr/,'rx'));
+		container.appendChild(importedAnchor);
+		for (var c=0;c<importElement2.childNodes.length;c++) {
+			container.appendChild(importElement2.childNodes[c].cloneNode(true));
+		}
 
-		var anchor = _findAnchorComment(importElement);
+		var msgBlock = _findChildByClassName(container, 'message');
+		msgBlock.removeAttribute('id');
+//		container.innerHTML=importElement.innerHTML.replace(/id=\"[^\"]+\"/g,"");
+		container.className='folding_container ';
+		if (evt.type == 'dblclick' && !cascade_flag) {
+			container.className+='single_layer ';
+		}
+		container.className+=importId.replace(/qr/,"r");
+
+		var anchor = _findAnchorComment(importElement2);
 		if (anchor) {
 			container.onclick = function (evt) {
 				toggleResBlk(evt, this);
 			};
-			var c_buttonblock=document.createElement('div');
+/*			var c_buttonblock=document.createElement('div');
 			c_buttonblock.className = 'buttonblock';
 			if (button)
-				c_buttonblock.appendChild(button.cloneNode(false));
+				c_buttonblock.appendChild(button.cloneNode(false));*/
 
 			var reslistC = _findChildByClassName(container, 'reslist');
-			container.insertBefore(c_buttonblock, reslistC);
+			container.insertBefore(button.cloneNode(false), reslistC);
+			
 			var c_resblock=document.createElement('div');
 			c_resblock.className = 'resblock';
 			container.appendChild(c_resblock);
@@ -295,7 +328,7 @@ function insertRes(evt, res, anchors) {
 
 		openedAnchors.push(importId);
 		markRead.push(importId.replace(/qr/,'qm'));	// 子レスのポップアップを既読処理
-		var anchor = _findAnchorComment(importElement);
+		var anchor = _findAnchorComment(importElement2);
 		//		if (!anchor) {
 		markRead.push(importId.replace(/qr/,'r'));	// 孫がいないときは子レスの本体を既読処理
 		//		}
@@ -361,20 +394,41 @@ function removeRes(res, button) {
 				closedAnchors=closedAnchors.concat(result[1]);
 				markRead=markRead.concat(result[0]);
 				var id=resblock_inner.childNodes[c].className.match(/(t\d+)?r\d+/);
-				id=id[0].replace(/r/,"qr");
-				if (--importedRes[id]<=0) {
-					importedRes[id]=0;
-					closedAnchors.push(id);
-					markRead.push(id.replace(/qr/,'qm'));	// 子レスのポップアップを既読解除
-					var child=_findChildByClassName(resblock_inner, id.replace(/qr/,'r'));
+				var id_r=id[0];
+				var id_qr=id_r.replace(/r/,"qr");
+				if (--importedRes[id_qr]<=0) {
+					importedRes[id_qr]=0;
+					closedAnchors.push(id_qr);
+					markRead.push(id_qr.replace(/qr/,'qm'));	// 子レスのポップアップを既読解除
+					var child=_findChildByClassName(resblock_inner, id_r);
 					//			if (!_findChildByClassName(child, 'resblock')) {
-					markRead.push(id.replace(/qr/,'r'));	// 孫がいなければ子レスの本体を既読解除
-						//			}
+					markRead.push(id_r);	// 孫がいなければ子レスの本体を既読解除
+					//			}
 				}
-				//				console.log("close "+id+":"+importedRes[id]);
 			}
 			resblock.removeChild(resblock_inner);
+			
+			var HTMLAnchorList=document.getElementsByName('linkfrom');
+			/*ハイパーリンクのURLを元に戻す*/
+			for (var c=0;c<resblock_inner.childNodes.length;c++) {
+				var id=resblock_inner.childNodes[c].className.match(/(t\d+)?r\d+/);
+				var id_r=id[0];
+				var id_rx=id_r.replace(/r/,"rx");	
+				var HTMLAnchorTo=document.getElementsByName(id_rx);
+
+				if (!HTMLAnchorTo.length){
+					var href=location.href.replace(/#.*/,"#"+id_rx);
+					for (ix=0;ix<HTMLAnchorList.length;ix++) {
+						if (HTMLAnchorList.item(ix).href == href) {
+							HTMLAnchorList.item(ix).href="#"+id_r;
+						}
+					}
+				}
+			
+			}
 		}
+
+
 	}
 	
 	// reslistがあれば表示
@@ -762,6 +816,21 @@ Array.prototype.unique = function(){
    }
    return newarray;
 };
+
+function createNamedElement(type, name) {
+   var element = null;
+   // Try the IE way; this fails on standards-compliant browsers
+   try {
+      element = document.createElement('<'+type+' name="'+name+'">');
+   } catch (e) {
+   }
+   if (!element || element.nodeName != type.toUpperCase()) {
+      // Non-IE browser; use canonical method to create named element
+      element = document.createElement(type);
+      element.name = name;
+   }
+   return element;
+}
 
 // Stringクラスにメソッド追加
 String.prototype.remove= function(str,delimiter){

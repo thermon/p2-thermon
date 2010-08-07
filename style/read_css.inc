@@ -451,6 +451,11 @@ blockquote.folding_container:after {
 	display:block;
 }
 
+/*被参照レス展開ボタン*/
+img.buttonblock{
+	display: block;
+}
+
 /*被参照展開時本体レス非表示*/
 .res.imported .res-header,
 .res.imported .message,
@@ -462,6 +467,14 @@ blockquote.folding_container:after {
 	display:none;
 	visibility:hidden;
 }
+
+/*
+.folding_container.single_layer .reslist,
+.folding_container.single_layer .buttonblock
+{
+	display:none;
+}
+*/
 
 .res a.imported,
 .folding_container a.imported,
